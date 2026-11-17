@@ -57,10 +57,10 @@ export function Flyer({
         <rect width="100%" height="100%" filter={`url(#${grano})`} />
       </svg>
       <div className="absolute inset-x-0 bottom-0 -z-10 h-3/4 bg-gradient-to-t from-noche via-noche/70 to-transparent" aria-hidden />
-      <div className={size === "lg" ? "p-6" : "p-4"}>
+      <div className={size === "lg" ? "p-4 sm:p-6" : "p-4"}>
         <p
           className={`display uppercase text-white text-balance ${
-            size === "lg" ? "text-7xl" : "text-4xl"
+            size === "lg" ? "text-5xl sm:text-7xl" : "text-4xl"
           }`}
         >
           {event.title}

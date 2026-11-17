@@ -26,11 +26,11 @@ export default async function VenueLayout({
           <Link href={`/${venue.slug}`} className="flex items-center">
             <VenueLogo venue={venue} className="w-24 text-3xl" glow={!venue.logo} />
           </Link>
-          <div className="flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-3 text-sm">
             {venue.mapsUrl && (
               <a
                 href={venue.mapsUrl}
-                className="text-tenue hover:text-luz"
+                className="py-2 text-tenue hover:text-luz"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -40,7 +40,7 @@ export default async function VenueLayout({
             {venue.instagram && (
               <a
                 href={`https://instagram.com/${venue.instagram}`}
-                className="text-tenue hover:text-luz"
+                className="py-2 text-tenue hover:text-luz"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -51,7 +51,7 @@ export default async function VenueLayout({
         </div>
       </header>
       <div className="flex flex-1 flex-col">{children}</div>
-      <footer className="mt-auto flex items-center justify-center gap-2 py-8 text-xs text-tenue">
+      <footer className="mt-auto flex items-center justify-center gap-2 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-8 text-sm text-tenue">
         <span className="neon-soft size-1.5 rounded-full bg-accent" aria-hidden />
         Entradas con{" "}
         <Link href="/" className="font-semibold text-luz hover:underline">
