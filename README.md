@@ -108,7 +108,11 @@ Venta en puerta en efectivo, punto de venta físico, listas free y cortesías: l
 | Capa | Propuesta |
 | --- | --- |
 | Frontend + API | Next.js (App Router) + TypeScript |
-| Base de datos | Postgres |
+| Base de datos | Postgres en Supabase (conexión vía pooler desde Vercel; migraciones SQL versionadas en el repo) |
+| Auth | Supabase Auth: personal del boliche (admin, puerta, caja, RRPP) y comprador sin cuenta por código OTP |
+| Multi-boliche | Row Level Security (RLS) de Supabase: cada boliche ve solo sus datos |
+| Tiempo real | Supabase Realtime: ranking de RRPP y panel de ventas en vivo |
+| Archivos | Supabase Storage: flyers, logos y marca de cada boliche |
 | Pagos | Mercado Pago Checkout Pro + Split de Pagos (OAuth marketplace) |
 | Webhooks | Notificaciones IPN / webhooks de Mercado Pago para confirmar pagos |
 | Entradas | QR firmado (HMAC / JWT) de un solo uso |
@@ -132,6 +136,7 @@ Venta en puerta en efectivo, punto de venta físico, listas free y cortesías: l
 - **La puerta no puede fallar**: el escaneo tiene que funcionar sin conexión y ser rápido un sábado a la noche.
 - **Multi-boliche** desde el día uno, para no depender de un solo cliente.
 - Idempotencia en webhooks de pago y en validación de QR (una entrada = un ingreso).
+- Producción en un plan pago de Supabase: el plan gratis pausa la base tras 7 días sin uso.
 
 ---
 
