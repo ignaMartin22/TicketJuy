@@ -36,7 +36,7 @@ export default async function TicketPage({
 
   return (
     <main
-      className="mx-auto flex w-full max-w-md flex-1 flex-col items-center gap-6 px-4 py-8"
+      className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-5 px-4 py-5"
       style={{ "--accent": venue.accent } as CSSProperties}
     >
       <TicketStub
@@ -45,20 +45,21 @@ export default async function TicketPage({
         type={type}
         ticket={ticket}
         qr={qr}
+        big
         className="entrada-aparece"
       />
 
-      <p className="max-w-[22rem] text-center text-tenue text-balance">
+      <p className="max-w-sm text-center text-tenue text-balance">
         {HELP[ticket.status]}
       </p>
 
       {ticket.status === "valid" && (
-        <div className="grid w-full max-w-[22rem] grid-cols-2 gap-3">
+        <div className="grid w-full max-w-sm grid-cols-2 gap-3">
           {/* Próximas etapas: Wallet y transferencia (ver hoja de ruta). */}
           <button
             type="button"
             disabled
-            className="rounded-full border border-linea py-3 font-semibold text-tenue"
+            className="min-h-12 rounded-full border border-linea text-sm font-semibold text-tenue"
             title="Próximamente"
           >
             Transferir
@@ -66,7 +67,7 @@ export default async function TicketPage({
           <button
             type="button"
             disabled
-            className="rounded-full border border-linea py-3 font-semibold text-tenue"
+            className="min-h-12 rounded-full border border-linea text-sm font-semibold text-tenue"
             title="Próximamente"
           >
             Guardar en Wallet
@@ -74,7 +75,7 @@ export default async function TicketPage({
         </div>
       )}
 
-      <Link href={`/${venue.slug}/${event.slug}`} className="text-sm text-tenue underline underline-offset-4">
+      <Link href={`/${venue.slug}/${event.slug}`} className="py-3 text-tenue underline underline-offset-4">
         Ver la fecha
       </Link>
     </main>

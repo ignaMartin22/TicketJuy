@@ -1,6 +1,13 @@
 import type { Event, Ticket, TicketType, Venue } from "@/lib/mock-data";
 import { nightParts } from "@/lib/format";
 
+const STATUS_LABEL: Record<Ticket["status"], string> = {
+  valid: "Válida para ingresar",
+  used: "Ya usada",
+  transferred: "Transferida",
+  void: "Anulada",
+};
+
 const STAMP: Record<Ticket["status"], string | null> = {
   valid: null,
   used: "Usada",
@@ -20,6 +27,7 @@ export function TicketStub({
   qr,
   className = "",
   live = false,
+  big = false,
 }: {
   venue: Venue;
   event: Event;
@@ -29,22 +37,24 @@ export function TicketStub({
   className?: string;
   /** Versión animada de la portada: sin brillo propio (lo pone el anillo) y con escáner. */
   live?: boolean;
+  /** Versión para mostrar en la puerta: QR al ancho de la tarjeta y estado a la vista. */
+  big?: boolean;
 }) {
   const d = nightParts(event.startsAt);
   const stamp = STAMP[ticket.status];
 
   return (
     <article
-      className={`${live ? "" : "neon"} relative w-full max-w-[22rem] overflow-hidden rounded-[1.75rem] bg-noche-2 ${className}`}
+      className={`${live ? "" : "neon"} relative w-full ${big ? "max-w-sm" : "max-w-[22rem]"} overflow-hidden rounded-[1.75rem] bg-noche-2 ${className}`}
     >
-      <header className="px-6 pb-5 pt-6">
+      <header className={`px-6 ${big ? "pb-3 pt-5" : "pb-5 pt-6"}`}>
         <p className="text-sm font-semibold text-accent">
           {venue.name}, {venue.city}
         </p>
-        <h2 className="display mt-2 text-[2.6rem] uppercase text-balance">
+        <h2 className={`display mt-2 uppercase text-balance ${big ? "text-4xl" : "text-[2.6rem]"}`}>
           {event.title}
         </h2>
-        <p className="mt-3 text-sm capitalize text-tenue">
+        <p className={`capitalize ${big ? "mt-2 text-base text-luz" : "mt-3 text-sm text-tenue"}`}>
           {d.weekday} {d.day} {d.month}, {d.time} h
         </p>
       </header>
@@ -56,9 +66,9 @@ export function TicketStub({
         <span className="absolute inset-x-5 top-1/2 border-t border-dashed border-luz/20" />
       </div>
 
-      <div className="relative flex flex-col items-center px-6 pb-2 pt-4">
+      <div className={`relative flex flex-col items-center pb-2 ${big ? "px-4 pt-3" : "px-6 pt-4"}`}>
         <div
-          className={`w-full max-w-52 rounded-2xl bg-white p-3 [&_svg]:block [&_svg]:h-auto [&_svg]:w-full ${
+          className={`w-full ${big ? "max-w-72" : "max-w-52"} rounded-2xl bg-white p-3 [&_svg]:block [&_svg]:h-auto [&_svg]:w-full ${
             stamp ? "opacity-20" : ""
           }`}
           role="img"
@@ -75,13 +85,13 @@ export function TicketStub({
             {stamp}
           </p>
         )}
-        <p className="mt-4 font-semibold tracking-[0.15em] tabular-nums">
+        <p className="mt-3 font-semibold tracking-[0.15em] tabular-nums">
           {ticket.code}
         </p>
         {ticket.note && <p className="mt-1 text-sm text-tenue">{ticket.note}</p>}
       </div>
 
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 px-6 pb-6 pt-4 text-sm">
+      <dl className={`grid grid-cols-2 gap-x-4 gap-y-3 px-6 pb-6 pt-4 ${big ? "text-base" : "text-sm"}`}>
         <div>
           <dt className="text-tenue">Titular</dt>
           <dd className="font-semibold">{ticket.holderName}</dd>
@@ -90,6 +100,20 @@ export function TicketStub({
           <dt className="text-tenue">Entrada</dt>
           <dd className="font-semibold">{type.name}</dd>
         </div>
+        {big && (
+          <div className="col-span-2">
+            <dt className="sr-only">Estado</dt>
+            <dd
+              className={`rounded-full px-4 py-2 text-center font-semibold ${
+                ticket.status === "valid"
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-noche-3 text-tenue"
+              }`}
+            >
+              {STATUS_LABEL[ticket.status]}
+            </dd>
+          </div>
+        )}
       </dl>
     </article>
   );
