@@ -14,6 +14,8 @@ Saber qué construimos y cómo cobramos antes de escribir backend.
 - [x] Investigación del Split de Pagos de Mercado Pago (`docs/research/mercado-pago-split.md`)
 - [x] Investigación de Payway como alternativa (`docs/research/payway.md`)
 - [x] Decisión: usar Mercado Pago
+- [x] Investigación de rampas web3: Stellar, Ripio wARS, Settle (`docs/research/rampas-web3.md`)
+- [x] Decisión: cripto en pausa. Se reactiva si una rampa registrada ofrece cobro para comercios y un abogado confirma que TicketJuy no queda como PSAV
 - [x] Decisión: plataforma por dentro, solo Moon por fuera
 - [ ] Respuestas de Moon: procesadora, comisión actual y plazo de cobro
 - [ ] Confirmar con Mercado Pago qué medios de pago acepta el split
