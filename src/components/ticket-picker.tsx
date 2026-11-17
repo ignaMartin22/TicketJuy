@@ -31,9 +31,15 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
     const el = listRef.current;
     if (!el) return;
     // El margen inferior descuenta la barra fija: lo tapado no cuenta como visto.
+    // Que asome el borde de la lista no alcanza: tiene que verse al menos una
+    // tarjeta entera (≈ 160px) para esconder el atajo.
     const io = new IntersectionObserver(
-      ([entry]) => setListVisible(entry.isIntersecting),
-      { rootMargin: "0px 0px -96px 0px" },
+      ([entry]) =>
+        setListVisible(entry.isIntersecting && entry.intersectionRect.height >= 160),
+      {
+        rootMargin: "0px 0px -96px 0px",
+        threshold: Array.from({ length: 21 }, (_, i) => i / 20),
+      },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -174,10 +180,15 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
           ) : (
             <a
               href="#entradas"
-              className="neon-soft grid min-h-12 w-full place-items-center rounded-full bg-accent px-6 text-lg font-semibold text-accent-foreground"
+              className="neon-soft flex min-h-14 w-full flex-col items-center justify-center rounded-full bg-accent px-6 leading-tight text-accent-foreground"
             >
-              Comprar entradas
-              {from !== null && ` · desde ${formatPrice(from)}`}
+              {/* En dos líneas: en una no entra a 360px. */}
+              <span className="text-lg font-semibold">Comprar entradas</span>
+              {from !== null && (
+                <span className="text-sm font-medium opacity-80">
+                  desde {formatPrice(from)}
+                </span>
+              )}
             </a>
           )}
         </div>

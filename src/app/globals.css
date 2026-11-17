@@ -38,6 +38,9 @@
 body {
   background: var(--noche);
   color: var(--luz);
+  /* Los halos y la marquesina de la portada no pueden generar scroll lateral en el celu.
+     clip (no hidden) para no romper los elementos sticky. */
+  overflow-x: clip;
 }
 
 /* Títulos de afiche: condensados, apretados. */

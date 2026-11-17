@@ -104,12 +104,17 @@ export function TicketStub({
           <div className="col-span-2">
             <dt className="sr-only">Estado</dt>
             <dd
-              className={`rounded-full px-4 py-2 text-center font-semibold ${
+              // Es un estado, no un botón: borde y punto, sin relleno que invite a tocar.
+              className={`flex items-center justify-center gap-2 rounded-full border px-4 py-2 font-semibold ${
                 ticket.status === "valid"
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-noche-3 text-tenue"
+                  ? "border-accent/60 text-accent"
+                  : "border-linea text-tenue"
               }`}
             >
+              <span
+                className={`size-2 rounded-full ${ticket.status === "valid" ? "neon-soft bg-accent" : "bg-tenue"}`}
+                aria-hidden
+              />
               {STATUS_LABEL[ticket.status]}
             </dd>
           </div>
