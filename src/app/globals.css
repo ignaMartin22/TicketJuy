@@ -13,6 +13,8 @@
   --luz: #f6f4ff;
   --tenue: #9a96ad;
 
+  --error: #ff8a95;
+
   --accent: #a34bff;
   --accent-foreground: #0a0006;
 
@@ -26,6 +28,7 @@
   --color-linea: var(--linea);
   --color-luz: var(--luz);
   --color-tenue: var(--tenue);
+  --color-error: var(--error);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --font-sans: var(--font-instrument);
