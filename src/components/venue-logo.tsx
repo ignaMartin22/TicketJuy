@@ -27,8 +27,8 @@ export function VenueLogo({
     <Image
       src={venue.logo}
       alt={venue.tagline ? `${venue.name}, ${venue.tagline}` : venue.name}
-      width={746}
-      height={260}
+      width={venue.logoSize?.[0] ?? 746}
+      height={venue.logoSize?.[1] ?? 260}
       priority={priority}
       className={`h-auto ${className}`}
       style={

@@ -1,6 +1,6 @@
 // Datos de prueba hasta conectar Supabase.
 // Los nombres siguen las entidades del README (Venue, Event, TicketType, Ticket).
-// Por fuera arrancamos solo con Moon, pero el modelo ya es multi-boliche:
+// Por fuera arrancamos solo con Infinity, pero el modelo ya es multi-boliche:
 // todo cuelga de un Venue.
 
 export type Venue = {
@@ -14,6 +14,8 @@ export type Venue = {
   tagline?: string;
   /** Logo blanco con fondo transparente (para fondos oscuros). */
   logo?: string;
+  /** Ancho y alto del logo, para reservar su lugar. */
+  logoSize?: [number, number];
   /** Foto del lugar para portadas. */
   cover?: string;
   /** Foto de fondo para los flyers provisorios. */
@@ -68,18 +70,20 @@ export type Ticket = {
 
 export const venues: Venue[] = [
   {
-    slug: "moon",
-    name: "Moon",
+    slug: "infinity",
+    name: "Infinity",
     city: "San Salvador de Jujuy",
     address: "San Salvador de Jujuy",
-    // PENDIENTE: confirmar el usuario real de Instagram de Moon.
-    instagram: "",
+    // La cuenta todavía lleva el nombre viejo del boliche (Moon).
+    instagram: "moon.nochesinfinitas",
     tagline: "Noches infinitas",
-    logo: "/venues/moon/logo-blanco.png",
-    // Recortes de una foto de la pista, sin el logo grande que trae en el medio.
-    cover: "/venues/moon/pista-luces.jpg",
-    flyerBackdrop: "/venues/moon/pista-gente.jpg",
-    mapsUrl: "https://www.google.com/maps/place/Moon+Night/@-24.1805835,-65.2718714,17z",
+    logo: "/brand/infinity/infinity-logo.svg",
+    logoSize: [416, 68],
+    // Recortes de una foto de la pista, sin los carteles con el nombre viejo (Moon).
+    cover: "/venues/infinity/pista-luces.jpg",
+    flyerBackdrop: "/venues/infinity/pista-gente.jpg",
+    // Mismo lugar que tenía Moon; la ficha de Google Maps todavía figura con el nombre viejo.
+    mapsUrl: "https://www.google.com/maps/search/?api=1&query=-24.1805835,-65.2718714",
     // Celeste de los carteles de neón del boliche.
     accent: "#4fc8ff",
     feeMode: "buyer",
@@ -99,9 +103,9 @@ const general = (
 export const events: Event[] = [
   {
     slug: "noche-de-luna-llena",
-    venueSlug: "moon",
+    venueSlug: "infinity",
     title: "Noche de Luna Llena",
-    lineup: ["Vale Quispe", "Residentes Moon"],
+    lineup: ["Vale Quispe", "Residentes Infinity"],
     description:
       "La fecha grande del mes. Pista principal con house y tech house hasta el cierre.",
     startsAt: "2026-11-21T00:30:00-03:00",
@@ -122,7 +126,7 @@ export const events: Event[] = [
   },
   {
     slug: "cumbia-hasta-el-alba",
-    venueSlug: "moon",
+    venueSlug: "infinity",
     title: "Cumbia hasta el alba",
     lineup: ["Los del Cerro", "DJ Tincho"],
     description: "Cumbia, cuarteto y algo de reggaetón. Banda en vivo a las 2:00.",
@@ -136,9 +140,9 @@ export const events: Event[] = [
   },
   {
     slug: "fiesta-de-egresados",
-    venueSlug: "moon",
+    venueSlug: "infinity",
     title: "Fiesta de egresados",
-    lineup: ["Residentes Moon"],
+    lineup: ["Residentes Infinity"],
     description: "Promo 2026. Fotógrafo en la entrada y cotillón incluido.",
     startsAt: "2026-12-05T00:30:00-03:00",
     doorsNote: "Hasta las 2:30",
@@ -148,9 +152,9 @@ export const events: Event[] = [
   },
   {
     slug: "fin-de-ano",
-    venueSlug: "moon",
-    title: "Año nuevo en Moon",
-    lineup: ["Vale Quispe", "DJ Tincho", "Residentes Moon"],
+    venueSlug: "infinity",
+    title: "Año nuevo en Infinity",
+    lineup: ["Vale Quispe", "DJ Tincho", "Residentes Infinity"],
     description: "Abrimos después del brindis. Barra libre de agua toda la noche.",
     startsAt: "2027-01-01T01:30:00-03:00",
     doorsNote: "Hasta las 4:00",
@@ -167,7 +171,7 @@ export const tickets: Ticket[] = [
   {
     code: "TJ-7K3M-Q9XA",
     eventSlug: "noche-de-luna-llena",
-    venueSlug: "moon",
+    venueSlug: "infinity",
     ticketTypeId: "anticipada-2",
     holderName: "Juan Pérez",
     status: "valid",
@@ -175,7 +179,7 @@ export const tickets: Ticket[] = [
   {
     code: "TJ-2PLR-8WDE",
     eventSlug: "noche-de-luna-llena",
-    venueSlug: "moon",
+    venueSlug: "infinity",
     ticketTypeId: "vip",
     holderName: "Camila Tolaba",
     status: "used",
@@ -184,7 +188,7 @@ export const tickets: Ticket[] = [
   {
     code: "TJ-9QZT-4HNB",
     eventSlug: "cumbia-hasta-el-alba",
-    venueSlug: "moon",
+    venueSlug: "infinity",
     ticketTypeId: "general",
     holderName: "Martín Cruz",
     status: "transferred",

@@ -15,7 +15,7 @@ const instrument = Instrument_Sans({
 
 export const metadata: Metadata = {
   title: { default: "Infinity Producciones", template: "%s | Infinity Producciones" },
-  description: "Entradas para Moon, en San Salvador de Jujuy. Comprás en un minuto y te llega por WhatsApp.",
+  description: "Las fechas de Infinity en San Salvador de Jujuy. Comprás en un minuto y te llega por WhatsApp.",
 };
 
 export const viewport: Viewport = {

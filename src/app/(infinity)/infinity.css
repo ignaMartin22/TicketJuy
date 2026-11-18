@@ -17,11 +17,11 @@
 
   background: var(--inf-noche);
   color: var(--inf-luz);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-texto), system-ui, sans-serif;
 }
 
 .inf-titulo {
-  font-family: var(--font-sora), system-ui, sans-serif;
+  font-family: var(--font-titulo), system-ui, sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.02;
@@ -145,4 +145,329 @@
     transform: translateY(18px);
     filter: blur(8px);
   }
+}
+
+/* ---------- Portada: el marco con la tarjeta que baja al anillo ---------- */
+
+/*
+ * --e va de 0 (portada) a 1 (anillo armado) con el scroll (ver hero-ring.tsx).
+ * Mientras dura la entrada todo sigue al scroll sin transiciones; con el
+ * anillo armado, girar de fecha en fecha sí se anima.
+ */
+.inf-escena {
+  /* Dónde está la tarjeta en la portada, respecto del centro del anillo. */
+  --hx: min(24vw, 22rem);
+  --hy: 3svh;
+  --hr: 5deg;
+  --hs: 1;
+}
+@media (max-width: 639px) {
+  .inf-escena {
+    --hx: 0px;
+    --hy: 2svh;
+    --hr: -3deg;
+    --hs: 0.74;
+  }
+}
+/* Pantallas bajas (celulares chicos o apaisados): la tarjeta se achica para no pisar el cartel. */
+@media (max-width: 639px) and (max-height: 640px) {
+  .inf-escena {
+    --hs: 0.8;
+    --hy: 5svh;
+  }
+  .inf-eslogan {
+    display: none;
+  }
+}
+
+/* El video de la pista: protagonista en la portada; en las fechas queda tenue y desenfocado. */
+.inf-fondo {
+  opacity: calc(0.85 - var(--e) * 0.63);
+  filter: blur(calc(var(--e) * 14px)) saturate(calc(1.15 + var(--e) * 0.2)) contrast(1.1);
+  transform: scale(calc(1 + var(--e) * 0.08));
+}
+/*
+ * Encima del video: un teñido celeste a magenta para que cualquier toma quede
+ * con los colores de la marca, y sombras que oscurecen donde va el texto.
+ */
+.inf-fondo-sombra {
+  background:
+    linear-gradient(180deg, #05040ab3 0%, transparent 22%, transparent 55%, #05040af2 100%),
+    linear-gradient(90deg, #05040ad9 0%, #05040a80 42%, transparent 75%);
+}
+.inf-fondo-sombra::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg in oklch, var(--inf-cian), var(--inf-magenta));
+  mix-blend-mode: color;
+  opacity: 0.55;
+}
+@media (max-width: 639px) {
+  .inf-fondo-sombra {
+    background: linear-gradient(180deg, #05040a99 0%, transparent 25%, #05040acc 55%, #05040afa 100%);
+  }
+}
+
+/* La portada se va hacia arriba y se apaga mientras las fechas toman el centro. */
+.inf-portada {
+  opacity: clamp(0, calc(1 - var(--e) * 1.8), 1);
+  transform: translateY(calc(var(--e) * -18svh));
+}
+.inf-escena[data-listo="si"] .inf-portada {
+  visibility: hidden;
+}
+
+/* El título y los controles del anillo aparecen cuando el anillo ya está armado. */
+.inf-titulo-fechas,
+.inf-anillo-controles {
+  opacity: clamp(0, calc((var(--e) - 0.8) * 5), 1);
+}
+.inf-escena[data-listo="no"] .inf-titulo-fechas,
+.inf-escena[data-listo="no"] .inf-anillo-controles {
+  visibility: hidden;
+}
+
+/* Luz de escenario en el piso, del color de la marca. */
+.inf-piso {
+  background:
+    radial-gradient(40% 60% at 42% 100%, #ee10b840, transparent 70%),
+    radial-gradient(40% 60% at 58% 100%, #17b8f140, transparent 70%);
+  opacity: var(--e);
+}
+
+/* Cuánto se abre el mazo de la portada (0 cerrado, 1 en abanico). Se anima al cargar. */
+@property --fan {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+/* Promo de Instagram: las fotos oscurecidas y teñidas con los colores de la marca, como la portada. */
+.inf-insta-velo {
+  background:
+    radial-gradient(70% 90% at 50% 50%, #05040ad9, #05040a8c),
+    linear-gradient(100deg in oklch, color-mix(in oklab, var(--inf-cian) 55%, transparent), color-mix(in oklab, var(--inf-magenta) 55%, transparent));
+}
+
+/* ---------- Cartel de neón ---------- */
+
+/*
+ * El logo como un cartel de tubos: un borde blanco caliente y dos halos, uno
+ * magenta y uno celeste. Al cargar se enciende con parpadeos, como un tubo
+ * que arranca, y cada tanto titila.
+ */
+.inf-neon {
+  filter:
+    drop-shadow(0 0 1px #fff)
+    drop-shadow(0 0 6px #ffffffb3)
+    drop-shadow(0 0 18px #ee10b8cc)
+    drop-shadow(0 0 42px #17b8f199);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .inf-neon {
+    animation:
+      inf-enciende 1.6s steps(1, end) 300ms both,
+      inf-titila 7s linear 3s infinite;
+  }
+  /* Aparece subiendo; --d es la demora. */
+  .inf-sube {
+    animation: inf-sube 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0ms) backwards;
+  }
+  .inf-baja {
+    animation: inf-baja 700ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+  /* El video se enciende de a poco. */
+  .inf-fondo {
+    animation: inf-fondo-entra 1800ms ease-out backwards;
+  }
+  /* Las tarjetas caen desde arriba como un mazo y después se abren en abanico. */
+  .inf-anillo-lugar {
+    animation:
+      inf-mazo-cae 1100ms cubic-bezier(0.16, 1, 0.3, 1) 700ms backwards,
+      inf-mazo-abre 900ms cubic-bezier(0.16, 1, 0.3, 1) 1500ms backwards;
+  }
+  /* Al entrar en pantalla con el scroll. */
+  @supports (animation-timeline: view()) {
+    .inf-revela {
+      animation: inf-revela linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 28%;
+    }
+  }
+}
+@keyframes inf-enciende {
+  0%, 9%, 15%, 29% { opacity: 0.08; }
+  6%, 12%, 22%, 40%, 100% { opacity: 1; }
+}
+@keyframes inf-titila {
+  0%, 92%, 94.5%, 96%, 100% { opacity: 1; }
+  93%, 95.5% { opacity: 0.55; }
+}
+@keyframes inf-sube {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(18px);
+  }
+}
+@keyframes inf-baja {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+@keyframes inf-fondo-entra {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes inf-mazo-cae {
+  from {
+    opacity: 0;
+    transform: translateY(-14svh) rotate(-6deg) scale(1.12);
+  }
+}
+@keyframes inf-mazo-abre {
+  from {
+    --fan: 0;
+  }
+}
+@keyframes inf-revela {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(40px);
+  }
+}
+
+/* La tarjeta y las controles reciben clics; el resto del lugar del anillo no tapa la portada. */
+.inf-anillo-lugar {
+  pointer-events: none;
+}
+.inf-anillo-lugar .inf-tarjeta,
+.inf-anillo-lugar .inf-anillo-controles {
+  pointer-events: auto;
+}
+
+/* ---------- Pila de fotos ---------- */
+
+.inf-pila {
+  width: min(23rem, 28vw, 50svh);
+  aspect-ratio: 4 / 5;
+}
+@media (max-width: 639px) {
+  .inf-pila {
+    width: min(58vw, 40svh);
+    /* En el celular las fotos se abren menos para no salirse de la pantalla. */
+    --abre: 0.4;
+  }
+}
+.inf-foto {
+  /* --in: cuánto entró (0 a 1). --prof: cuántas fotos tiene encima. */
+  transform:
+    translate(calc(var(--x) * var(--abre, 1) * 1%), calc(var(--y) * 1%))
+    rotate(calc(var(--r) * 1deg))
+    scale(calc(var(--in) * (1 - var(--prof) * 0.035)));
+  filter: brightness(calc(1 - var(--prof) * 0.1));
+  border: 1px solid #ffffff2e;
+  box-shadow: 0 30px 60px -25px #000;
+  will-change: transform;
+}
+
+/* ---------- Carrusel de fechas en anillo ---------- */
+
+.inf-anillo {
+  /* El alto de la pantalla también limita: tienen que entrar el título, la tarjeta y los controles. */
+  --w: min(20rem, 72vw, (100svh - 17rem) / 1.4);
+  --h: calc(var(--w) * 1.4);
+  height: var(--h);
+  perspective: 1600px;
+  transform-style: preserve-3d;
+}
+.inf-tarjeta {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--w);
+  height: var(--h);
+  margin-left: calc(var(--w) / -2);
+  border-radius: 1.5rem;
+  /*
+   * En la portada (--e = 0) todas viven en el lugar de la tarjeta, apiladas
+   * como un mazo abierto en abanico; en el anillo (--e = 1) cada una va a su
+   * lugar según --o (posición respecto de la del medio).
+   */
+  transform:
+    translate(calc(var(--hx) * (1 - var(--e))), calc(var(--hy) * (1 - var(--e))))
+    rotate(calc((var(--hr) + var(--o) * 9deg * var(--fan)) * (1 - var(--e))))
+    scale(calc(1 - (1 - var(--e)) * (1 - var(--hs))))
+    translateX(calc(var(--o) * (70% * var(--e) + 2.4rem * var(--fan) * (1 - var(--e)))))
+    translateZ(calc(var(--abs) * -280px))
+    rotateY(calc(var(--o) * -40deg * var(--e)));
+  z-index: calc(10 - var(--abs));
+  opacity: calc(0.85 + var(--e) * 0.15);
+  box-shadow: 0 30px 60px -30px #000;
+  transition:
+    transform 850ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 500ms ease-out,
+    box-shadow 600ms ease-out;
+}
+.inf-tarjeta[data-centro] {
+  opacity: 1;
+  box-shadow:
+    0 50px 90px -30px color-mix(in oklab, var(--tono) 70%, transparent),
+    0 24px 40px -24px #000;
+}
+.inf-tarjeta[aria-hidden="true"] {
+  opacity: 0;
+}
+.inf-escena[data-listo="no"] .inf-tarjeta {
+  transition: none;
+}
+.inf-tarjeta-cuerpo {
+  border: 1px solid #ffffff24;
+  background: var(--inf-superficie);
+}
+.inf-tarjeta-cuerpo > header,
+.inf-tarjeta-cuerpo > div:not([aria-hidden]) {
+  transition: opacity 500ms ease-out;
+}
+.inf-tarjeta:not([data-centro]) .inf-tarjeta-cuerpo > header,
+.inf-tarjeta:not([data-centro]) .inf-tarjeta-cuerpo > div:not([aria-hidden]) {
+  opacity: 0.7;
+}
+.inf-tarjeta-foto {
+  filter: grayscale(1) contrast(1.15) brightness(0.7);
+  transition: filter 600ms ease-out;
+}
+.inf-tarjeta[data-centro] .inf-tarjeta-foto {
+  filter: grayscale(1) contrast(1.1) brightness(1.05);
+}
+/* La foto teñida con el color de la tarjeta; las de los costados, apenas. */
+.inf-tarjeta-luz {
+  background:
+    radial-gradient(60% 45% at 50% 34%, color-mix(in oklab, var(--tono) 55%, white), transparent 72%),
+    radial-gradient(120% 95% at 50% 40%, var(--tono), color-mix(in oklab, var(--tono) 20%, #05040a) 88%);
+  mix-blend-mode: hard-light;
+  opacity: 0.3;
+  transition: opacity 600ms ease-out;
+}
+.inf-tarjeta[data-centro] .inf-tarjeta-luz {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .inf-punto-vivo {
+    animation: inf-punto-vivo 2s ease-out infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inf-tarjeta {
+    transition-duration: 0ms;
+  }
+}
+@keyframes inf-punto-vivo {
+  0% { box-shadow: 0 0 0 0 #9dff7a99; }
+  100% { box-shadow: 0 0 0 7px #9dff7a00; }
 }
