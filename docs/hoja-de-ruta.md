@@ -83,7 +83,7 @@ Que la puerta no falle un sábado a la 1:30.
 
 Que el boliche cargue fechas solo y vea la noche en vivo.
 
-- [ ] Cargar eventos, tipos de entrada y cupos
+- [ ] Cargar eventos, tipos de entrada y cupos (pantallas listas en `/admin`, falta guardarlos en Supabase)
 - [ ] Ventas, plata e ingresos por fecha
 - [ ] Marca del boliche en su página de venta
 
@@ -117,3 +117,7 @@ Vender una fecha real de punta a punta.
 | Entrada válida | `/entrada/TJ-7K3M-Q9XA` |
 | Entrada usada | `/entrada/TJ-2PLR-8WDE` |
 | Entrada transferida | `/entrada/TJ-9QZT-4HNB` |
+| Panel: resumen de ventas | `/admin` |
+| Panel: gestionar eventos | `/admin/eventos` |
+| Panel: nuevo evento | `/admin/eventos/nuevo` |
+| Panel: ventas de un evento | `/admin/eventos/noche-de-luna-llena` |
