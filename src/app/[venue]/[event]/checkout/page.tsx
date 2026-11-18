@@ -19,8 +19,8 @@ export default async function CheckoutPage({
   if (!venue || !event) notFound();
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 pb-8 pt-6 sm:px-6 sm:pt-8">
-      <h1 className="display mb-5 text-5xl sm:mb-8 sm:text-6xl uppercase">Tus datos</h1>
+    <main className="mx-auto w-full max-w-5xl px-4 pb-8 pt-8 sm:px-6 sm:pt-12">
+      <h1 className="display mb-6 text-4xl sm:mb-10 sm:text-5xl">Tus datos</h1>
       {/* El carrito viene en la URL (?t=...), que se lee al momento del pedido. */}
       <Suspense
         fallback={<div className="h-96 animate-pulse rounded-2xl bg-noche-2" />}

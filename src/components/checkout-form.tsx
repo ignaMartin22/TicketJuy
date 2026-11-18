@@ -72,12 +72,12 @@ export function CheckoutForm({ venue, event }: { venue: Venue; event: Event }) {
 
   if (lines.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-linea p-6">
+      <div className="panel rounded-3xl p-6">
         <p className="text-lg font-semibold">Tu compra está vacía</p>
         <p className="mt-1 text-tenue">Elegí al menos una entrada para seguir.</p>
         <Link
           href={backHref}
-          className="mt-4 grid min-h-12 place-items-center rounded-full bg-accent px-6 font-semibold text-accent-foreground sm:inline-grid"
+          className="mt-4 grid min-h-12 place-items-center px-6 sm:inline-grid rounded-full bg-luz font-semibold text-noche transition-transform duration-200 ease-out active:scale-[0.97]"
         >
           Elegir entradas
         </Link>
@@ -129,7 +129,7 @@ export function CheckoutForm({ venue, event }: { venue: Venue; event: Event }) {
       className="grid gap-6 max-lg:pb-[calc(8rem+env(safe-area-inset-bottom))] lg:grid-cols-[1fr_22rem] lg:items-start lg:gap-10"
     >
       {/* Resumen: arriba y plegable en el celu; columna fija a la derecha en compu. */}
-      <details className="group overflow-hidden rounded-2xl border border-linea bg-noche-2 lg:hidden">
+      <details className="panel group overflow-hidden rounded-3xl lg:hidden">
         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
           <span className="min-w-0">
             <span className="block truncate font-semibold">{event.title}</span>
@@ -139,7 +139,7 @@ export function CheckoutForm({ venue, event }: { venue: Venue; event: Event }) {
               <span className="hidden text-accent group-open:inline">Ocultar detalle</span>
             </span>
           </span>
-          <span className="display shrink-0 text-3xl tabular-nums">{formatPrice(total)}</span>
+          <span className="display shrink-0 text-xl tabular-nums">{formatPrice(total)}</span>
         </summary>
         <div className="border-t border-linea p-4">
           <OrderDetail event={event} lines={lines} fees={fees} total={total} backHref={backHref} />
@@ -196,7 +196,7 @@ export function CheckoutForm({ venue, event }: { venue: Venue; event: Event }) {
         />
       </fieldset>
 
-      <aside className="hidden overflow-hidden rounded-2xl border border-linea bg-noche-2 lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1 lg:block">
+      <aside className="panel hidden overflow-hidden rounded-3xl shadow-[0_40px_80px_-45px_var(--accent)] lg:sticky lg:top-24 lg:col-start-2 lg:row-start-1 lg:block">
         <div className="p-5">
           <OrderDetail event={event} lines={lines} fees={fees} total={total} backHref={backHref} />
         </div>
@@ -210,7 +210,7 @@ export function CheckoutForm({ venue, event }: { venue: Venue; event: Event }) {
       </aside>
 
       {/* Celu: botón fijo al borde de la pantalla, a mano del pulgar. */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-noche/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-noche/80 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl lg:hidden">
         <PayButton paying={paying} label={payLabel} />
         <p className="mt-2 text-center text-sm text-tenue">
           El pago se hace en Mercado Pago.
@@ -257,7 +257,7 @@ function OrderDetail({
       </ul>
       <div className="mt-4 flex items-baseline justify-between border-t border-dashed border-linea pt-4">
         <span className="font-semibold">Total</span>
-        <span className="display text-4xl tabular-nums">{formatPrice(total)}</span>
+        <span className="display text-2xl tabular-nums">{formatPrice(total)}</span>
       </div>
       <Link href={backHref} className="mt-1 inline-block py-3 text-tenue underline underline-offset-4">
         Cambiar entradas
@@ -272,11 +272,11 @@ function PayButton({ paying, label }: { paying: boolean; label: string }) {
       type="submit"
       disabled={paying}
       aria-busy={paying}
-      className="neon-soft flex min-h-14 w-full items-center justify-center gap-3 rounded-full bg-accent text-lg font-semibold text-accent-foreground disabled:cursor-wait disabled:opacity-80"
+      className="flex min-h-14 w-full items-center justify-center gap-3 text-lg disabled:cursor-wait disabled:opacity-80 rounded-full bg-luz font-semibold text-noche transition-transform duration-200 ease-out active:scale-[0.97]"
     >
       {paying && (
         <span
-          className="size-5 animate-spin rounded-full border-2 border-accent-foreground/30 border-t-accent-foreground motion-reduce:animate-none"
+          className="size-5 animate-spin rounded-full border-2 border-noche/30 border-t-noche motion-reduce:animate-none"
           aria-hidden
         />
       )}
@@ -315,7 +315,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy || undefined}
-        className={`h-14 rounded-xl border bg-noche-2 px-4 text-base outline-none placeholder:text-tenue/50 focus:border-accent ${
+        className={`h-14 rounded-2xl border bg-noche-2/70 px-4 text-base outline-none backdrop-blur transition-[border-color,box-shadow] duration-200 placeholder:text-tenue/50 focus:border-accent focus:shadow-[0_0_0_4px_color-mix(in_oklab,var(--accent)_22%,transparent)] ${
           error ? "border-error" : "border-linea"
         }`}
       />

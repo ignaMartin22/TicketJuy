@@ -1,21 +1,22 @@
 @import "tailwindcss";
 
 /*
- * TicketJuy: neón nocturno.
- * Casi negro, un solo color neón por pantalla y brillo en vez de más colores.
- * TicketJuy usa violeta eléctrico; cada boliche pisa --accent con su propio neón.
+ * Infinity: negro profundo y los dos colores del logo, celeste y magenta.
+ * El acento por defecto es el magenta; cada boliche puede pisar --accent.
  */
 :root {
-  --noche: #07060c;
-  --noche-2: #100e18;
-  --noche-3: #1b1826;
-  --linea: #ffffff14;
-  --luz: #f6f4ff;
-  --tenue: #9a96ad;
+  --noche: #05040a;
+  --noche-2: #0e0c16;
+  --noche-3: #17141f;
+  --linea: #ffffff1f;
+  --luz: #f6f6f6;
+  --tenue: #9c98ae;
+  --cian: #17b8f1;
+  --magenta: #ee10b8;
 
   --error: #ff8a95;
 
-  --accent: #a34bff;
+  --accent: #ee10b8;
   --accent-foreground: #0a0006;
 
   color-scheme: dark;
@@ -31,25 +32,49 @@
   --color-error: var(--error);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --font-sans: var(--font-instrument);
-  --font-display: var(--font-shoulders);
+  --font-sans: var(--font-texto);
+  --font-display: var(--font-titulo);
 }
 
 body {
-  background: var(--noche);
+  /* Luz celeste y magenta de fondo, quieta mientras se scrollea. */
+  background:
+    radial-gradient(55% 45% at 8% 0%, #17b8f11f, transparent 70%),
+    radial-gradient(55% 45% at 92% 100%, #ee10b824, transparent 70%),
+    var(--noche);
+  background-attachment: fixed;
   color: var(--luz);
   /* Los halos y la marquesina de la portada no pueden generar scroll lateral en el celu.
      clip (no hidden) para no romper los elementos sticky. */
   overflow-x: clip;
 }
 
-/* Títulos de afiche: condensados, apretados. */
+/* Títulos: Unbounded, ancha y pesada, como el cartel de la portada. */
 .display {
-  font-family: var(--font-shoulders);
-  font-variation-settings: "opsz" 72;
-  font-weight: 800;
-  line-height: 0.88;
-  letter-spacing: -0.01em;
+  font-family: var(--font-titulo);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+/* Tarjeta de vidrio oscuro: la superficie de las pantallas de compra. */
+.panel {
+  background: color-mix(in oklab, var(--noche-2) 72%, transparent);
+  border: 1px solid var(--linea);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Teñido celeste a magenta sobre una foto, como el video de la portada. */
+.tinte {
+  background: linear-gradient(100deg in oklch, var(--cian), var(--magenta));
+  mix-blend-mode: color;
+  opacity: 0.6;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--magenta) 50%, transparent);
+  color: var(--luz);
 }
 
 /* Brillo de neón: borde fino encendido y halo del mismo color. */

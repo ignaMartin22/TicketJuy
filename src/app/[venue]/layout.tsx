@@ -21,16 +21,20 @@ export default async function VenueLayout({
       className="flex flex-1 flex-col"
       style={{ "--accent": venue.accent } as CSSProperties}
     >
-      <header className="sticky top-0 z-30 border-b border-linea bg-noche/85 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <Link href={`/${venue.slug}`} className="flex items-center">
-            <VenueLogo venue={venue} className="w-24 text-3xl" glow={!venue.logo} />
+      {/* Barra flotante, igual a la de la portada. */}
+      <header className="sticky top-0 z-30 px-3 pt-3">
+        <nav
+          aria-label={venue.name}
+          className="mx-auto flex h-12 max-w-3xl items-center justify-between gap-2 rounded-full border border-white/10 bg-noche/60 pl-5 pr-1.5 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl"
+        >
+          <Link href="/" className="flex shrink-0 items-center" aria-label={`${venue.name}, inicio`}>
+            <VenueLogo venue={venue} className="w-24 shrink-0 text-xl sm:w-28" glow={false} />
           </Link>
-          <div className="flex items-center gap-3 text-sm">
+          <div className="flex items-center gap-1 text-sm">
             {venue.mapsUrl && (
               <a
                 href={venue.mapsUrl}
-                className="py-2 text-tenue hover:text-luz"
+                className="rounded-full px-3 py-2 text-white/75 transition-colors duration-200 hover:text-white max-sm:hidden"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -39,21 +43,31 @@ export default async function VenueLayout({
             )}
             {venue.instagram && (
               <a
-                href={`https://instagram.com/${venue.instagram}`}
-                className="py-2 text-tenue hover:text-luz"
+                href={`https://www.instagram.com/${venue.instagram}/`}
+                aria-label={`Instagram de ${venue.name}`}
+                className="grid size-9 place-items-center rounded-full text-white/75 transition-colors duration-200 hover:text-white"
                 target="_blank"
                 rel="noreferrer"
               >
-                @{venue.instagram}
+                <svg viewBox="0 0 24 24" className="size-[1.125rem]" aria-hidden>
+                  <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" strokeWidth="2" />
+                  <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+                  <circle cx="17.3" cy="6.7" r="1.2" fill="currentColor" />
+                </svg>
               </a>
             )}
+            <Link
+              href="/#fechas-ancla"
+              className="rounded-full bg-luz px-4 py-2 font-semibold text-noche transition-transform duration-200 ease-out active:scale-[0.97]"
+            >
+              Fechas
+            </Link>
           </div>
-        </div>
+        </nav>
       </header>
       <div className="flex flex-1 flex-col">{children}</div>
       <footer className="mt-auto flex items-center justify-center gap-2 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-8 text-sm text-tenue">
-        <span className="neon-soft size-1.5 rounded-full bg-accent" aria-hidden />
-        Entradas con{" "}
+                Entradas con{" "}
         <Link href="/" className="font-semibold text-luz hover:underline">
           Infinity Producciones
         </Link>
