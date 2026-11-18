@@ -9,7 +9,7 @@ export function generateStaticParams() {
   return venues.map((v) => ({ venue: v.slug }));
 }
 
-/** Las páginas de cada boliche llevan su marca; TicketJuy queda de fondo. */
+/** Las páginas de cada boliche llevan su marca; Infinity Producciones queda de fondo. */
 export default function VenueLayout(props: LayoutProps<"/[venue]">) {
   return <Suspense fallback={null}><VenueContent {...props} /></Suspense>;
 }
@@ -61,7 +61,7 @@ async function VenueContent({
         <span className="neon-soft size-1.5 rounded-full bg-accent" aria-hidden />
         Entradas con{" "}
         <Link href="/" className="font-semibold text-luz hover:underline">
-          TicketJuy
+          Infinity Producciones
         </Link>
       </footer>
     </div>
