@@ -1,4 +1,5 @@
-import type { CSSProperties } from "react";
+import { Suspense, type CSSProperties } from "react";
+import { getVenueCatalog } from "@/lib/catalog";
 import Image from "next/image";
 import Link from "next/link";
 import { DateBlock } from "@/components/date-block";
@@ -11,7 +12,6 @@ import {
   cheapestAvailable,
   getEvent,
   getTicket,
-  getVenueEvents,
   getVenue,
 } from "@/lib/mock-data";
 import { qrSvg } from "@/lib/qr";
@@ -56,14 +56,19 @@ const NEXT_STAGE = [
   "Transferir entradas entre personas, sin reventa",
 ];
 
-export default async function Landing() {
+export default function Landing() {
+  return <Suspense fallback={null}><LandingContent /></Suspense>;
+}
+
+async function LandingContent() {
   const sample = getTicket("TJ-7K3M-Q9XA")!;
   const venue = getVenue(sample.venueSlug)!;
   const event = getEvent(sample.venueSlug, sample.eventSlug)!;
   const type = event.ticketTypes.find((t) => t.id === sample.ticketTypeId)!;
   const qr = await qrSvg(sample.code);
-  const moon = getVenue("moon")!;
-  const moonEvents = getVenueEvents(moon.slug);
+  const moonCatalog = await getVenueCatalog("moon");
+  const moon = moonCatalog?.venue ?? getVenue("moon")!;
+  const moonEvents = moonCatalog?.events ?? [];
   const contact = whatsappLink("Hola, quiero vender las entradas de mi boliche con TicketJuy.");
 
   return (
@@ -141,7 +146,7 @@ export default async function Landing() {
             </div>
 
             {/* Cinta con las próximas fechas de Moon */}
-            <Link
+            {moonEvents.length > 0 && <Link
               href={`/${moon.slug}`}
               className="block overflow-hidden rounded-b-[inherit] border-t border-white/10 bg-black/30 py-3.5"
               aria-label="Ver las próximas fechas de Moon"
@@ -166,7 +171,7 @@ export default async function Landing() {
                   </div>
                 ))}
               </div>
-            </Link>
+            </Link>}
           </HeroCard>
         </section>
 
@@ -192,14 +197,14 @@ export default async function Landing() {
               <h2 className="sr-only">{moon.name}</h2>
               <VenueLogo venue={moon} className="w-[min(70vw,18rem)] text-[clamp(5rem,18vw,8rem)]" />
               <p className="mt-4 text-lg text-tenue">
-                {moon.city}. Elegí la fecha y comprá tu entrada.
+                {moon.city}. Consultá las próximas fechas.
               </p>
-              <Link
+              {moonCatalog && <Link
                 href={`/${moon.slug}`}
                 className="neon-soft mt-8 self-start rounded-full bg-accent px-6 py-3.5 font-semibold text-accent-foreground"
               >
                 Ver todas las fechas
-              </Link>
+              </Link>}
             </div>
 
             <ul className="revelar-hijos flex flex-col">

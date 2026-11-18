@@ -6,7 +6,11 @@ import { encodeCart, MAX_PER_ORDER, type Cart } from "@/lib/cart";
 import { formatPrice, serviceFee } from "@/lib/format";
 import type { Event, Venue } from "@/lib/mock-data";
 
-export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
+export function TicketPicker({ venue, event, readOnly = false }: {
+  venue: Venue;
+  event: Event;
+  readOnly?: boolean;
+}) {
   const [cart, setCart] = useState<Cart>({});
   // La lista de entradas ¿se ve en pantalla? Si sí, no hace falta el atajo.
   const [listVisible, setListVisible] = useState(true);
@@ -55,11 +59,12 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
 
   const hasCart = count > 0;
   // Con el carrito vacío, la barra es solo un atajo: se esconde si ya ves las entradas.
-  const barVisible = from !== null && (hasCart || !listVisible);
+  const barVisible = !readOnly && from !== null && (hasCart || !listVisible);
 
   return (
     <>
-      {from === null && (
+      {readOnly && <p className="mt-3 text-tenue">La compra online todavía no está disponible.</p>}
+      {from === null && event.ticketTypes.length > 0 && (
         <p className="mt-3 rounded-2xl border border-dashed border-linea p-4 text-tenue">
           Las entradas de esta fecha están agotadas.
         </p>
@@ -112,7 +117,7 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
                 )}
               </div>
 
-              {!soldOut && (
+              {!readOnly && !soldOut && (
                 <div className="flex shrink-0 items-center rounded-full bg-noche p-1">
                   <button
                     type="button"

@@ -1,20 +1,26 @@
-import type { CSSProperties } from "react";
+import { Suspense, type CSSProperties } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { VenueLogo } from "@/components/venue-logo";
-import { getVenue, venues } from "@/lib/mock-data";
+import { getVenueCatalog } from "@/lib/catalog";
+import { venues } from "@/lib/mock-data";
 
 export function generateStaticParams() {
   return venues.map((v) => ({ venue: v.slug }));
 }
 
 /** Las páginas de cada boliche llevan su marca; TicketJuy queda de fondo. */
-export default async function VenueLayout({
+export default function VenueLayout(props: LayoutProps<"/[venue]">) {
+  return <Suspense fallback={null}><VenueContent {...props} /></Suspense>;
+}
+
+async function VenueContent({
   children,
   params,
 }: LayoutProps<"/[venue]">) {
-  const venue = getVenue((await params).venue);
-  if (!venue) notFound();
+  const catalog = await getVenueCatalog((await params).venue);
+  if (!catalog) notFound();
+  const { venue } = catalog;
 
   return (
     <div

@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { Flyer } from "@/components/flyer";
 import { TicketPicker } from "@/components/ticket-picker";
 import { formatNight } from "@/lib/format";
-import { events, getEvent, getVenue } from "@/lib/mock-data";
+import { getEventCatalog, hasLiveCatalog } from "@/lib/catalog";
+import { events } from "@/lib/mock-data";
 
 export function generateStaticParams() {
   return events.map((e) => ({ venue: e.venueSlug, event: e.slug }));
@@ -14,16 +15,17 @@ export async function generateMetadata({
   params,
 }: PageProps<"/[venue]/[event]">): Promise<Metadata> {
   const { venue, event } = await params;
-  return { title: getEvent(venue, event)?.title ?? "Evento" };
+  const catalog = await getEventCatalog(venue, event);
+  return { title: catalog?.event.title ?? "Evento" };
 }
 
 export default async function EventPage({
   params,
 }: PageProps<"/[venue]/[event]">) {
   const { venue: venueSlug, event: eventSlug } = await params;
-  const venue = getVenue(venueSlug);
-  const event = getEvent(venueSlug, eventSlug);
-  if (!venue || !event) notFound();
+  const catalog = await getEventCatalog(venueSlug, eventSlug);
+  if (!catalog) notFound();
+  const { venue, event } = catalog;
 
   const dondeValue = `${venue.name}, ${venue.address === venue.city ? venue.city : `${venue.address}, ${venue.city}`}`;
   // Lo que decide la compra va arriba de las entradas; el resto, después.
@@ -55,7 +57,7 @@ export default async function EventPage({
         </dl>
 
         <h2 id="entradas" className="entra mt-8 scroll-mt-20 text-xl font-semibold" style={{ "--d": "400ms" } as CSSProperties}>Elegí tus entradas</h2>
-        <TicketPicker venue={venue} event={event} />
+        <TicketPicker venue={venue} event={event} readOnly={hasLiveCatalog()} />
 
         <p className="mt-10 max-w-[36rem] text-lg">{event.description}</p>
         {moreFacts.length > 0 && (

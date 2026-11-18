@@ -155,3 +155,10 @@ Venta en puerta en efectivo, punto de venta físico, listas free y cortesías: l
 ## Desarrollo
 
 Todavía no hay código. Cuando se inicialice el proyecto, acá van las instrucciones para correrlo localmente.
+
+
+## Catálogo del backend
+
+Configurá `TICKETERA_API_URL=http://127.0.0.1:8000` en `.env.local` para leer fechas y tipos de entrada desde [ticketera-core](https://github.com/ignaMartin22/ticketera-core). Creá y activá el boliche `moon` en Django y publicá sus fechas para verlas en la portada. El navegador recibe el catálogo a través de Next.js.
+
+Con el catálogo real habilitado, las fechas y los precios se pueden consultar. La compra online se habilitará cuando esté listo el flujo de órdenes. Sin la variable, la demo mantiene los datos de prueba.

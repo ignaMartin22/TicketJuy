@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CheckoutForm } from "@/components/checkout-form";
+import { hasLiveCatalog } from "@/lib/catalog";
 import { events, getEvent, getVenue } from "@/lib/mock-data";
 
 export const metadata: Metadata = { title: "Finalizar compra" };
@@ -13,6 +14,7 @@ export function generateStaticParams() {
 export default async function CheckoutPage({
   params,
 }: PageProps<"/[venue]/[event]/checkout">) {
+  if (hasLiveCatalog()) notFound();
   const { venue: venueSlug, event: eventSlug } = await params;
   const venue = getVenue(venueSlug);
   const event = getEvent(venueSlug, eventSlug);
