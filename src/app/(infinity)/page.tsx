@@ -1,16 +1,22 @@
-import type { CSSProperties } from "react";
+import { Suspense, type CSSProperties } from "react";
 import Link from "next/link";
-import { cheapestAvailable, events, tickets, venues } from "@/lib/mock-data";
+import { getVenueCatalog, hasLiveCatalog } from "@/lib/catalog";
+import { cheapestAvailable, events, tickets } from "@/lib/mock-data";
 import { formatPrice, nightParts, serviceFee } from "@/lib/format";
 import { qrSvg } from "@/lib/qr";
 import { HoloTicket } from "./_components/holo-ticket";
 import { InfinityTrail } from "./_components/infinity-trail";
 import { NightRings } from "./_components/night-rings";
 
-// Portada de Infinity Producciones. Por ahora con datos de prueba (src/lib/mock-data.ts).
+export default function InfinityPage() {
+  return <Suspense fallback={null}><InfinityContent /></Suspense>;
+}
 
-export default async function InfinityPrototype() {
-  const proximas = events.slice(0, 3);
+async function InfinityContent() {
+  const catalog = await getVenueCatalog("moon");
+  const proximas = catalog?.events.slice(0, 3) ?? [];
+  const venue = catalog?.venue;
+  const feeRate = venue?.feeMode === "buyer" ? venue.buyerFeeRate : 0;
   const ticket = tickets[0];
   const evento = events.find((e) => e.slug === ticket.eventSlug)!;
   const tipo = evento.ticketTypes.find((t) => t.id === ticket.ticketTypeId)!;
@@ -52,7 +58,9 @@ export default async function InfinityPrototype() {
             La noche que <span className="inf-degradado-texto">no termina</span>
           </h1>
           <p className="inf-aparece mt-3 max-w-sm text-[var(--inf-tenue)]" style={{ "--d": "500ms" } as CSSProperties}>
-            Entradas para Moon, en San Salvador de Jujuy. Comprás en un minuto y te llega por WhatsApp.
+            {hasLiveCatalog()
+              ? "Consultá las próximas fechas de Moon, en San Salvador de Jujuy."
+              : "Entradas para Moon, en San Salvador de Jujuy. Comprás en un minuto y te llega por WhatsApp."}
           </p>
           <a
             href="#fechas"
@@ -67,17 +75,18 @@ export default async function InfinityPrototype() {
         {/* 2. Próximas fechas como pósters */}
         <section id="fechas" className="mx-auto w-full max-w-5xl scroll-mt-16 px-4 py-14">
           <h2 className="inf-titulo text-3xl">Próximas fechas</h2>
+          {proximas.length === 0 && (
+            <p className="mt-6 text-[var(--inf-tenue)]">Por ahora no hay fechas publicadas.</p>
+          )}
           <ul className="mt-6 grid gap-4 sm:grid-cols-3">
             {proximas.map((e, i) => {
               const p = nightParts(e.startsAt);
               const base = cheapestAvailable(e);
-              const moon = venues[0];
-              // Precio final: con cargo de servicio si lo paga el comprador.
-              const desde = base && (moon.feeMode === "buyer" ? base + serviceFee(base, moon.buyerFeeRate) : base);
+              const desde = base === null ? null : base + serviceFee(base, feeRate);
               return (
                 <li key={e.slug}>
                   <Link
-                    href={`/moon/${e.slug}`}
+                    href={`/${e.venueSlug}/${e.slug}`}
                     className={`${i % 2 ? "inf-poster-b" : "inf-poster"} relative flex aspect-[4/5] flex-col justify-between overflow-hidden rounded-[1.5rem] border border-white/10 p-5`}
                   >
                     <div className="inf-grano" />
@@ -93,7 +102,7 @@ export default async function InfinityPrototype() {
                       <p className="inf-titulo text-3xl uppercase leading-none">{e.title}</p>
                       <p className="mt-2 text-sm text-white/80">{e.lineup.join(" · ")}</p>
                       <p className="mt-4 inline-flex min-h-11 items-center rounded-full bg-[var(--inf-luz)] px-5 font-semibold text-[var(--inf-noche)]">
-                        {desde ? `Desde ${formatPrice(desde)}` : "Agotada"}
+                        {desde === null ? "Agotada" : `Desde ${formatPrice(desde)}`}
                       </p>
                     </div>
                   </Link>
@@ -105,7 +114,7 @@ export default async function InfinityPrototype() {
 
         {/* 3. Entrada holográfica */}
         <section className="mx-auto w-full max-w-5xl px-4 py-14">
-          <h2 className="inf-titulo text-3xl">Tu entrada</h2>
+          <h2 className="inf-titulo text-3xl">Ejemplo de entrada</h2>
           <p className="mt-2 max-w-md text-[var(--inf-tenue)]">
             Un holograma que se mueve con el celu: se ve que es original, y el QR queda limpio para la puerta.
           </p>

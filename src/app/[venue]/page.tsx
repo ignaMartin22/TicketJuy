@@ -7,20 +7,21 @@ import { DateBlock } from "@/components/date-block";
 import { Flyer } from "@/components/flyer";
 import { VenueLogo } from "@/components/venue-logo";
 import { formatPrice } from "@/lib/format";
-import { cheapestAvailable, getVenue, getVenueEvents } from "@/lib/mock-data";
+import { getVenueCatalog } from "@/lib/catalog";
+import { cheapestAvailable } from "@/lib/mock-data";
 
 export async function generateMetadata({
   params,
 }: PageProps<"/[venue]">): Promise<Metadata> {
-  const venue = getVenue((await params).venue);
-  return { title: venue ? `${venue.name}, próximas fechas` : "Boliche" };
+  const catalog = await getVenueCatalog((await params).venue);
+  return { title: catalog ? `${catalog.venue.name}, próximas fechas` : "Boliche" };
 }
 
 export default async function VenuePage({ params }: PageProps<"/[venue]">) {
   const { venue: venueSlug } = await params;
-  const venue = getVenue(venueSlug);
-  if (!venue) notFound();
-  const events = getVenueEvents(venueSlug);
+  const catalog = await getVenueCatalog(venueSlug);
+  if (!catalog) notFound();
+  const { venue, events } = catalog;
   const [featured, ...rest] = events;
 
   return (
