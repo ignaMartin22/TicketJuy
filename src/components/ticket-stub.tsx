@@ -51,7 +51,7 @@ export function TicketStub({
         <p className="text-sm font-semibold text-accent">
           {venue.name}, {venue.city}
         </p>
-        <h2 className={`display mt-2 uppercase text-balance ${big ? "text-4xl" : "text-[2.6rem]"}`}>
+        <h2 className={`display mt-2 uppercase text-balance ${big ? "text-2xl" : "text-3xl"}`}>
           {event.title}
         </h2>
         <p className={`capitalize ${big ? "mt-2 text-base text-luz" : "mt-3 text-sm text-tenue"}`}>
@@ -81,7 +81,7 @@ export function TicketStub({
           </div>
         )}
         {stamp && (
-          <p className="neon-text display absolute top-[42%] -translate-y-1/2 -rotate-12 rounded-lg border-2 border-accent px-4 py-1 text-5xl uppercase">
+          <p className="neon-text display absolute top-[42%] -translate-y-1/2 -rotate-12 rounded-lg border-2 border-accent px-4 py-1 text-3xl uppercase">
             {stamp}
           </p>
         )}

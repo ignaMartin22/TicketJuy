@@ -81,11 +81,11 @@ export const venues: Venue[] = [
     logoSize: [416, 68],
     // Recortes de una foto de la pista, sin los carteles con el nombre viejo (Moon).
     cover: "/venues/infinity/pista-luces.jpg",
-    flyerBackdrop: "/venues/infinity/pista-gente.jpg",
+    flyerBackdrop: "/venues/infinity/hero-poster.jpg",
     // Mismo lugar que tenía Moon; la ficha de Google Maps todavía figura con el nombre viejo.
     mapsUrl: "https://www.google.com/maps/search/?api=1&query=-24.1805835,-65.2718714",
-    // Celeste de los carteles de neón del boliche.
-    accent: "#4fc8ff",
+    // Magenta del logo de Infinity.
+    accent: "#ee10b8",
     feeMode: "buyer",
     buyerFeeRate: 0.1,
   },

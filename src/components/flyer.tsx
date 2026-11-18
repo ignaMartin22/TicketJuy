@@ -37,18 +37,11 @@ export function Flyer({
           fill
           priority={priority}
           sizes={size === "lg" ? "(min-width: 1024px) 480px, 100vw" : "96px"}
-          className="-z-20 object-cover opacity-60 saturate-[0.8]"
+          className="-z-20 object-cover opacity-80 contrast-110"
         />
       )}
-      {/* Luz de neón desde arriba */}
-      <div
-        className="absolute -top-1/4 left-1/2 -z-10 aspect-square w-[130%] -translate-x-1/2 mix-blend-screen"
-        style={{
-          background:
-            "radial-gradient(closest-side, color-mix(in oklab, var(--accent) 45%, transparent), color-mix(in oklab, var(--accent) 10%, transparent) 60%, transparent)",
-        }}
-        aria-hidden
-      />
+      {/* Teñido celeste a magenta, como el video de la portada */}
+      <div className="tinte absolute inset-0 -z-10" aria-hidden />
       {/* Grano */}
       <svg className="absolute inset-0 -z-10 size-full opacity-[0.12] mix-blend-overlay" aria-hidden>
         <filter id={grano}>
@@ -60,13 +53,13 @@ export function Flyer({
       <div className={size === "lg" ? "p-4 sm:p-6" : "p-4"}>
         <p
           className={`display uppercase text-white text-balance ${
-            size === "lg" ? "text-5xl sm:text-7xl" : "text-4xl"
+            size === "lg" ? "text-4xl sm:text-5xl" : "text-xl"
           }`}
         >
           {event.title}
         </p>
         <p
-          className={`mt-3 font-medium text-accent ${
+          className={`mt-3 font-medium text-white/85 ${
             size === "lg" ? "text-base" : "text-sm"
           }`}
         >

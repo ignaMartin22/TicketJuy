@@ -2,12 +2,12 @@ import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { DateBlock } from "@/components/date-block";
 import { Flyer } from "@/components/flyer";
 import { VenueLogo } from "@/components/venue-logo";
 import { formatPrice } from "@/lib/format";
-import { cheapestAvailable, getVenue, getVenueEvents } from "@/lib/mock-data";
+import { cheapestAvailable, getVenue, getVenueEvents, venues } from "@/lib/mock-data";
 
 export async function generateMetadata({
   params,
@@ -18,6 +18,8 @@ export async function generateMetadata({
 
 export default async function VenuePage({ params }: PageProps<"/[venue]">) {
   const { venue: venueSlug } = await params;
+  // El boliche principal tiene su portada en la raíz del sitio.
+  if (venueSlug === venues[0].slug) redirect("/");
   const venue = getVenue(venueSlug);
   if (!venue) notFound();
   const events = getVenueEvents(venueSlug);
@@ -111,7 +113,7 @@ export default async function VenuePage({ params }: PageProps<"/[venue]">) {
                     className="hidden size-24 shrink-0 rounded-xl sm:flex [&_p:last-child]:hidden [&_p]:text-xl"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="display text-3xl uppercase text-balance group-hover:text-accent">
+                    <p className="display text-xl uppercase text-balance group-hover:text-accent">
                       {e.title}
                     </p>
                     <p className="mt-1 truncate text-sm text-tenue">

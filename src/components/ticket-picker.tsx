@@ -77,11 +77,11 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
           return (
             <li
               key={t.id}
-              className={`flex items-center justify-between gap-3 rounded-2xl border p-4 transition-colors ${
+              className={`panel flex items-center justify-between gap-3 rounded-3xl p-4 transition-[border-color,background-color,box-shadow] duration-300 sm:p-5 ${
                 qty > 0
-                  ? "neon-soft border-accent bg-accent/10"
-                  : "border-linea bg-noche-2/60"
-              } ${soldOut ? "opacity-70" : ""}`}
+                  ? "border-accent! bg-accent/10! shadow-[0_24px_50px_-28px_var(--accent)]"
+                  : ""
+              } ${soldOut ? "opacity-60" : ""}`}
             >
               <div className="min-w-0">
                 <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-lg font-semibold leading-tight">
@@ -99,7 +99,7 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
                 </p>
                 <p className="mt-0.5 text-sm text-tenue">{t.description}</p>
                 <p
-                  className={`mt-2 text-2xl font-semibold tabular-nums ${
+                  className={`display mt-3 text-2xl tabular-nums ${
                     soldOut ? "text-tenue line-through" : ""
                   }`}
                 >
@@ -113,13 +113,13 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
               </div>
 
               {!soldOut && (
-                <div className="flex shrink-0 items-center rounded-full bg-noche p-1">
+                <div className="flex shrink-0 items-center rounded-full border border-linea bg-noche/70 p-1">
                   <button
                     type="button"
                     onClick={() => change(t.id, -1)}
                     disabled={qty === 0}
                     aria-label={`Quitar una entrada ${t.name}`}
-                    className="grid size-12 place-items-center rounded-full text-3xl leading-none active:bg-noche-3 disabled:opacity-25"
+                    className="grid size-12 place-items-center rounded-full text-3xl leading-none transition-transform duration-150 ease-out active:scale-90 active:bg-noche-3 disabled:opacity-25"
                   >
                     −
                   </button>
@@ -136,7 +136,7 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
                     onClick={() => change(t.id, 1)}
                     disabled={count >= MAX_PER_ORDER || qty >= left}
                     aria-label={`Agregar una entrada ${t.name}`}
-                    className="grid size-12 place-items-center rounded-full bg-accent text-3xl leading-none text-accent-foreground disabled:opacity-25"
+                    className="grid size-12 place-items-center rounded-full bg-luz text-3xl leading-none text-noche transition-transform duration-150 ease-out active:scale-90 disabled:opacity-25"
                   >
                     +
                   </button>
@@ -154,7 +154,7 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
 
       {/* Barra fija: siempre a mano del pulgar. Vacía lleva a las entradas; con carrito, sigue al pago. */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-noche/95 backdrop-blur transition-transform duration-300 motion-reduce:transition-none ${
+        className={`fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-noche/80 backdrop-blur-xl transition-transform duration-300 motion-reduce:transition-none ${
           barVisible ? "translate-y-0" : "translate-y-full"
         }`}
         inert={!barVisible}
@@ -166,13 +166,13 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
                 <p className="text-sm text-tenue">
                   {count} {count === 1 ? "entrada" : "entradas"}
                 </p>
-                <p className="text-2xl font-semibold tabular-nums leading-tight">
+                <p className="display text-2xl tabular-nums">
                   {formatPrice(total)}
                 </p>
               </div>
               <Link
                 href={`/${venue.slug}/${event.slug}/checkout?t=${encodeCart(cart)}`}
-                className="neon-soft grid min-h-12 place-items-center rounded-full bg-accent px-8 text-lg font-semibold text-accent-foreground"
+                className="grid min-h-12 place-items-center px-8 text-lg rounded-full bg-luz font-semibold text-noche transition-transform duration-200 ease-out active:scale-[0.97]"
               >
                 Continuar
               </Link>
@@ -180,12 +180,12 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
           ) : (
             <a
               href="#entradas"
-              className="neon-soft flex min-h-14 w-full flex-col items-center justify-center rounded-full bg-accent px-6 leading-tight text-accent-foreground"
+              className="flex min-h-14 w-full flex-col items-center justify-center px-6 leading-tight rounded-full bg-luz font-semibold text-noche transition-transform duration-200 ease-out active:scale-[0.97]"
             >
               {/* En dos líneas: en una no entra a 360px. */}
               <span className="text-lg font-semibold">Comprar entradas</span>
               {from !== null && (
-                <span className="text-sm font-medium opacity-80">
+                <span className="text-sm font-medium opacity-70">
                   desde {formatPrice(from)}
                 </span>
               )}
