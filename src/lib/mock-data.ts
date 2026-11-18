@@ -39,6 +39,7 @@ export type TicketType = {
   price: number;
   capacity: number;
   sold: number;
+  available?: number;
 };
 
 export type Event = {
@@ -215,7 +216,11 @@ export function getTicket(code: string) {
   return tickets.find((t) => t.code === code);
 }
 
+export function availableTickets(type: TicketType) {
+  return type.available ?? type.capacity - type.sold;
+}
+
 export function cheapestAvailable(event: Event) {
-  const open = event.ticketTypes.filter((t) => t.sold < t.capacity);
+  const open = event.ticketTypes.filter((t) => availableTickets(t) > 0);
   return open.length ? Math.min(...open.map((t) => t.price)) : null;
 }
