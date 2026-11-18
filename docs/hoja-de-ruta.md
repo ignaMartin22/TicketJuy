@@ -2,7 +2,7 @@
 
 Para el equipo: qué está hecho y qué falta. No se publica en el sitio.
 
-Enfoque acordado: **por dentro es una plataforma** (varios boliches desde el día uno), **por fuera arranca solo con Moon**. La página principal es la landing de TicketJuy, con un apartado de Moon y sus próximas fechas. Moon tiene su página propia en `/moon`.
+Enfoque acordado: **por dentro es una plataforma** (varios boliches desde el día uno), **por fuera arranca solo con Infinity** (el boliche antes se llamaba Moon). La página principal es la landing de TicketJuy, con un apartado de Moon y sus próximas fechas. Moon tiene su página propia en `/moon`.
 
 Estados: ✅ hecho · 🔄 en curso · ⏳ pendiente · ⛔ bloqueado
 
@@ -16,7 +16,7 @@ Saber qué construimos y cómo cobramos antes de escribir backend.
 - [x] Decisión: usar Mercado Pago
 - [x] Investigación de rampas web3: Stellar, Ripio wARS, Settle (`docs/research/rampas-web3.md`)
 - [x] Decisión: cripto en pausa. Se reactiva si una rampa registrada ofrece cobro para comercios y un abogado confirma que TicketJuy no queda como PSAV
-- [x] Decisión: plataforma por dentro, solo Moon por fuera
+- [x] Decisión: plataforma por dentro, solo Infinity por fuera
 - [x] Respuestas de Moon: hoy paga 15 % de comisión y cobra a la semana
 - [ ] Respuestas de Moon: procesadora actual, si el 15 % lo paga Moon o el comprador, aforo habilitado y cuánto vende online y en puerta
 - [x] Investigación para bajar la comisión de MP: QR dinámico con split (`docs/research/mercado-pago-menos-comision.md`)
@@ -33,15 +33,15 @@ Saber qué construimos y cómo cobramos antes de escribir backend.
 
 Ver y probar el recorrido completo de compra antes de conectar nada.
 
-- [x] Landing de TicketJuy con apartado de Moon
-- [x] Página de Moon con sus fechas
+- [x] Portada de Infinity Producciones (reemplazó a la landing de TicketJuy)
+- [x] Página de Infinity con sus fechas (ex Moon, URL `/infinity`)
 - [x] Página del evento con tipos de entrada y cupos
 - [x] Checkout sin cuenta
 - [x] Entrada con QR y sus estados (válida, usada, transferida)
 - [x] Estética neón nocturna, con el color de cada boliche
-- [x] Logo, lema ("noches infinitas"), color celeste neón, foto y ubicación de Moon
+- [x] Logo vectorizado de Infinity, lema ("noches infinitas"), foto y ubicación del boliche
 - [ ] Flyers reales de cada fecha y fotos en mejor resolución
-- [ ] Usuario de Instagram de Moon (hoy no se muestra)
+- [ ] Usuario de Instagram de Infinity (hoy no se muestra)
 - [ ] Probarlo en celulares reales, también Android de gama baja
 
 ## 2. Base de datos y cuentas ⏳
@@ -87,7 +87,7 @@ Que el boliche cargue fechas solo y vea la noche en vivo.
 - [ ] Ventas, plata e ingresos por fecha
 - [ ] Marca del boliche en su página de venta
 
-## 7. Piloto con Moon ⏳
+## 7. Piloto con Infinity ⏳
 
 Vender una fecha real de punta a punta.
 
@@ -108,12 +108,12 @@ Vender una fecha real de punta a punta.
 
 | Pantalla | Ruta |
 | --- | --- |
-| Landing con apartado de Moon | `/` |
-| Página de Moon | `/moon` |
-| Evento con tanda agotada y últimas entradas | `/moon/noche-de-luna-llena` |
-| Evento con mesa VIP de precio alto | `/moon/fin-de-ano` |
-| Checkout con 3 entradas | `/moon/noche-de-luna-llena/checkout?t=anticipada-2:2,vip:1` |
-| Checkout vacío | `/moon/noche-de-luna-llena/checkout` |
+| Portada de Infinity Producciones | `/` |
+| Página de Infinity | `/infinity` |
+| Evento con tanda agotada y últimas entradas | `/infinity/noche-de-luna-llena` |
+| Evento con mesa VIP de precio alto | `/infinity/fin-de-ano` |
+| Checkout con 3 entradas | `/infinity/noche-de-luna-llena/checkout?t=anticipada-2:2,vip:1` |
+| Checkout vacío | `/infinity/noche-de-luna-llena/checkout` |
 | Entrada válida | `/entrada/TJ-7K3M-Q9XA` |
 | Entrada usada | `/entrada/TJ-2PLR-8WDE` |
 | Entrada transferida | `/entrada/TJ-9QZT-4HNB` |

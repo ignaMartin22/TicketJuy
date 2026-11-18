@@ -332,7 +332,7 @@ html {
 /* ---------- Apariciones ---------- */
 
 /*
- * Al cargar una página (Moon y sus eventos): .entra, con demora opcional en
+ * Al cargar una página (el boliche y sus eventos): .entra, con demora opcional en
  * --d. Las listas usan .entra-lista para escalonar sus hijos.
  * Al hacer scroll (landing): .revelar y .revelar-titulo, con animaciones
  * atadas al scroll donde el navegador lo soporta. Donde no, el contenido

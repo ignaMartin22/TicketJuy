@@ -1,6 +1,6 @@
 # TicketJuy
 
-Ticketera virtual para boliches y eventos nocturnos de Jujuy. El primer cliente es **Moon** (boliche de San Salvador de Jujuy).
+Ticketera virtual para boliches y eventos nocturnos de Jujuy. El primer cliente es **Infinity Producciones**, con su boliche Infinity en San Salvador de Jujuy (antes se llamaba Moon).
 
 La idea: que el boliche venda todas sus entradas (online, punto de venta físico, Instagram y puerta) desde **un solo sistema**, que la plata de cada venta entre **directo a su cuenta de Mercado Pago**, y que la comisión de la plataforma se separe sola en cada venta (split de pagos). El boliche no paga nada por adelantado: solo paga por lo que vende.
 
@@ -10,7 +10,7 @@ La idea: que el boliche venda todas sus entradas (online, punto de venta físico
 
 ## Problema
 
-Hoy un boliche como Moon vende entradas anticipadas por varios canales separados, sin un panel que los junte:
+Hoy un boliche como Infinity vende entradas anticipadas por varios canales separados, sin un panel que los junte:
 
 | Canal | Problema |
 | --- | --- |
@@ -33,7 +33,7 @@ Hoy un boliche como Moon vende entradas anticipadas por varios canales separados
 
 ### MVP
 
-- [ ] Alta de boliche (multi-tenant desde el inicio: varios boliches, no solo Moon)
+- [ ] Alta de boliche (multi-tenant desde el inicio: varios boliches, no solo Infinity)
 - [ ] Vinculación de la cuenta de Mercado Pago del boliche por OAuth
 - [ ] Carga de eventos y tipos de entrada con cupo por tipo
 - [ ] Checkout sin crear cuenta, en 2 toques, accesible desde el link de Instagram
