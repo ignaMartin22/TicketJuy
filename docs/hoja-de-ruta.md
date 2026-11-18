@@ -17,9 +17,17 @@ Saber qué construimos y cómo cobramos antes de escribir backend.
 - [x] Investigación de rampas web3: Stellar, Ripio wARS, Settle (`docs/research/rampas-web3.md`)
 - [x] Decisión: cripto en pausa. Se reactiva si una rampa registrada ofrece cobro para comercios y un abogado confirma que TicketJuy no queda como PSAV
 - [x] Decisión: plataforma por dentro, solo Moon por fuera
-- [ ] Respuestas de Moon: procesadora, comisión actual y plazo de cobro
+- [x] Respuestas de Moon: hoy paga 15 % de comisión y cobra a la semana
+- [ ] Respuestas de Moon: procesadora actual, si el 15 % lo paga Moon o el comprador, aforo habilitado y cuánto vende online y en puerta
+- [x] Investigación para bajar la comisión de MP: QR dinámico con split (`docs/research/mercado-pago-menos-comision.md`)
+- [x] Decisión: Mercado Pago antes que Payway o Rebill (mismo 0,8 % con dinero en cuenta, y solo MP tiene split en autoservicio)
+- [x] Investigación de modelo de negocio: cómo cobra TicketJuy y cómo se mueve la plata (`docs/research/modelos-de-negocio.md`)
+- [ ] Probar un pago real de $100 por Checkout Pro con dinero en cuenta para ver si cobra 0,8 % o 6,29 %
+- [ ] Probar en sandbox una orden QR con `marketplace_fee` y confirmar con MP su uso online
+- [ ] Investigar el botón de pago de MODO para pagar desde el mismo celular
 - [ ] Confirmar con Mercado Pago qué medios de pago acepta el split
-- [ ] Definir comisión por defecto y quién paga el cargo de servicio (hoy figura 10 % provisorio)
+- [ ] Definir la comisión (propuesta: porcentaje con piso por ingreso) y quién paga el cargo de servicio (hoy figura 10 % provisorio)
+- [ ] Elegir el nombre interno de la plataforma (TicketJuy es provisorio; hacia el público la marca es "Infinity Producciones")
 
 ## 1. Front del comprador con datos de prueba 🔄
 
