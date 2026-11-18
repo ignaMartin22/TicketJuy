@@ -13,6 +13,8 @@
   --luz: #f6f4ff;
   --tenue: #9a96ad;
 
+  --error: #ff8a95;
+
   --accent: #a34bff;
   --accent-foreground: #0a0006;
 
@@ -26,6 +28,7 @@
   --color-linea: var(--linea);
   --color-luz: var(--luz);
   --color-tenue: var(--tenue);
+  --color-error: var(--error);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --font-sans: var(--font-instrument);
@@ -35,6 +38,9 @@
 body {
   background: var(--noche);
   color: var(--luz);
+  /* Los halos y la marquesina de la portada no pueden generar scroll lateral en el celu.
+     clip (no hidden) para no romper los elementos sticky. */
+  overflow-x: clip;
 }
 
 /* Títulos de afiche: condensados, apretados. */

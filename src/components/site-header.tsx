@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Brand } from "@/components/brand";
 
 export function SiteHeader() {
@@ -6,24 +7,24 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Brand />
         <nav className="flex items-center gap-1 text-sm sm:gap-2">
-          <a
-            href="#moon"
-            className="rounded-full px-3 py-2 text-tenue hover:text-luz"
+          <Link
+            href="/#moon"
+            className="rounded-full px-3 py-2.5 text-tenue hover:text-luz"
           >
             Moon
-          </a>
-          <a
-            href="#como-funciona"
-            className="hidden rounded-full px-3 py-2 text-tenue hover:text-luz sm:block"
+          </Link>
+          <Link
+            href="/#como-funciona"
+            className="hidden rounded-full px-3 py-2.5 text-tenue hover:text-luz sm:block"
           >
             Cómo funciona
-          </a>
-          <a
-            href="#sumate"
-            className="neon-soft whitespace-nowrap rounded-full bg-accent px-4 py-2 font-semibold text-accent-foreground"
+          </Link>
+          <Link
+            href="/#sumate"
+            className="neon-soft whitespace-nowrap rounded-full bg-accent px-4 py-2.5 font-semibold text-accent-foreground"
           >
             Sumá tu boliche
-          </a>
+          </Link>
         </nav>
       </div>
     </header>
@@ -40,8 +41,8 @@ export function SiteFooter() {
             Entradas para la noche de Jujuy. Hecho en San Salvador.
           </p>
           <nav className="mt-4 flex gap-5 text-sm">
-            <a href="#moon" className="text-tenue hover:text-luz">Moon</a>
-            <a href="#como-funciona" className="text-tenue hover:text-luz">Cómo funciona</a>
+            <Link href="/#moon" className="text-tenue hover:text-luz">Moon</Link>
+            <Link href="/#como-funciona" className="text-tenue hover:text-luz">Cómo funciona</Link>
           </nav>
         </div>
       </div>
