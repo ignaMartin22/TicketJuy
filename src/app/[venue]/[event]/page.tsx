@@ -2,20 +2,20 @@ import { Suspense, type ReactNode } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TicketPicker } from "@/components/ticket-picker";
-import { events, getEvent, getVenue } from "@/lib/mock-data";
+import { eventParams, getEventCatalog } from "@/lib/catalog";
 import { nightParts } from "@/lib/format";
 // Las variables y estilos de la marca (las entradas con talón) viven acá.
 import "@/app/(infinity)/infinity.css";
 
 export function generateStaticParams() {
-  return events.map((e) => ({ venue: e.venueSlug, event: e.slug }));
+  return eventParams();
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/[venue]/[event]">): Promise<Metadata> {
   const { venue, event } = await params;
-  return { title: getEvent(venue, event)?.title ?? "Evento" };
+  return { title: (await getEventCatalog(venue, event))?.event.title ?? "Evento" };
 }
 
 export default function EventPage({ params }: PageProps<"/[venue]/[event]">) {
@@ -39,9 +39,9 @@ export default function EventPage({ params }: PageProps<"/[venue]/[event]">) {
 
 async function EventContent({ params }: { params: PageProps<"/[venue]/[event]">["params"] }) {
   const { venue: venueSlug, event: eventSlug } = await params;
-  const venue = getVenue(venueSlug);
-  const event = getEvent(venueSlug, eventSlug);
-  if (!venue || !event) notFound();
+  const catalog = await getEventCatalog(venueSlug, eventSlug);
+  if (!catalog) notFound();
+  const { venue, event } = catalog;
 
   const lugar = venue.address === venue.city ? venue.city : `${venue.address}, ${venue.city}`;
   const d = nightParts(event.startsAt);

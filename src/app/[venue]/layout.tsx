@@ -2,10 +2,10 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { VenueLogo } from "@/components/venue-logo";
-import { getVenue, venues } from "@/lib/mock-data";
+import { getVenueCatalog, venueParams } from "@/lib/catalog";
 
 export function generateStaticParams() {
-  return venues.map((v) => ({ venue: v.slug }));
+  return venueParams();
 }
 
 const PILL =
@@ -38,8 +38,9 @@ export default function VenueLayout({ children, params }: LayoutProps<"/[venue]"
 }
 
 async function VenueNav({ params }: { params: LayoutProps<"/[venue]">["params"] }) {
-  const venue = getVenue((await params).venue);
-  if (!venue) notFound();
+  const catalog = await getVenueCatalog((await params).venue);
+  if (!catalog) notFound();
+  const { venue } = catalog;
 
   return (
     <nav aria-label={venue.name} className={PILL}>
