@@ -2,14 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense, useRef, useState, type ReactNode } from "react";
-import { getVenue } from "@/lib/mock-data";
-import { ADMIN_VENUE_SLUG, resetEvents } from "../_lib/store";
+import { Suspense, useRef, useState, useTransition, type ReactNode } from "react";
+import type { StaffMembership, StaffRole, StaffSession } from "@/lib/staff-session";
+import { logoutStaff } from "../(panel)/actions";
+import { resetEvents } from "../_lib/store";
 import { ConfirmDialog } from "./confirm-dialog";
 import { PageTransition } from "./page-transition";
 import { CalendarIcon, ChartIcon, CloseIcon, MenuIcon, PlusIcon } from "./icons";
 
-const VENUE_NAME = getVenue(ADMIN_VENUE_SLUG)?.name ?? "Boliche";
+/** Cómo se muestra cada rol del personal. */
+const ROL: Record<StaffRole, string> = {
+  admin: "Administración",
+  door: "Puerta",
+  cashier: "Caja",
+};
 
 const NAV = [
   { href: "/admin", label: "Resumen", icon: ChartIcon },
@@ -30,7 +36,17 @@ function isActive(href: string, pathname: string | null) {
  * Sidebar fijo en PC; en celular, barra arriba con un menú que se abre como
  * <dialog> (trae foco atrapado, Escape y fondo).
  */
-export function AdminShell({ children }: { children: ReactNode }) {
+export function AdminShell({
+  children,
+  session,
+  membership,
+  demo,
+}: {
+  children: ReactNode;
+  session: StaffSession;
+  membership: StaffMembership;
+  demo?: boolean;
+}) {
   const drawer = useRef<HTMLDialogElement>(null);
   const close = () => drawer.current?.close();
 
@@ -38,7 +54,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
     <div className="flex flex-1 flex-col lg:flex-row">
       {/* Celular y tablet */}
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-linea bg-noche/90 px-4 backdrop-blur lg:hidden">
-        <Brand />
+        <Brand name={membership.venue.name} />
         <button
           type="button"
           onClick={() => drawer.current?.showModal()}
@@ -58,7 +74,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       >
         <div className="flex h-full flex-col p-4">
           <div className="flex items-center justify-between">
-            <Brand onNavigate={close} />
+            <Brand name={membership.venue.name} onNavigate={close} />
             <button
               type="button"
               onClick={close}
@@ -68,14 +84,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
               <CloseIcon />
             </button>
           </div>
-          <SidebarBody onNavigate={close} />
+          <SidebarBody session={session} membership={membership} demo={demo} onNavigate={close} />
         </div>
       </dialog>
 
       {/* PC */}
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-linea bg-noche-2/60 p-5 lg:flex">
-        <Brand />
-        <SidebarBody />
+        <Brand name={membership.venue.name} />
+        <SidebarBody session={session} membership={membership} demo={demo} />
       </aside>
 
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
@@ -87,20 +103,31 @@ export function AdminShell({ children }: { children: ReactNode }) {
   );
 }
 
-function Brand({ onNavigate }: { onNavigate?: () => void }) {
+function Brand({ name, onNavigate }: { name: string; onNavigate?: () => void }) {
   return (
     <Link href="/admin" onClick={onNavigate} className="flex items-center gap-2.5">
       <span className="neon-soft size-2 rounded-full bg-accent" aria-hidden />
       <span className="leading-tight">
-        <span className="block text-sm font-semibold">{VENUE_NAME}</span>
+        <span className="block text-sm font-semibold">{name}</span>
         <span className="block text-xs text-tenue">Panel del boliche</span>
       </span>
     </Link>
   );
 }
 
-function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarBody({
+  session,
+  membership,
+  demo,
+  onNavigate,
+}: {
+  session: StaffSession;
+  membership: StaffMembership;
+  demo?: boolean;
+  onNavigate?: () => void;
+}) {
   const [confirmReset, setConfirmReset] = useState(false);
+  const [pending, startTransition] = useTransition();
   return (
     <>
       <nav aria-label="Panel" className="mt-8 flex-1">
@@ -111,7 +138,16 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="flex flex-col gap-3 border-t border-linea pt-4 text-sm">
-        <Link href={`/${ADMIN_VENUE_SLUG}`} className="text-tenue hover:text-luz" onClick={onNavigate}>
+        <div>
+          <p className="font-medium">{session.username}</p>
+          <p className="text-xs text-tenue">{ROL[membership.role]}</p>
+          {demo && <p className="mt-1 text-xs text-tenue">Sesión de demostración</p>}
+        </div>
+        <Link
+          href={`/${membership.venue.slug}`}
+          className="text-tenue hover:text-luz"
+          onClick={onNavigate}
+        >
           Ver página pública
         </Link>
         <button
@@ -132,10 +168,17 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
           }}
           onClose={() => setConfirmReset(false)}
         />
-        {/* PROVISORIO: todavía no hay sesión; vuelve a la pantalla de ingreso. */}
-        <Link href="/admin/ingresar" className="text-tenue hover:text-luz" onClick={onNavigate}>
-          Cerrar sesión
-        </Link>
+        <button
+          type="button"
+          className="text-left text-tenue hover:text-luz disabled:opacity-60"
+          disabled={pending}
+          onClick={() => {
+            onNavigate?.();
+            startTransition(() => logoutStaff());
+          }}
+        >
+          {pending ? "Saliendo…" : "Cerrar sesión"}
+        </button>
         <p className="text-xs leading-relaxed text-tenue/80">
           Modo demo: los cambios se guardan solo en este navegador.
         </p>
