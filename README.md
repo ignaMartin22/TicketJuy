@@ -170,3 +170,7 @@ TICKETERA_API_URL=http://127.0.0.1:8000
 ```
 
 Con la variable, la portada, la página del boliche y las fechas leen el catálogo de la API desde el servidor de Next (el navegador nunca habla directo con Django). El catálogo se vuelve a pedir cada minuto. El checkout reserva el cupo por 10 minutos (`POST .../orders/`) con una clave de idempotencia por intento y lleva a `/<boliche>/<fecha>/pedido/<id>`. El pago con Mercado Pago todavía no está conectado: esa página muestra la reserva y el tiempo que queda.
+
+### Panel del boliche (`/admin`)
+
+`/admin/ingresar` es la pantalla de ingreso, pero **todavía no valida nada**: al enviar entra directo al panel, y `/admin` sigue abierto. Se conecta cuando ticketera-core tenga usuarios del personal.

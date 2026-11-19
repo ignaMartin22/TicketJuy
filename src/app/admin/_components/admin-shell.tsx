@@ -132,6 +132,10 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
           }}
           onClose={() => setConfirmReset(false)}
         />
+        {/* PROVISORIO: todavía no hay sesión; vuelve a la pantalla de ingreso. */}
+        <Link href="/admin/ingresar" className="text-tenue hover:text-luz" onClick={onNavigate}>
+          Cerrar sesión
+        </Link>
         <p className="text-xs leading-relaxed text-tenue/80">
           Modo demo: los cambios se guardan solo en este navegador.
         </p>
