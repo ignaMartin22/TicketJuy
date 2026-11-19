@@ -1033,7 +1033,7 @@
 
 /* ---------- Scroll por secciones ---------- */
 
-/* Los puntos de descanso del scroll (ver section-scroll.tsx): invisibles, sólo marcan dónde frenar. */
+/* Los puntos de referencia de la portada (ver scroll-stops.ts): invisibles. */
 .inf-snap {
   position: absolute;
   left: 0;

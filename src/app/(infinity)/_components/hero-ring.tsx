@@ -274,7 +274,7 @@ export function HeroRing({
   return (
     <section ref={section} className="relative" style={{ height: `${100 + ENTRY}svh` }}>
       {/*
-        Puntos de descanso del scroll (ver SectionScroll): la portada y el anillo
+        Puntos de referencia (ver scroll-stops.ts): la portada y el anillo
         armado, que es también adonde llevan los links a "Fechas". Las fechas se
         recorren con las flechas o deslizando el anillo, no con el scroll.
       */}
