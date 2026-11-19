@@ -7,7 +7,7 @@ import { eventTotals, formatCount, percent, sumTotals } from "../_lib/stats";
 import { useAdminEvents, useHydrated } from "../_lib/store";
 import { PlusIcon } from "./icons";
 import { PanelLoading } from "./loading";
-import { CIAN, HelioCard, MAGENTA, PillBars, SpokeRing, Stems } from "./dash-charts";
+import { CIAN, HelioCard, MAGENTA, MoneyRows, SpokeRing, TickRows } from "./dash-charts";
 import { buttonClass, Card, EventThumb, PageHeader, SalesBar, StatusBadge } from "./ui";
 
 export function SalesOverview() {
@@ -44,7 +44,7 @@ export function SalesOverview() {
       <div className="mt-8 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <HelioCard
           title="Vendidas"
-          subtitle="por tanda"
+          subtitle="por fecha"
           badge={`${percent(all.sold, all.capacity)}% del cupo`}
           href="/admin/eventos"
           stats={[
@@ -52,17 +52,10 @@ export function SalesOverview() {
             ["Cupo", formatCount(all.capacity)],
           ]}
         >
-          <Stems
-            groups={rows.map(({ event }) => {
+          <TickRows
+            rows={rows.map(({ event, total }) => {
               const d = nightParts(event.startsAt);
-              return {
-                label: `${d.day} ${d.month}`,
-                items: event.ticketTypes.map((t) => ({
-                  label: t.name,
-                  value: t.capacity ? t.sold / t.capacity : 0,
-                  detail: `${event.title} · ${t.name}: ${formatCount(t.sold)} de ${formatCount(t.capacity)}`,
-                })),
-              };
+              return { title: event.title, date: `${d.day} ${d.month}`, sold: total.sold, capacity: total.capacity };
             })}
           />
         </HelioCard>
@@ -98,12 +91,9 @@ export function SalesOverview() {
             ["Potencial", formatCompact(potential)],
           ]}
         >
-          <PillBars
+          <MoneyRows
             format={formatCompact}
-            items={rows.map(({ event, total }) => {
-              const d = nightParts(event.startsAt);
-              return { label: `${d.day} ${d.month}`, value: total.revenue, max: eventPotential(event) };
-            })}
+            rows={rows.map(({ event, total }) => ({ title: event.title, value: total.revenue, max: eventPotential(event) }))}
           />
         </HelioCard>
       </div>
