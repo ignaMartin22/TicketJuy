@@ -154,4 +154,19 @@ Venta en puerta en efectivo, punto de venta físico, listas free y cortesías: l
 
 ## Desarrollo
 
-Todavía no hay código. Cuando se inicialice el proyecto, acá van las instrucciones para correrlo localmente.
+```bash
+npm install
+npm run dev
+```
+
+Sin configuración, el sitio usa los datos de prueba de `src/lib/mock-data.ts` y la compra termina en una entrada de ejemplo.
+
+### Con el backend (ticketera-core)
+
+Levantá [ticketera-core](https://github.com/ignaMartin22/ticketera-core) y cargá Infinity con `python manage.py seed_infinity`. Después creá `.env.local` con:
+
+```
+TICKETERA_API_URL=http://127.0.0.1:8000
+```
+
+Con la variable, la portada, la página del boliche y las fechas leen el catálogo de la API desde el servidor de Next (el navegador nunca habla directo con Django). El catálogo se vuelve a pedir cada minuto. El checkout reserva el cupo por 10 minutos (`POST .../orders/`) con una clave de idempotencia por intento y lleva a `/<boliche>/<fecha>/pedido/<id>`. El pago con Mercado Pago todavía no está conectado: esa página muestra la reserva y el tiempo que queda.

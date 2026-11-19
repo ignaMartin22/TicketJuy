@@ -1,4 +1,4 @@
-// Datos de prueba hasta conectar Supabase.
+// Datos de prueba: se usan cuando no está configurada TICKETERA_API_URL (ver src/lib/catalog.ts).
 // Los nombres siguen las entidades del README (Venue, Event, TicketType, Ticket).
 // Por fuera arrancamos solo con Infinity, pero el modelo ya es multi-boliche:
 // todo cuelga de un Venue.
@@ -41,6 +41,8 @@ export type TicketType = {
   price: number;
   capacity: number;
   sold: number;
+  /** Lo que queda para vender: descuenta vendidas y reservas vigentes. Lo manda la API. */
+  available?: number;
 };
 
 export type Event = {
@@ -219,7 +221,11 @@ export function getTicket(code: string) {
   return tickets.find((t) => t.code === code);
 }
 
+export function availableTickets(type: TicketType) {
+  return type.available ?? type.capacity - type.sold;
+}
+
 export function cheapestAvailable(event: Event) {
-  const open = event.ticketTypes.filter((t) => t.sold < t.capacity);
+  const open = event.ticketTypes.filter((t) => availableTickets(t) > 0);
   return open.length ? Math.min(...open.map((t) => t.price)) : null;
 }

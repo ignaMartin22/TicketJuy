@@ -1,4 +1,5 @@
-import { cheapestAvailable, events, venues } from "@/lib/mock-data";
+import { getVenueCatalog, HOME_VENUE } from "@/lib/catalog";
+import { availableTickets, cheapestAvailable } from "@/lib/mock-data";
 import { formatPrice, nightParts, serviceFee } from "@/lib/format";
 import type { CSSProperties } from "react";
 import Image from "next/image";
@@ -10,13 +11,16 @@ import { NeonSign, SIGN_INSET } from "./_components/neon-sign";
 import { NeonThread } from "./_components/neon-thread";
 import { PhotoStack } from "./_components/photo-stack";
 
-// Portada de Infinity Producciones. Por ahora con datos de prueba (src/lib/mock-data.ts).
+// Portada de Infinity Producciones. Las fechas salen del catálogo (src/lib/catalog.ts).
 
 const ESLOGAN = "La noche que no termina";
 
-export default function InfinityPrototype() {
-  const fechas = [...events].sort((a, b) => a.startsAt.localeCompare(b.startsAt)).slice(0, 4);
-  const ig = venues[0].instagram;
+export default async function InfinityPrototype() {
+  const catalog = await getVenueCatalog(HOME_VENUE);
+  const venue = catalog?.venue;
+  const events = [...(catalog?.events ?? [])].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  const fechas = events.slice(0, 4);
+  const ig = venue?.instagram;
   const igUrl = `https://www.instagram.com/${ig}/`;
 
   return (
@@ -61,9 +65,9 @@ export default function InfinityPrototype() {
 
       <main className="flex flex-col">
         <HeroRing
-          backdrop={venues[0].flyerBackdrop}
+          backdrop={venue?.flyerBackdrop}
           // Sobre el borde de la tarjeta de la portada: cuánto falta para esa fecha, en una línea, para no pelearle al cartel.
-          underCard={<CountdownPill iso={events[0].startsAt} />}
+          underCard={events[0] && <CountdownPill iso={events[0].startsAt} />}
           background={<HeroVideo src="/venues/infinity/hero.mp4" poster="/venues/infinity/hero-poster.jpg" />}
           hero={
             <div className="mx-auto flex h-full max-w-6xl flex-col px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-20 sm:px-10 sm:pb-6 sm:pt-24">
@@ -116,12 +120,11 @@ export default function InfinityPrototype() {
           }
           events={events.map((e, i) => {
             const p = nightParts(e.startsAt);
-            const venue = venues.find((v) => v.slug === e.venueSlug)!;
             const base = cheapestAvailable(e);
             // Precio final: con cargo de servicio si lo paga el comprador.
-            const desde = base && (venue.feeMode === "buyer" ? base + serviceFee(base, venue.buyerFeeRate) : base);
-            const open = e.ticketTypes.find((t) => t.sold < t.capacity);
-            const left = open ? open.capacity - open.sold : 0;
+            const desde = base && (venue?.feeMode === "buyer" ? base + serviceFee(base, venue.buyerFeeRate) : base);
+            const open = e.ticketTypes.find((t) => availableTickets(t) > 0);
+            const left = open ? availableTickets(open) : 0;
             return {
               slug: e.slug,
               href: `/${e.venueSlug}/${e.slug}`,
@@ -130,7 +133,7 @@ export default function InfinityPrototype() {
               date: `${p.weekday.slice(0, 3)} ${p.day} ${p.month}`,
               time: p.time,
               from: desde ? formatPrice(desde) : null,
-              tiers: e.ticketTypes.map((t) => ({ id: t.id, sold: t.sold / t.capacity })),
+              tiers: e.ticketTypes.map((t) => ({ id: t.id, sold: t.capacity ? 1 - availableTickets(t) / t.capacity : 1 })),
               stock: open
                 ? `${open.name}: ${left <= open.capacity * 0.15 ? "últimas" : "quedan"} ${left}`
                 : "No quedan entradas",
