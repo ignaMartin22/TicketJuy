@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { encodeCart, MAX_PER_ORDER, type Cart } from "@/lib/cart";
 import { formatPrice, serviceFee } from "@/lib/format";
-import type { Event, Venue } from "@/lib/mock-data";
+import { availableTickets, type Event, type Venue } from "@/lib/mock-data";
 
 export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
   const [cart, setCart] = useState<Cart>({});
@@ -22,7 +22,7 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
     (sum, t) => sum + finalPrice(t.price) * (cart[t.id] ?? 0),
     0,
   );
-  const available = event.ticketTypes.filter((t) => t.capacity - t.sold > 0);
+  const available = event.ticketTypes.filter((t) => availableTickets(t) > 0);
   const from = available.length
     ? Math.min(...available.map((t) => finalPrice(t.price)))
     : null;
@@ -70,7 +70,7 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
         style={{ "--d": "550ms" } as React.CSSProperties}
       >
         {event.ticketTypes.map((t) => {
-          const left = t.capacity - t.sold;
+          const left = availableTickets(t);
           const soldOut = left <= 0;
           const qty = cart[t.id] ?? 0;
           const fee = serviceFee(t.price, venue.buyerFeeRate);

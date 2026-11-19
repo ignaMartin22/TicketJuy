@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
-import { decodeCart } from "@/lib/cart";
+import { createOrder } from "@/app/[venue]/[event]/checkout/actions";
+import { decodeCart, encodeCart } from "@/lib/cart";
 import { formatNight, formatPrice, serviceFee } from "@/lib/format";
 import { tickets, type Event, type Venue } from "@/lib/mock-data";
+import { nationalPhone } from "@/lib/phone";
 
 type FieldName = "name" | "phone" | "email";
 type Values = Record<FieldName, string>;
@@ -15,17 +17,21 @@ type Line = { type: Event["ticketTypes"][number]; qty: number };
 /** Orden en pantalla: el primer campo con error es el que recibe el foco. */
 const FIELD_ORDER: FieldName[] = ["name", "phone", "email"];
 
-/**
- * Número argentino de celular: 10 dígitos (característica + número).
- * Tolera +54, el 9 y el 0 de adelante, y espacios o guiones.
- */
-function nationalPhone(raw: string) {
-  let d = raw.replace(/\D/g, "");
-  if (d.startsWith("54")) d = d.slice(2);
-  if (d.startsWith("9") && d.length === 11) d = d.slice(1);
-  if (d.startsWith("0")) d = d.slice(1);
-  return d;
-}
+/** Lo que la API puede rechazar, dicho para el comprador. */
+const ORDER_ERRORS: Record<string, string> = {
+  insufficient_capacity: "Ya no quedan tantas entradas de alguno de los tipos que elegiste. Volvé a elegir.",
+  ticket_type_unavailable: "Alguna de las entradas que elegiste ya no está a la venta. Volvé a elegir.",
+  event_unavailable: "Esta fecha ya no está a la venta.",
+  order_limit_exceeded: "Podés comprar hasta 10 entradas por vez.",
+  network: "No pudimos conectarnos. Revisá la señal y probá de nuevo.",
+};
+const FIELD_ERRORS: Record<string, FieldName> = {
+  invalid_name: "name",
+  invalid_phone: "phone",
+  invalid_email: "email",
+};
+/** Errores que se arreglan cambiando las entradas: se ofrece volver a elegirlas. */
+const CART_ERRORS = new Set(["insufficient_capacity", "ticket_type_unavailable", "order_limit_exceeded"]);
 
 function validate(field: FieldName, value: string): string | undefined {
   const v = value.trim();
@@ -46,14 +52,17 @@ function validate(field: FieldName, value: string): string | undefined {
   }
 }
 
-export function CheckoutForm({ venue, event }: { venue: Venue; event: Event }) {
+export function CheckoutForm({ venue, event, live }: { venue: Venue; event: Event; live: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cart = decodeCart(searchParams.get("t"), event);
   const [paying, setPaying] = useState(false);
   const [values, setValues] = useState<Values>({ name: "", phone: "", email: "" });
   const [errors, setErrors] = useState<Errors>({});
+  const [orderError, setOrderError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  // Una clave por intento de compra: si se reintenta con los mismos datos, la API devuelve la misma reserva.
+  const attempt = useRef<{ payload: string; key: string } | null>(null);
 
   const lines: Line[] = event.ticketTypes
     .filter((t) => cart[t.id])
@@ -97,6 +106,25 @@ export function CheckoutForm({ venue, event }: { venue: Venue; event: Event }) {
     setErrors((e) => ({ ...e, [field]: validate(field, values[field]) }));
   }
 
+  async function reserve() {
+    const payload = JSON.stringify([values.name.trim(), nationalPhone(values.phone), values.email.trim(), encodeCart(cart)]);
+    if (attempt.current?.payload !== payload) attempt.current = { payload, key: crypto.randomUUID() };
+    const result = await createOrder(venue.slug, event.slug, values, cart, attempt.current.key);
+    if (result.ok) {
+      router.push(`/${venue.slug}/${event.slug}/pedido/${result.orderId}`);
+      return;
+    }
+    setPaying(false);
+    const field = FIELD_ERRORS[result.error];
+    if (field) {
+      setErrors((prev) => ({ ...prev, [field]: validate(field, values[field]) ?? "Revisá este dato." }));
+      return;
+    }
+    setOrderError(result.error);
+    // El cupo cambió: que la vuelta a elegir entradas muestre lo que queda.
+    if (CART_ERRORS.has(result.error)) router.refresh();
+  }
+
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (paying) return;
@@ -113,13 +141,32 @@ export function CheckoutForm({ venue, event }: { venue: Venue; event: Event }) {
       return;
     }
     setPaying(true);
-    // DEMO: acá se crea la preferencia de Mercado Pago (Checkout Pro con
-    // marketplace_fee) y se redirige a su init_point. Por ahora va directo
-    // a una entrada de prueba.
+    setOrderError(null);
+    if (live) {
+      // Reserva el cupo en ticketera-core. Falta crear la preferencia de Mercado Pago
+      // (Checkout Pro con marketplace_fee) y redirigir a su init_point.
+      reserve().catch(() => {
+        setPaying(false);
+        setOrderError("network");
+      });
+      return;
+    }
+    // DEMO sin API: va directo a una entrada de prueba.
     setTimeout(() => router.push(`/entrada/${tickets[0].code}`), 900);
   }
 
   const payLabel = `Pagar ${formatPrice(total)}`;
+  const payingLabel = live ? "Reservando tus entradas…" : "Abriendo Mercado Pago…";
+  const errorBox = orderError && (
+    <div role="alert" className="mb-3 rounded-2xl border border-error/40 bg-error/10 p-3 text-sm">
+      <p>{ORDER_ERRORS[orderError] ?? "No pudimos reservar tus entradas. Probá de nuevo."}</p>
+      {(CART_ERRORS.has(orderError) || orderError === "event_unavailable") && (
+        <Link href={backHref} className="mt-1 inline-block font-semibold underline underline-offset-4">
+          {orderError === "event_unavailable" ? "Ver la fecha" : "Elegir entradas"}
+        </Link>
+      )}
+    </div>
+  );
 
   return (
     <form
@@ -201,7 +248,8 @@ export function CheckoutForm({ venue, event }: { venue: Venue; event: Event }) {
           <OrderDetail event={event} lines={lines} fees={fees} total={total} backHref={backHref} />
         </div>
         <div className="border-t border-linea p-5">
-          <PayButton paying={paying} label={payLabel} />
+          {errorBox}
+          <PayButton paying={paying} label={payLabel} payingLabel={payingLabel} />
           {/* Medios de pago sin confirmar con split: ver docs/research/mercado-pago-split.md */}
           <p className="mt-3 text-center text-sm text-tenue">
             El pago se hace en Mercado Pago.
@@ -211,7 +259,8 @@ export function CheckoutForm({ venue, event }: { venue: Venue; event: Event }) {
 
       {/* Celu: botón fijo al borde de la pantalla, a mano del pulgar. */}
       <div data-visible className="ev-barra fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-noche/80 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl lg:hidden">
-        <PayButton paying={paying} label={payLabel} />
+        {errorBox}
+        <PayButton paying={paying} label={payLabel} payingLabel={payingLabel} />
         <p className="mt-2 text-center text-sm text-tenue">
           El pago se hace en Mercado Pago.
         </p>
@@ -266,7 +315,7 @@ function OrderDetail({
   );
 }
 
-function PayButton({ paying, label }: { paying: boolean; label: string }) {
+function PayButton({ paying, label, payingLabel }: { paying: boolean; label: string; payingLabel: string }) {
   return (
     <button
       type="submit"
@@ -280,7 +329,7 @@ function PayButton({ paying, label }: { paying: boolean; label: string }) {
           aria-hidden
         />
       )}
-      {paying ? "Abriendo Mercado Pago…" : label}
+      {paying ? payingLabel : label}
     </button>
   );
 }

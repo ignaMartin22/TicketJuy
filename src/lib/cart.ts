@@ -1,4 +1,4 @@
-import type { Event } from "@/lib/mock-data";
+import { availableTickets, type Event } from "@/lib/mock-data";
 
 /** Cantidad por tipo de entrada: { "vip": 2 } */
 export type Cart = Record<string, number>;
@@ -21,7 +21,7 @@ export function decodeCart(raw: string | null, event: Event): Cart {
     const type = event.ticketTypes.find((t) => t.id === id);
     const qty = Number.parseInt(qtyRaw ?? "", 10);
     if (!type || !Number.isInteger(qty) || qty <= 0) continue;
-    const allowed = Math.min(qty, type.capacity - type.sold, MAX_PER_ORDER - total);
+    const allowed = Math.min(qty, availableTickets(type), MAX_PER_ORDER - total);
     if (allowed <= 0) continue;
     cart[id] = allowed;
     total += allowed;
