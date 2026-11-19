@@ -3,18 +3,19 @@ import { formatPrice, nightParts, serviceFee } from "@/lib/format";
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Countdown } from "./_components/countdown";
+import { CountdownPill } from "./_components/countdown";
 import { HeroRing } from "./_components/hero-ring";
 import { HeroVideo } from "./_components/hero-video";
+import { NeonSign, SIGN_INSET } from "./_components/neon-sign";
+import { NeonThread } from "./_components/neon-thread";
 import { PhotoStack } from "./_components/photo-stack";
 
 // Portada de Infinity Producciones. Por ahora con datos de prueba (src/lib/mock-data.ts).
 
+const ESLOGAN = "La noche que no termina";
+
 export default function InfinityPrototype() {
   const fechas = [...events].sort((a, b) => a.startsAt.localeCompare(b.startsAt)).slice(0, 4);
-  // La próxima con entradas; si no queda ninguna, la primera.
-  const proxima = fechas.find((e) => cheapestAvailable(e) !== null) ?? fechas[0];
-  const pd = nightParts(proxima.startsAt);
   const ig = venues[0].instagram;
   const igUrl = `https://www.instagram.com/${ig}/`;
 
@@ -61,32 +62,36 @@ export default function InfinityPrototype() {
       <main className="flex flex-col">
         <HeroRing
           backdrop={venues[0].flyerBackdrop}
+          // Sobre el borde de la tarjeta de la portada: cuánto falta para esa fecha, en una línea, para no pelearle al cartel.
+          underCard={<CountdownPill iso={events[0].startsAt} />}
           background={<HeroVideo src="/venues/infinity/hero.mp4" poster="/venues/infinity/hero-poster.jpg" />}
           hero={
             <div className="mx-auto flex h-full max-w-6xl flex-col px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-20 sm:px-10 sm:pb-6 sm:pt-24">
-              {/* En el celular: cartel arriba, la tarjeta en el medio y la cuenta regresiva abajo. */}
+              {/* A la izquierda, sólo el cartel: es el protagonista. En el celular, arriba; la tarjeta y su cuenta regresiva, abajo. */}
               <div className="flex flex-1 flex-col justify-between max-sm:items-center max-sm:text-center sm:justify-center">
                 <div>
                   <h1 className="sr-only">Infinity Producciones</h1>
-                  {/* El cartel de neón de la marca. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/brand/infinity/infinity-logo.svg" alt="" className="inf-neon w-[min(82vw,36rem)]" />
-                  <p className="inf-sube inf-eslogan mt-4 text-base text-white/80 sm:mt-5 sm:text-xl" style={{ "--d": "1500ms" } as CSSProperties}>
-                    La noche que no termina.
-                  </p>
+                  {/* El cartel de neón de la marca. Al scrollear, sus tubos bajan y envuelven la tarjeta (ver HeroRing). */}
+                  <div data-cartel className="relative isolate w-fit max-sm:mx-auto">
+                    <NeonSign className="w-[min(72vw,29rem)] xl:w-[38rem]" />
+                    {/* El eslogan, trabado al cartel: ocupa exactamente el ancho de las letras, con las letras repartidas. */}
+                    <p
+                      className="inf-sube inf-eslogan inf-eslogan-texto mt-3 flex justify-between text-[0.68rem] uppercase sm:mt-5 sm:text-sm xl:text-base"
+                      style={{ "--d": "1500ms", marginInline: `${SIGN_INSET}%` } as CSSProperties}
+                    >
+                      <span className="sr-only">{ESLOGAN}</span>
+                      {[...ESLOGAN].map((ch, i) => (
+                        <span key={i} aria-hidden>
+                          {ch === " " ? "\u00a0" : ch}
+                        </span>
+                      ))}
+                    </p>
+                  </div>
                 </div>
 
-                {/* La próxima fecha y cuánto falta para que abra. */}
-                <div
-                  className="inf-sube sm:mt-12 sm:border-l-2 sm:border-[var(--inf-magenta)] sm:pl-5"
-                  style={{ "--d": "1750ms" } as CSSProperties}
-                >
-                  <p className="text-sm text-white/65">
-                    Próxima fecha: {pd.weekday} {pd.day} de {pd.monthLong}
-                  </p>
-                  <p className="inf-titulo mt-1 mb-3 text-lg sm:mb-4 sm:text-2xl">{proxima.title}</p>
-                  <Countdown iso={proxima.startsAt} />
-                </div>
+                {/* En el celular, el hueco donde va la tarjeta: HeroRing la achica para que entre justo acá. */}
+                <div data-hueco className="flex-1 sm:hidden" aria-hidden />
+
               </div>
 
               {/* Todas las fechas de un vistazo, como el pie de un afiche. */}
@@ -137,14 +142,16 @@ export default function InfinityPrototype() {
         <PhotoStack
           id="fotos"
           title="Así se vive la noche"
-          text="Fotos de las últimas fechas. Bajá y se van sumando."
+          text="Lo que pasa en la pista no se cuenta: se ve."
           photos={Array.from({ length: 9 }, (_, i) => `/venues/infinity/galeria/${String(i + 1).padStart(2, "0")}.jpg`)}
         />
 
         {/* Más fotos en Instagram: las mismas fotos de fondo, teñidas como la portada. */}
         {ig && (
-          <section className="px-3 pb-20 sm:px-6 sm:pb-28">
+          <section className="px-4 pb-20 pt-24 sm:px-8 sm:pb-28">
+            {/* El final del hilo de neón (ver NeonThread): las dos líneas envuelven la invitación a Instagram. */}
             <a
+              data-hilo="instagram"
               href={igUrl}
               target="_blank"
               rel="noreferrer"
@@ -175,6 +182,9 @@ export default function InfinityPrototype() {
           </section>
         )}
       </main>
+
+      {/* Las dos líneas del cartel siguen bajando y envuelven las fotos y el Instagram. */}
+      <NeonThread />
 
       <footer className="flex flex-col items-center border-t border-white/5 px-4 py-10 text-center text-sm text-[var(--inf-tenue)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}

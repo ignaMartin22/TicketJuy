@@ -49,12 +49,13 @@ body {
   overflow-x: clip;
 }
 
-/* Títulos: Unbounded, ancha y pesada, como el cartel de la portada. */
+/* Títulos: Archivo pesada y un poco ancha, geométrica como el logo. */
 .display {
   font-family: var(--font-titulo);
-  font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  font-stretch: 112%;
+  line-height: 1;
+  letter-spacing: -0.025em;
 }
 
 /* Tarjeta de vidrio oscuro: la superficie de las pantallas de compra. */
@@ -479,5 +480,14 @@ html {
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none !important;
+  }
+}
+
+/* Las barras fijas de abajo del celu (comprar en el evento, pagar en el checkout):
+   sólo mientras se ven, la página les hace lugar, así no tapan nada y cuando no
+   están no agregan scroll de más. */
+@media (max-width: 1023.98px) {
+  body:has(.ev-barra[data-visible]) {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
   }
 }

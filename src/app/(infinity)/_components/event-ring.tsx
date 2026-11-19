@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 
 export type RingEvent = {
   slug: string;
@@ -28,7 +28,18 @@ export type RingEvent = {
  * costados giradas y apagadas. Gira con el scroll (`step`, desde HeroRing),
  * con las flechas, con el teclado o arrastrando.
  */
-export function EventRing({ events, backdrop, step = 0 }: { events: RingEvent[]; backdrop?: string; step?: number }) {
+export function EventRing({
+  events,
+  backdrop,
+  step = 0,
+  underCard,
+}: {
+  events: RingEvent[];
+  backdrop?: string;
+  step?: number;
+  /** Va pegado debajo de la tarjeta mientras está en la portada. */
+  underCard?: ReactNode;
+}) {
   const n = events.length;
   const [active, setActive] = useState(step);
   const [prevStep, setPrevStep] = useState(step);
@@ -81,6 +92,7 @@ export function EventRing({ events, backdrop, step = 0 }: { events: RingEvent[];
         }}
         onPointerCancel={() => (drag.current = null)}
       >
+        {underCard && <div className="inf-bajo-tarjeta">{underCard}</div>}
         {events.map((ev, i) => {
           let o = i - active;
           if (o > n / 2) o -= n;
@@ -98,6 +110,8 @@ export function EventRing({ events, backdrop, step = 0 }: { events: RingEvent[];
               data-centro={center || undefined}
               className="inf-tarjeta"
               style={{ "--o": o, "--abs": Math.abs(o), "--tono": ev.tone } as React.CSSProperties}
+              onPointerMove={center ? tilt : undefined}
+              onPointerLeave={center ? untilt : undefined}
             >
               <Card ev={ev} backdrop={backdrop} />
               {center ? (
@@ -142,6 +156,25 @@ export function EventRing({ events, backdrop, step = 0 }: { events: RingEvent[];
   );
 }
 
+/** Con el mouse, la tarjeta del medio se inclina hacia el puntero y un brillo sigue la luz. */
+function tilt(e: React.PointerEvent<HTMLElement>) {
+  if (e.pointerType !== "mouse") return;
+  const el = e.currentTarget;
+  const r = el.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width;
+  const y = (e.clientY - r.top) / r.height;
+  el.style.setProperty("--ry", `${((x - 0.5) * 16).toFixed(2)}deg`);
+  el.style.setProperty("--rx", `${((0.5 - y) * 12).toFixed(2)}deg`);
+  el.style.setProperty("--gx", `${(x * 100).toFixed(1)}%`);
+  el.style.setProperty("--gy", `${(y * 100).toFixed(1)}%`);
+  el.dataset.inclinada = "";
+}
+function untilt(e: React.PointerEvent<HTMLElement>) {
+  const el = e.currentTarget;
+  for (const p of ["--rx", "--ry", "--gx", "--gy"]) el.style.removeProperty(p);
+  delete el.dataset.inclinada;
+}
+
 function Card({ ev, backdrop }: { ev: RingEvent; backdrop?: string }) {
   return (
     <article className="inf-tarjeta-cuerpo @container relative isolate flex h-full flex-col justify-between overflow-hidden rounded-[inherit] p-5 @max-[13rem]:p-3">
@@ -158,6 +191,7 @@ function Card({ ev, backdrop }: { ev: RingEvent; backdrop?: string }) {
         />
       )}
       <div className="inf-tarjeta-luz absolute inset-0 -z-20" aria-hidden />
+      <div className="inf-tarjeta-brillo pointer-events-none absolute inset-0 z-10" aria-hidden />
       <div className="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-black/80 to-transparent" aria-hidden />
 
       <header className="flex items-center justify-between gap-2 text-[4cqi] font-semibold">

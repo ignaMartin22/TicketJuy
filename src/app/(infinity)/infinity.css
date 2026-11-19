@@ -22,9 +22,10 @@
 
 .inf-titulo {
   font-family: var(--font-titulo), system-ui, sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.02;
+  font-weight: 800;
+  font-stretch: 112%;
+  letter-spacing: -0.025em;
+  line-height: 1;
 }
 
 .inf-degradado-texto {
@@ -210,9 +211,11 @@
 }
 
 /* La portada se va hacia arriba y se apaga mientras las fechas toman el centro. */
-.inf-portada {
-  opacity: clamp(0, calc(1 - var(--e) * 1.8), 1);
-  transform: translateY(calc(var(--e) * -18svh));
+/* El cartel se queda en su lugar y se desarma (ver .inf-tubo); el resto de la portada se va. */
+.inf-portada .inf-eslogan,
+.inf-portada ul {
+  opacity: clamp(0, calc(1 - var(--e) * 2.5), 1);
+  transform: translateY(calc(var(--e) * -3rem));
 }
 .inf-escena[data-listo="si"] .inf-portada {
   visibility: hidden;
@@ -253,22 +256,263 @@
 /* ---------- Cartel de neón ---------- */
 
 /*
- * El logo como un cartel de tubos: un borde blanco caliente y dos halos, uno
- * magenta y uno celeste. Al cargar se enciende con parpadeos, como un tubo
- * que arranca, y cada tanto titila.
+ * El cartel: INFI∞ITY con tubos de neón. Cada tubo tiene cuerpo (el vidrio del
+ * color, más ancho y translúcido) y un núcleo casi blanco; el brillo lo pone un
+ * filtro SVG para todo el cartel (ver neon-sign.tsx). Colores fijos, como el logo.
  */
 .inf-neon {
-  filter:
-    drop-shadow(0 0 1px #fff)
-    drop-shadow(0 0 6px #ffffffb3)
-    drop-shadow(0 0 18px #ee10b8cc)
-    drop-shadow(0 0 42px #17b8f199);
+  overflow: visible;
 }
+.inf-tubo-vidrio {
+  stroke: currentColor;
+  stroke-width: 4.4;
+  opacity: 0.55;
+}
+.inf-tubo {
+  stroke: color-mix(in oklab, currentColor 30%, white);
+  stroke-width: 1.7;
+}
+/*
+ * Al scrollear (--e de 0 a 1, ver hero-ring.tsx) los tubos se desenrollan, una
+ * letra después de la otra: el cartel no se desvanece, se desarma en las dos
+ * líneas que bajan a envolver la tarjeta.
+ */
+.inf-tubo,
+.inf-tubo-vidrio,
+.inf-infinito-trazo {
+  stroke-dasharray: 100;
+  stroke-dashoffset: clamp(0, calc(var(--e, 0) * 300 - var(--i, 4) * 12), 100);
+}
+/* El ∞ y la marca del logo se turnan; quieto, queda el ∞. */
+.inf-alterna-marca {
+  opacity: 0;
+}
+/* La marca no se desenrolla como los tubos: se apaga cuando el cartel se desarma. */
+.inf-marca-escena {
+  opacity: clamp(0, calc(1 - var(--e, 0) * 3), 1);
+}
+/* La luz que el cartel derrama sobre la pared; se apaga cuando el cartel se desarma. */
+.inf-derrame path {
+  stroke-width: 9;
+  filter: blur(14px);
+  opacity: calc(0.4 * clamp(0, 1 - var(--e, 0) * 2, 1));
+}
+/* El eslogan: la misma letra de los títulos, fina y espaciada, como la bajada de un cartel. */
+.inf-eslogan-texto {
+  /* Sutil: chico, en mayúsculas finas y espaciadas a lo ancho del cartel, sin brillo. */
+  font-family: var(--font-titulo), system-ui, sans-serif;
+  font-stretch: 112%;
+  font-weight: 400;
+  color: #ffffff8c;
+}
+
+/* ---------- Cuenta regresiva: tablero de neón ---------- */
+
+.inf-reloj {
+  /* 1em es la altura de los números: los separadores se alinean con eso.
+     En celulares angostos se achica con el ancho para dejar aire a los costados. */
+  font-size: min(2.35rem, 8.6vw);
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.1rem;
+  margin: 0;
+  padding: 0.8rem 0.7rem 0.7rem;
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(120% 140% at 0% 0%, #17b8f11f, transparent 55%),
+    radial-gradient(120% 140% at 100% 100%, #ee10b824, transparent 55%),
+    linear-gradient(180deg, #0e0c16cc, #05040ae6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    inset 0 1px 0 #ffffff1f,
+    0 30px 60px -30px #000,
+    0 0 44px -20px #ee10b866,
+    0 0 44px -26px #17b8f166;
+}
+/* Borde de un pelo con el degradado de la marca. */
+.inf-reloj::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(120deg in oklch, var(--inf-cian), #ffffff26 35%, #ffffff0d 65%, var(--inf-magenta));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+@media (min-width: 640px) {
+  .inf-reloj {
+    font-size: 3.1rem;
+    gap: 0.2rem;
+    padding: 1.1rem 1.1rem 0.95rem;
+  }
+}
+
+.inf-reloj-celda {
+  /* Cada unidad toma su tono del recorrido, como las letras del cartel. */
+  --c: color-mix(in oklch, var(--inf-cian), var(--inf-magenta) calc(var(--i) / 3 * 100%));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.inf-reloj-num {
+  position: relative;
+  display: flex;
+  margin: 0;
+}
+/* Los números: tubos huecos como el cartel, con el tono de su unidad. */
+.inf-reloj-svg {
+  display: block;
+  height: 1.15em;
+  width: auto;
+  overflow: visible;
+}
+.inf-reloj-tubo {
+  color: var(--c);
+  stroke: color-mix(in oklab, currentColor 22%, white);
+  stroke-width: 2.6;
+  /* Menos brillo que el cartel: el protagonista es INFINITY, el contador acompaña. */
+  filter: drop-shadow(0 0 1.5px currentColor) drop-shadow(0 0 5px color-mix(in oklab, currentColor 70%, transparent));
+}
+/* La chispa que recorre el número cuando se enciende. Sin animaciones no se ve. */
+.inf-reloj-chispa {
+  stroke: #fff;
+  stroke-width: 3;
+  stroke-dasharray: 10 90;
+  filter: drop-shadow(0 0 3px #fff);
+  opacity: 0;
+}
+/* El halo que se enciende detrás del número cuando cambia. */
+.inf-reloj-flash {
+  position: absolute;
+  inset: -20% -30%;
+  z-index: -1;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--c) 35%, transparent), transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+.inf-reloj-label {
+  margin-top: 0.4rem;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  /* Compensa el espaciado de la última letra para que quede centrada. */
+  padding-left: 0.22em;
+  color: #ffffff99;
+}
+.inf-reloj-barra {
+  display: block;
+  width: 100%;
+  height: 2px;
+  margin-top: 0.5rem;
+  border-radius: 2px;
+  background: #ffffff14;
+  overflow: hidden;
+}
+.inf-reloj-barra > span {
+  display: block;
+  height: 100%;
+  background: var(--c);
+  box-shadow: 0 0 8px var(--c);
+  transform-origin: left;
+  transform: scaleX(var(--p, 0));
+}
+/* Los dos puntos entre unidades, a la altura del número. */
+.inf-reloj-sep {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.22em;
+  height: 1.15em;
+  padding-inline: 0.04em;
+}
+/* También huecos: un cuadradito de tubo, como los números. */
+.inf-reloj-sep i {
+  width: 0.15em;
+  height: 0.15em;
+  border: 1.5px solid #fff;
+  border-radius: 2px;
+  box-shadow: 0 0 5px var(--inf-magenta), inset 0 0 3px var(--inf-magenta);
+}
+/* Cuando ya es la noche. */
+.inf-reloj-ya {
+  font-size: 1.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.4rem;
+}
+@media (min-width: 640px) {
+  .inf-reloj-ya {
+    font-size: 1.9rem;
+  }
+}
+
+
 @media (prefers-reduced-motion: no-preference) {
+  /* Después de dibujarse, el cartel parpadea como un tubo que arranca. */
   .inf-neon {
+    animation: inf-enciende 1.2s steps(1, end) 1.5s;
+  }
+  /* Cuenta regresiva: el dígito nuevo se dibuja como un tubo que prende, lo recorre una chispa,
+     el halo destella y la barra se vacía de a poco. */
+  .inf-reloj-tubo {
+    stroke-dasharray: 100;
     animation:
-      inf-enciende 1.6s steps(1, end) 300ms both,
-      inf-titila 7s linear 3s infinite;
+      inf-dibuja 420ms cubic-bezier(0.65, 0, 0.35, 1) backwards,
+      inf-prende 280ms steps(1, end) 420ms;
+  }
+  .inf-reloj-chispa {
+    animation: inf-chispa-una 700ms linear;
+  }
+  /* Los segundos no se redibujan: sólo parpadean al prender, y el número se lee siempre. */
+  .inf-reloj-svg[data-modo="titila"] .inf-reloj-tubo {
+    stroke-dasharray: none;
+    animation: inf-prende 320ms steps(1, end);
+  }
+  .inf-reloj-svg[data-modo="titila"] .inf-reloj-chispa {
+    animation: none;
+  }
+  .inf-reloj-flash {
+    animation: inf-destello 900ms ease-out;
+  }
+  .inf-reloj-barra > span {
+    transition: transform 1s linear;
+  }
+  .inf-reloj-sep i {
+    animation: inf-titila-sep 1s steps(1, end) infinite;
+  }
+  /* Cada tubo se dibuja solo, una letra después de la otra; el ∞ se dibuja desde el cruce. */
+  .inf-tubo,
+  .inf-tubo-vidrio,
+  .inf-infinito-trazo {
+    stroke-dasharray: 100;
+    animation: inf-dibuja 1100ms cubic-bezier(0.65, 0, 0.35, 1) calc(200ms + var(--i, 4) * 90ms) backwards;
+  }
+  .inf-infinito-trazo {
+    animation-duration: 1500ms;
+    animation-delay: 560ms;
+  }
+  /* Una letra tiene el tubo flojo y titila cada tanto. */
+  .inf-tubo-flojo {
+    animation: inf-titila 6s linear 4s infinite;
+  }
+  /* Como un cartel con temporizador: cada tanto el ∞ titila, se apaga y se prende la marca del logo; después vuelve. */
+  .inf-alterna-inf {
+    animation: inf-turno-inf 11s linear 4s infinite;
+  }
+  .inf-alterna-marca {
+    animation: inf-turno-marca 11s linear 4s infinite;
+  }
+  /* La pared se ilumina cuando los tubos ya están prendidos. */
+  .inf-derrame {
+    animation: inf-fondo-entra 900ms ease-out 1300ms backwards;
   }
   /* Aparece subiendo; --d es la demora. */
   .inf-sube {
@@ -299,6 +543,44 @@
 @keyframes inf-enciende {
   0%, 9%, 15%, 29% { opacity: 0.08; }
   6%, 12%, 22%, 40%, 100% { opacity: 1; }
+}
+@keyframes inf-prende {
+  0%, 30%, 60% { opacity: 1; }
+  15%, 45% { opacity: 0.4; }
+}
+@keyframes inf-chispa-una {
+  0% { stroke-dashoffset: 100; opacity: 1; }
+  85% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes inf-destello {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes inf-titila-sep {
+  50% { opacity: 0.25; }
+}
+@keyframes inf-dibuja {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes inf-turno-inf {
+  0%, 52% { opacity: 1; }
+  53% { opacity: 0.25; }
+  54% { opacity: 1; }
+  55% { opacity: 0.1; }
+  56%, 93% { opacity: 0; }
+  94% { opacity: 0.6; }
+  95% { opacity: 0; }
+  96%, 100% { opacity: 1; }
+}
+@keyframes inf-turno-marca {
+  0%, 56% { opacity: 0; }
+  57% { opacity: 0.7; }
+  58% { opacity: 0.1; }
+  59%, 92% { opacity: 1; }
+  93% { opacity: 0.3; }
+  94%, 100% { opacity: 0; }
 }
 @keyframes inf-titila {
   0%, 92%, 94.5%, 96%, 100% { opacity: 1; }
@@ -379,7 +661,7 @@
 
 .inf-anillo {
   /* El alto de la pantalla también limita: tienen que entrar el título, la tarjeta y los controles. */
-  --w: min(20rem, 72vw, (100svh - 17rem) / 1.4);
+  --w: min(20rem, 72vw, (100svh - 19.5rem) / 1.4);
   --h: calc(var(--w) * 1.4);
   height: var(--h);
   perspective: 1600px;
@@ -470,4 +752,201 @@
 @keyframes inf-punto-vivo {
   0% { box-shadow: 0 0 0 0 #9dff7a99; }
   100% { box-shadow: 0 0 0 7px #9dff7a00; }
+}
+
+/* ---------- La tarjeta de la portada: viva ---------- */
+
+.inf-tarjeta-cuerpo {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.inf-tarjeta[data-inclinada] .inf-tarjeta-cuerpo {
+  transition-duration: 120ms;
+}
+/* El reflejo: una luz blanca que sigue al puntero sobre la foto. */
+.inf-tarjeta-brillo {
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 0%), #ffffff66, transparent 50%);
+  mix-blend-mode: overlay;
+  opacity: 0;
+  transition: opacity 400ms ease-out;
+}
+.inf-tarjeta[data-inclinada] .inf-tarjeta-brillo {
+  opacity: 1;
+}
+/* Sin mouse (celulares): la tarjeta del medio flota suave, como suspendida sobre la pista. */
+@media (hover: none) and (prefers-reduced-motion: no-preference) {
+  .inf-tarjeta[data-centro] .inf-tarjeta-cuerpo {
+    animation: inf-flota 6s ease-in-out 2.4s infinite;
+  }
+}
+@keyframes inf-flota {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-7px) rotate(0.8deg); }
+}
+
+/* ---------- Página de cada fecha ---------- */
+
+/* La grilla: en el celu, datos → entradas → descripción, todo en una pantalla.
+   En la compu, las entradas ocupan la columna derecha. */
+.ev-grilla {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-areas: "titulo" "compra" "info";
+}
+@media (min-width: 1024px) {
+  .ev-grilla {
+    grid-template-columns: 1fr 25rem;
+    grid-template-rows: auto 1fr;
+    column-gap: 3.5rem;
+    row-gap: 1.75rem;
+    grid-template-areas:
+      "titulo compra"
+      "info compra";
+  }
+}
+
+/* Las entradas, con forma de entrada: cuerpo, línea punteada y talón con dos cortes. */
+.ev-ticket {
+  --talon: 8.25rem;
+  --corte: 0.7rem;
+  transition: filter 300ms ease-out;
+}
+/* En celulares angostos el talón se achica para que el cuerpo respire. */
+@media (max-width: 380px) {
+  .ev-ticket {
+    --talon: 7rem;
+  }
+}
+.ev-ticket-cuerpo {
+  display: grid;
+  grid-template-columns: 1fr var(--talon);
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(120% 140% at 0% 0%, #17b8f112, transparent 60%),
+    linear-gradient(180deg, #ffffff0d, #ffffff05),
+    color-mix(in oklab, var(--inf-superficie) 85%, transparent);
+  box-shadow: inset 0 0 0 1px #ffffff1c;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  -webkit-mask:
+    radial-gradient(circle at calc(100% - var(--talon)) 0, #0000 var(--corte), #000 calc(var(--corte) + 0.5px)) top / 100% 51% no-repeat,
+    radial-gradient(circle at calc(100% - var(--talon)) 100%, #0000 var(--corte), #000 calc(var(--corte) + 0.5px)) bottom / 100% 51% no-repeat;
+  mask:
+    radial-gradient(circle at calc(100% - var(--talon)) 0, #0000 var(--corte), #000 calc(var(--corte) + 0.5px)) top / 100% 51% no-repeat,
+    radial-gradient(circle at calc(100% - var(--talon)) 100%, #0000 var(--corte), #000 calc(var(--corte) + 0.5px)) bottom / 100% 51% no-repeat;
+  transition: background 300ms ease-out, box-shadow 300ms ease-out;
+}
+.ev-talon {
+  border-left: 2px dashed #ffffff24;
+  margin-block: calc(var(--corte) + 0.4rem);
+}
+/* Elegida: se enciende con el color del evento. El brillo va en el contenedor
+   para que siga la forma recortada. */
+.ev-ticket[data-elegida] {
+  filter: drop-shadow(0 0 1px var(--accent)) drop-shadow(0 14px 30px color-mix(in oklab, var(--accent) 45%, transparent));
+}
+.ev-ticket[data-elegida] .ev-ticket-cuerpo {
+  background:
+    radial-gradient(120% 140% at 100% 100%, color-mix(in oklab, var(--accent) 28%, transparent), transparent 65%),
+    linear-gradient(180deg, #ffffff12, #ffffff05),
+    color-mix(in oklab, var(--inf-superficie) 85%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 80%, transparent);
+}
+.ev-ticket[data-elegida] .ev-talon {
+  border-left-color: color-mix(in oklab, var(--accent) 55%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* El total y las cantidades titilan al cambiar, como los segundos del contador. */
+  .ev-titila {
+    animation: inf-prende 320ms steps(1, end);
+  }
+}
+
+/* ---------- El cartel, más zarpado ---------- */
+
+/* ---------- Cuenta regresiva en pastilla, sobre el borde de la tarjeta de la portada ---------- */
+
+.inf-pastilla {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.42rem 0.8rem 0.42rem 0.7rem;
+  border-radius: 9999px;
+  background: color-mix(in oklab, #05040a 78%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    inset 0 0 0 1px #ffffff1f,
+    0 12px 30px -12px #000,
+    0 0 24px -10px #ee10b8aa;
+  white-space: nowrap;
+}
+.inf-pastilla-texto {
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffffffa6;
+}
+.inf-pastilla-reloj {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  /* 1em es la altura de los números. */
+  font-size: 0.8rem;
+}
+.inf-pastilla-unidad {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.08rem;
+}
+.inf-pastilla-unidad .inf-reloj-svg {
+  height: 1.2em;
+}
+.inf-pastilla-unidad .inf-reloj-tubo {
+  color: var(--c);
+  stroke-width: 3.2;
+}
+.inf-pastilla-u {
+  font-size: 0.6rem;
+  color: #ffffff80;
+}
+/* En el celu, sólo el punto y los números: la tarjeta es angosta. */
+@media (max-width: 639px) {
+  .inf-pastilla-texto {
+    display: none;
+  }
+}
+/* Montada sobre el borde de abajo de la tarjeta: la sigue y se va cuando se arma el anillo. */
+.inf-bajo-tarjeta {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--h) / 2 + var(--hy));
+  z-index: 20;
+  /* Desde el centro de la tarjeta, con su misma inclinación, hasta su borde de abajo. */
+  transform:
+    translateX(calc(-50% + var(--hx) * (1 - var(--e))))
+    rotate(calc(var(--hr) * (1 - var(--e))))
+    translateY(calc(var(--h) * var(--hs) / 2 - 25% + var(--e) * 4rem));
+  opacity: calc(1 - var(--e) * 3);
+  pointer-events: none;
+}
+
+/* ---------- Los tubos del cartel que envuelven la tarjeta al scrollear ---------- */
+
+.inf-linea {
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+}
+.inf-linea-cian {
+  stroke: color-mix(in oklab, var(--inf-cian) 35%, white);
+  filter: drop-shadow(0 0 2px var(--inf-cian)) drop-shadow(0 0 10px var(--inf-cian));
+}
+.inf-linea-magenta {
+  stroke: color-mix(in oklab, var(--inf-magenta) 35%, white);
+  filter: drop-shadow(0 0 2px var(--inf-magenta)) drop-shadow(0 0 10px var(--inf-magenta));
 }

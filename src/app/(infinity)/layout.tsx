@@ -2,7 +2,7 @@ import "./infinity.css";
 
 // Marca Infinity Producciones: portada con su tipografía y paleta.
 
-// Las tipografías (Unbounded y Bricolage) se cargan en el layout raíz.
+// Las tipografías (Archivo y Geist) se cargan en el layout raíz.
 
 export default function InfinityLayout({ children }: { children: React.ReactNode }) {
   return (

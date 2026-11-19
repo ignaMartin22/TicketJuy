@@ -66,7 +66,7 @@ export default async function VenueLayout({
         </nav>
       </header>
       <div className="flex flex-1 flex-col">{children}</div>
-      <footer className="mt-auto flex items-center justify-center gap-2 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-8 text-sm text-tenue">
+      <footer className="mt-auto flex items-center justify-center gap-2 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-6 text-sm text-tenue lg:pb-5 lg:pt-3">
                 Entradas con{" "}
         <Link href="/" className="font-semibold text-luz hover:underline">
           Infinity Producciones

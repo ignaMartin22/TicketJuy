@@ -210,7 +210,7 @@ export function CheckoutForm({ venue, event }: { venue: Venue; event: Event }) {
       </aside>
 
       {/* Celu: botón fijo al borde de la pantalla, a mano del pulgar. */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-noche/80 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl lg:hidden">
+      <div data-visible className="ev-barra fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-noche/80 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl lg:hidden">
         <PayButton paying={paying} label={payLabel} />
         <p className="mt-2 text-center text-sm text-tenue">
           El pago se hace en Mercado Pago.
