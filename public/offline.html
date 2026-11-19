@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#05040a" />
+    <title>Sin conexión | Infinity</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0; min-height: 100svh; display: grid; place-items: center; padding: 24px; box-sizing: border-box;
+        background: radial-gradient(60% 45% at 15% 0%, #17b8f124, transparent 70%), radial-gradient(60% 45% at 90% 100%, #ee10b82e, transparent 70%), #05040a;
+        color: #f6f6f6; font: 16px/1.5 system-ui, sans-serif; text-align: center;
+      }
+      .logo { width: 120px; margin: 0 auto; filter: drop-shadow(0 0 10px #ee10b866); }
+      .logo svg { display: block; width: 100%; height: auto; }
+      h1 { margin: 20px 0 6px; font-size: 1.5rem; }
+      p { margin: 0; color: #9c98ae; max-width: 22rem; }
+      button { margin-top: 24px; min-height: 48px; padding: 0 28px; border: 0; border-radius: 999px; background: #f6f6f6; color: #05040a; font: 600 1rem system-ui, sans-serif; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <!-- El logo va adentro de la página: sin conexión no se puede pedir una imagen aparte. -->
+      <div class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="212 38 125 66" aria-hidden="true"><path fill="#F6F6F6" d="M242.25 41.5h12.4v45h-12.4zM294.35 54.7h12.4v45h-12.4z"/><path fill="none" stroke="#F6F6F6" stroke-width="12.6" d="M263.3 43.85C263.3 61.5 285.7 79.69 285.7 97.35"/><path fill="#17B8F1" d="M238.86 41.45A29.6 29.6 0 1 0 267.95 88L258.24 80.95A17.6 17.6 0 1 1 240.94 53.27z"/><path fill="#EE10B8" d="M310.14 99.75A29.6 29.6 0 1 0 281.05 53.2L290.76 60.25A17.6 17.6 0 1 1 308.06 87.93z"/></svg></div>
+      <h1>Sin conexión</h1>
+      <p>Para ver las fechas y comprar entradas necesitás internet. Conectate y probá de nuevo.</p>
+      <button type="button" onclick="location.reload()">Reintentar</button>
+    </main>
+  </body>
+</html>

@@ -1072,3 +1072,10 @@
     width: min(16rem, 38cqw, 64cqh * 0.8);
   }
 }
+
+/* El botón de instalar la app entra subiendo. */
+@media (prefers-reduced-motion: no-preference) {
+  .inf-instalar {
+    animation: inf-sube 700ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+}

@@ -11,6 +11,7 @@ import { NeonSign, SIGN_INSET } from "./_components/neon-sign";
 import { NeonThread } from "./_components/neon-thread";
 import { SpiralGallery } from "./_components/spiral-gallery";
 import { SectionScroll } from "./_components/section-scroll";
+import { InstallApp } from "@/components/install-app";
 
 // Portada de Infinity Producciones. Las fechas salen del catálogo (src/lib/catalog.ts).
 
@@ -205,6 +206,8 @@ export default async function InfinityPrototype() {
       <NeonThread />
       {/* El scroll va de sección en sección, así ninguna animación queda a medias. */}
       <SectionScroll />
+      {/* Ofrece instalar la app (Android: directo; iPhone: con instrucciones). */}
+      <InstallApp />
 
       <footer data-snap="fin" className="flex flex-col items-center border-t border-white/5 px-4 py-10 text-center text-sm text-[var(--inf-tenue)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
