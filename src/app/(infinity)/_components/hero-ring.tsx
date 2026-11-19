@@ -13,6 +13,23 @@ import { EventRing, type RingEvent } from "./event-ring";
  * El avance de la entrada (0 a 1) queda en la variable CSS --e del escenario;
  * todo lo demás (fondo, portada, tarjetas) se mueve con esa variable en CSS.
  */
+/** Los elementos que leen --e en infinity.css. Si se agrega uno nuevo, va acá. */
+const E_CONSUMERS = [
+  ".inf-fondo",
+  ".inf-portada .inf-eslogan",
+  ".inf-portada ul",
+  ".inf-titulo-fechas",
+  ".inf-anillo-controles",
+  ".inf-piso",
+  ".inf-tubo",
+  ".inf-tubo-vidrio",
+  ".inf-infinito-trazo",
+  ".inf-marca-escena",
+  ".inf-derrame path",
+  ".inf-tarjeta",
+  ".inf-bajo-tarjeta",
+].join(",");
+
 export function HeroRing({
   events,
   backdrop,
@@ -161,7 +178,11 @@ export function HeroRing({
       raf = requestAnimationFrame(tick);
       shown = Math.abs(next - target) < 0.001 ? target : next;
       eased = shown * shown * (3 - 2 * shown);
-      stage.current?.style.setProperty("--e", eased.toFixed(4));
+      const v = eased.toFixed(4);
+      // --e no se hereda (ver @property en infinity.css): se escribe sólo en los
+      // elementos que lo usan, así cada cuadro recalcula esos pocos y no toda la portada.
+      for (const node of consumers) node.style.setProperty("--e", v);
+      if (stage.current) stage.current.toggleAttribute("data-movido", eased > 0.001);
       draw(eased);
       const nowListo = shown >= 0.999;
       if (stage.current) stage.current.dataset.listo = nowListo ? "si" : "no";
@@ -169,6 +190,12 @@ export function HeroRing({
         listo = nowListo;
         syncVideo();
       }
+    };
+    let consumers: HTMLElement[] = [];
+    const collect = () => {
+      consumers = [...(stage.current?.querySelectorAll<HTMLElement>(E_CONSUMERS) ?? [])];
+      const v = eased.toFixed(4);
+      for (const node of consumers) node.style.setProperty("--e", v);
     };
     const wake = () => {
       if (raf) return;
@@ -221,6 +248,7 @@ export function HeroRing({
       wake();
     };
 
+    collect();
     read();
     fit();
     trace();
@@ -232,9 +260,13 @@ export function HeroRing({
       fit();
       trace();
     });
+    // Las tarjetas y el cartel pueden volver a dibujarse: se buscan de nuevo cuando cambia el DOM del escenario.
+    const mo = new MutationObserver(collect);
+    if (stage.current) mo.observe(stage.current, { childList: true, subtree: true });
     return () => {
       cancelAnimationFrame(raf);
       io.disconnect();
+      mo.disconnect();
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", resize);
     };
