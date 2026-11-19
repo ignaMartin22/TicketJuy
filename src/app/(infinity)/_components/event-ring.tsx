@@ -156,22 +156,29 @@ export function EventRing({
   );
 }
 
-/** Con el mouse, la tarjeta del medio se inclina hacia el puntero y un brillo sigue la luz. */
+/**
+ * Con el mouse, la tarjeta del medio se inclina hacia el puntero y un brillo sigue la luz.
+ * Se escribe el transform directo en la tarjeta (no variables CSS en el contenedor, que
+ * recalcularían los estilos de todo su contenido en cada movimiento).
+ */
 function tilt(e: React.PointerEvent<HTMLElement>) {
   if (e.pointerType !== "mouse") return;
   const el = e.currentTarget;
+  const body = el.querySelector<HTMLElement>(".inf-tarjeta-cuerpo");
+  const shine = el.querySelector<HTMLElement>(".inf-tarjeta-brillo");
   const r = el.getBoundingClientRect();
   const x = (e.clientX - r.left) / r.width;
   const y = (e.clientY - r.top) / r.height;
-  el.style.setProperty("--ry", `${((x - 0.5) * 16).toFixed(2)}deg`);
-  el.style.setProperty("--rx", `${((0.5 - y) * 12).toFixed(2)}deg`);
-  el.style.setProperty("--gx", `${(x * 100).toFixed(1)}%`);
-  el.style.setProperty("--gy", `${(y * 100).toFixed(1)}%`);
+  if (body) body.style.transform = `perspective(900px) rotateX(${((0.5 - y) * 12).toFixed(2)}deg) rotateY(${((x - 0.5) * 16).toFixed(2)}deg)`;
+  if (shine) {
+    shine.style.setProperty("--gx", `${(x * 100).toFixed(1)}%`);
+    shine.style.setProperty("--gy", `${(y * 100).toFixed(1)}%`);
+  }
   el.dataset.inclinada = "";
 }
 function untilt(e: React.PointerEvent<HTMLElement>) {
   const el = e.currentTarget;
-  for (const p of ["--rx", "--ry", "--gx", "--gy"]) el.style.removeProperty(p);
+  el.querySelector<HTMLElement>(".inf-tarjeta-cuerpo")?.style.removeProperty("transform");
   delete el.dataset.inclinada;
 }
 

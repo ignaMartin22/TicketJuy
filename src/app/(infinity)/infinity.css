@@ -757,7 +757,8 @@
 /* ---------- La tarjeta de la portada: viva ---------- */
 
 .inf-tarjeta-cuerpo {
-  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  /* La inclinación la escribe event-ring.tsx directo en style.transform; al soltar, vuelve acá. */
+  transform: perspective(900px);
   transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .inf-tarjeta[data-inclinada] .inf-tarjeta-cuerpo {
