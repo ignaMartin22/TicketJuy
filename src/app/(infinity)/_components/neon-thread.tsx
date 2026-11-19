@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { measureStops, stopOf } from "./section-scroll";
+import { measureStops, stopOf } from "./scroll-stops";
 
 /*
  * El hilo de neón de la página. Las dos líneas que salen del cartel y envuelven
@@ -70,15 +70,17 @@ function link(from: Rect, to: Rect, dir: number, vw: number) {
   // pantalla ancha no cruzan toda la pantalla).
   const x = dir < 0 ? Math.max(EDGE, Math.min(from.x0, to.x0) - LANE) : Math.min(vw - EDGE, Math.max(from.x1, to.x1) + LANE);
   // Dónde llega al borde y dónde lo deja; si las secciones están muy cerca, en el mismo punto.
-  let y1 = a.y + 90;
-  let y2 = b.y - 90;
+  let y1 = a.y + 60;
+  let y2 = b.y - 60;
   if (y2 < y1) y1 = y2 = (a.y + b.y) / 2;
   const e1 = { x, y: y1 };
   const e2 = { x, y: y2 };
-  const out1 = { x: a.x, y: a.y + 45 };
-  const out2 = { x, y: y1 - 40 };
-  const in1 = { x, y: y2 + 40 };
-  const in2 = { x: b.x, y: b.y - 45 };
+  // Sale por el borde de abajo hacia su costado (sin cruzar los botones que van debajo, al
+  // centro), baja por el carril y entra a la sección siguiente por arriba, también de costado.
+  const out1 = { x: x + (a.x - x) * 0.35, y: a.y };
+  const out2 = { x, y: a.y + Math.min(30, (y1 - a.y) * 0.5) };
+  const in1 = { x, y: b.y - Math.min(30, (b.y - y2) * 0.5) };
+  const in2 = { x: x + (b.x - x) * 0.35, y: b.y };
   return {
     d: ` C${out1.x} ${out1.y} ${out2.x} ${out2.y} ${e1.x} ${e1.y} L${e2.x} ${e2.y} C${in1.x} ${in1.y} ${in2.x} ${in2.y} ${b.x} ${b.y}`,
     len: cubicLen(a, out1, out2, e1) + (y2 - y1) + cubicLen(e2, in1, in2, b),

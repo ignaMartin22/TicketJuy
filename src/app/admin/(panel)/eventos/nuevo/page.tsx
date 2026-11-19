@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { NewEventEditor } from "../../_components/event-editors";
+import { NewEventEditor } from "@/app/admin/_components/event-editors";
 
 export const metadata: Metadata = { title: "Nuevo evento" };
 
