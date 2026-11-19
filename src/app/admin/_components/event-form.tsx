@@ -141,7 +141,7 @@ export function EventForm({ initial, slug }: { initial: Draft; slug?: string }) 
                   {...p}
                   value={draft.lineup}
                   onChange={(e) => set("lineup", e.target.value)}
-                  placeholder="Vale Quispe, Residentes Moon"
+                  placeholder="Vale Quispe, DJ Tincho"
                   className={inputClass}
                   autoComplete="off"
                 />

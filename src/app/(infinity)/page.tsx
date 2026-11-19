@@ -1,146 +1,206 @@
-import type { CSSProperties } from "react";
-import Link from "next/link";
-import { cheapestAvailable, events, tickets, venues } from "@/lib/mock-data";
+import { cheapestAvailable, events, venues } from "@/lib/mock-data";
 import { formatPrice, nightParts, serviceFee } from "@/lib/format";
-import { qrSvg } from "@/lib/qr";
-import { HoloTicket } from "./_components/holo-ticket";
-import { InfinityTrail } from "./_components/infinity-trail";
-import { NightRings } from "./_components/night-rings";
+import type { CSSProperties } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { CountdownPill } from "./_components/countdown";
+import { HeroRing } from "./_components/hero-ring";
+import { HeroVideo } from "./_components/hero-video";
+import { NeonSign, SIGN_INSET } from "./_components/neon-sign";
+import { NeonThread } from "./_components/neon-thread";
+import { PhotoStack } from "./_components/photo-stack";
 
 // Portada de Infinity Producciones. Por ahora con datos de prueba (src/lib/mock-data.ts).
 
-export default async function InfinityPrototype() {
-  const proximas = events.slice(0, 3);
-  const ticket = tickets[0];
-  const evento = events.find((e) => e.slug === ticket.eventSlug)!;
-  const tipo = evento.ticketTypes.find((t) => t.id === ticket.ticketTypeId)!;
-  const d = nightParts(evento.startsAt);
-  const qr = await qrSvg(ticket.code);
+const ESLOGAN = "La noche que no termina";
+
+export default function InfinityPrototype() {
+  const fechas = [...events].sort((a, b) => a.startsAt.localeCompare(b.startsAt)).slice(0, 4);
+  const ig = venues[0].instagram;
+  const igUrl = `https://www.instagram.com/${ig}/`;
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-white/5 bg-[color-mix(in_oklch,var(--inf-noche)_80%,transparent)] backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/infinity/infinity-logo.svg" alt="Infinity Producciones" className="h-5" />
-          <a href="#fechas" className="rounded-full bg-[var(--inf-luz)] px-4 py-2 text-sm font-semibold text-[var(--inf-noche)]">
-            Entradas
-          </a>
-        </div>
+      {/* Barra flotante: no ocupa lugar, así la portada usa toda la pantalla. */}
+      <header className="inf-baja fixed inset-x-0 top-0 z-30 px-3 pt-3">
+        <nav
+          aria-label="Infinity Producciones"
+          className="mx-auto flex h-12 max-w-3xl items-center justify-between gap-2 rounded-full border border-white/10 bg-[color-mix(in_oklch,var(--inf-noche)_62%,transparent)] pl-5 pr-1.5 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl"
+        >
+          <Link href="/" aria-label="Infinity Producciones, inicio">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/infinity/infinity-logo.svg" alt="" className="h-4 sm:h-[1.125rem]" />
+          </Link>
+          <div className="flex items-center gap-1 text-sm">
+            <a href="#fechas-ancla" className="rounded-full px-3 py-2 text-white/75 transition-colors duration-200 hover:text-white max-sm:hidden">
+              Fechas
+            </a>
+            <a href="#fotos" className="rounded-full px-3 py-2 text-white/75 transition-colors duration-200 hover:text-white max-sm:hidden">
+              Fotos
+            </a>
+            {ig && (
+              <a
+                href={igUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Instagram de Infinity"
+                className="grid size-9 place-items-center rounded-full text-white/75 transition-colors duration-200 hover:text-white"
+              >
+                <InstagramIcon className="size-[1.125rem]" />
+              </a>
+            )}
+            <a
+              href="#fechas-ancla"
+              className="rounded-full bg-[var(--inf-luz)] px-4 py-2 font-semibold text-[var(--inf-noche)] transition-transform duration-200 ease-out active:scale-[0.97]"
+            >
+              Entradas
+            </a>
+          </div>
+        </nav>
       </header>
 
       <main className="flex flex-col">
-        {/* 1. Portada con la estela del infinito */}
-        <section className="relative isolate flex min-h-[86svh] bg-[var(--inf-noche)] flex-col items-center justify-center overflow-hidden px-4 py-14 text-center">
-          <div className="absolute inset-0 -z-20 bg-[radial-gradient(70%_35%_at_30%_38%,#17b8f11c,transparent),radial-gradient(70%_35%_at_70%_38%,#ee10b81a,transparent)]" />
-          <div className="inf-grano -z-10" />
+        <HeroRing
+          backdrop={venues[0].flyerBackdrop}
+          // Sobre el borde de la tarjeta de la portada: cuánto falta para esa fecha, en una línea, para no pelearle al cartel.
+          underCard={<CountdownPill iso={events[0].startsAt} />}
+          background={<HeroVideo src="/venues/infinity/hero.mp4" poster="/venues/infinity/hero-poster.jpg" />}
+          hero={
+            <div className="mx-auto flex h-full max-w-6xl flex-col px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-20 sm:px-10 sm:pb-6 sm:pt-24">
+              {/* A la izquierda, sólo el cartel: es el protagonista. En el celular, arriba; la tarjeta y su cuenta regresiva, abajo. */}
+              <div className="flex flex-1 flex-col justify-between max-sm:items-center max-sm:text-center sm:justify-center">
+                <div>
+                  <h1 className="sr-only">Infinity Producciones</h1>
+                  {/* El cartel de neón de la marca. Al scrollear, sus tubos bajan y envuelven la tarjeta (ver HeroRing). */}
+                  <div data-cartel className="relative isolate w-fit max-sm:mx-auto">
+                    <NeonSign className="w-[min(72vw,29rem)] xl:w-[38rem]" />
+                    {/* El eslogan, trabado al cartel: ocupa exactamente el ancho de las letras, con las letras repartidas. */}
+                    <p
+                      className="inf-sube inf-eslogan inf-eslogan-texto mt-3 flex justify-between text-[0.68rem] uppercase sm:mt-5 sm:text-sm xl:text-base"
+                      style={{ "--d": "1500ms", marginInline: `${SIGN_INSET}%` } as CSSProperties}
+                    >
+                      <span className="sr-only">{ESLOGAN}</span>
+                      {[...ESLOGAN].map((ch, i) => (
+                        <span key={i} aria-hidden>
+                          {ch === " " ? "\u00a0" : ch}
+                        </span>
+                      ))}
+                    </p>
+                  </div>
+                </div>
 
-          <div className="relative grid w-full place-items-center">
-            {/* El ∞ de luz envuelve al logo. */}
-            <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 aspect-[16/11] w-[min(125vw,52rem)] -translate-x-1/2 -translate-y-1/2">
-              <InfinityTrail />
+                {/* En el celular, el hueco donde va la tarjeta: HeroRing la achica para que entre justo acá. */}
+                <div data-hueco className="flex-1 sm:hidden" aria-hidden />
+
+              </div>
+
+              {/* Todas las fechas de un vistazo, como el pie de un afiche. */}
+              <ul className="grid grid-cols-4 gap-6 border-t border-white/15 pt-4 max-sm:hidden">
+                {fechas.map((e, i) => {
+                  const p = nightParts(e.startsAt);
+                  return (
+                    <li key={e.slug} className="inf-sube" style={{ "--d": `${2000 + i * 90}ms` } as CSSProperties}>
+                      <Link href={`/${e.venueSlug}/${e.slug}`} className="group block">
+                        <p className="text-sm capitalize tabular-nums text-white/65">
+                          {p.weekday.slice(0, 3)} {p.day} {p.month}
+                        </p>
+                        <p className="inf-titulo mt-1 text-sm transition-colors duration-200 group-hover:text-[var(--inf-cian)]">
+                          {e.title}
+                        </p>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/brand/infinity/infinity-logo.svg"
-              alt="Infinity Producciones"
-              className="inf-aparece my-[min(18vw,8rem)] w-[min(82vw,26rem)] drop-shadow-[0_0_24px_#ee10b855]"
-              style={{ "--d": "150ms" } as CSSProperties}
-            />
-          </div>
-          <h1 className="inf-titulo inf-aparece mt-8 text-4xl sm:text-6xl" style={{ "--d": "350ms" } as CSSProperties}>
-            La noche que <span className="inf-degradado-texto">no termina</span>
-          </h1>
-          <p className="inf-aparece mt-3 max-w-sm text-[var(--inf-tenue)]" style={{ "--d": "500ms" } as CSSProperties}>
-            Entradas para Moon, en San Salvador de Jujuy. Comprás en un minuto y te llega por WhatsApp.
-          </p>
-          <a
-            href="#fechas"
-            className="inf-borde-giro inf-aparece mt-8 inline-grid min-h-14 place-items-center px-8 text-lg font-semibold"
-            style={{ "--d": "650ms" } as CSSProperties}
-          >
-            <span className="absolute inset-0 rounded-full bg-[var(--inf-noche)]" style={{ zIndex: -1 }} aria-hidden />
-            Ver próximas fechas
-          </a>
-        </section>
+          }
+          events={events.map((e, i) => {
+            const p = nightParts(e.startsAt);
+            const venue = venues.find((v) => v.slug === e.venueSlug)!;
+            const base = cheapestAvailable(e);
+            // Precio final: con cargo de servicio si lo paga el comprador.
+            const desde = base && (venue.feeMode === "buyer" ? base + serviceFee(base, venue.buyerFeeRate) : base);
+            const open = e.ticketTypes.find((t) => t.sold < t.capacity);
+            const left = open ? open.capacity - open.sold : 0;
+            return {
+              slug: e.slug,
+              href: `/${e.venueSlug}/${e.slug}`,
+              title: e.title,
+              lineup: e.lineup.join(", "),
+              date: `${p.weekday.slice(0, 3)} ${p.day} ${p.month}`,
+              time: p.time,
+              from: desde ? formatPrice(desde) : null,
+              tiers: e.ticketTypes.map((t) => ({ id: t.id, sold: t.sold / t.capacity })),
+              stock: open
+                ? `${open.name}: ${left <= open.capacity * 0.15 ? "últimas" : "quedan"} ${left}`
+                : "No quedan entradas",
+              tone: i % 2 ? "var(--inf-cian)" : "var(--inf-magenta)",
+            };
+          })}
+        />
 
-        {/* 2. Próximas fechas como pósters */}
-        <section id="fechas" className="mx-auto w-full max-w-5xl scroll-mt-16 px-4 py-14">
-          <h2 className="inf-titulo text-3xl">Próximas fechas</h2>
-          <ul className="mt-6 grid gap-4 sm:grid-cols-3">
-            {proximas.map((e, i) => {
-              const p = nightParts(e.startsAt);
-              const base = cheapestAvailable(e);
-              const moon = venues[0];
-              // Precio final: con cargo de servicio si lo paga el comprador.
-              const desde = base && (moon.feeMode === "buyer" ? base + serviceFee(base, moon.buyerFeeRate) : base);
-              return (
-                <li key={e.slug}>
-                  <Link
-                    href={`/moon/${e.slug}`}
-                    className={`${i % 2 ? "inf-poster-b" : "inf-poster"} relative flex aspect-[4/5] flex-col justify-between overflow-hidden rounded-[1.5rem] border border-white/10 p-5`}
-                  >
-                    <div className="inf-grano" />
-                    <div className="relative flex items-start justify-between">
-                      <div className="text-left">
-                        <p className="inf-titulo text-5xl tabular-nums">{p.day}</p>
-                        <p className="text-sm font-semibold capitalize">{p.month} · {p.weekday.slice(0, 3)}</p>
-                      </div>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/brand/infinity/infinity-mark.svg" alt="" className="h-6 opacity-90" />
-                    </div>
-                    <div className="relative">
-                      <p className="inf-titulo text-3xl uppercase leading-none">{e.title}</p>
-                      <p className="mt-2 text-sm text-white/80">{e.lineup.join(" · ")}</p>
-                      <p className="mt-4 inline-flex min-h-11 items-center rounded-full bg-[var(--inf-luz)] px-5 font-semibold text-[var(--inf-noche)]">
-                        {desde ? `Desde ${formatPrice(desde)}` : "Agotada"}
-                      </p>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+        <PhotoStack
+          id="fotos"
+          title="Así se vive la noche"
+          text="Lo que pasa en la pista no se cuenta: se ve."
+          photos={Array.from({ length: 9 }, (_, i) => `/venues/infinity/galeria/${String(i + 1).padStart(2, "0")}.jpg`)}
+        />
 
-        {/* 3. Entrada holográfica */}
-        <section className="mx-auto w-full max-w-5xl px-4 py-14">
-          <h2 className="inf-titulo text-3xl">Tu entrada</h2>
-          <p className="mt-2 max-w-md text-[var(--inf-tenue)]">
-            Un holograma que se mueve con el celu: se ve que es original, y el QR queda limpio para la puerta.
-          </p>
-          <div className="mt-8">
-            <HoloTicket
-              qr={qr}
-              code={ticket.code}
-              title={evento.title}
-              when={`${d.weekday} ${d.day} ${d.month}, ${d.time} h`}
-              holder={ticket.holderName}
-              type={tipo.name}
-            />
-          </div>
-        </section>
+        {/* Más fotos en Instagram: las mismas fotos de fondo, teñidas como la portada. */}
+        {ig && (
+          <section className="px-4 pb-20 pt-24 sm:px-8 sm:pb-28">
+            {/* El final del hilo de neón (ver NeonThread): las dos líneas envuelven la invitación a Instagram. */}
+            <a
+              data-hilo="instagram"
+              href={igUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inf-revela group relative isolate mx-auto flex min-h-[22rem] max-w-6xl flex-col items-center justify-center overflow-hidden rounded-[2rem] px-6 py-14 text-center sm:min-h-[26rem]"
+            >
+              <div className="absolute inset-0 -z-20 grid grid-cols-3 sm:grid-cols-5" aria-hidden>
+                {[3, 5, 8, 2, 7].map((n, i) => (
+                  <div key={n} className={`relative ${i > 2 ? "max-sm:hidden" : ""}`}>
+                    <Image
+                      src={`/venues/infinity/galeria/0${n}.jpg`}
+                      alt=""
+                      fill
+                      sizes="(min-width: 640px) 20vw, 34vw"
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="inf-insta-velo absolute inset-0 -z-10" aria-hidden />
 
-        {/* 4. Panel del dueño */}
-        <section className="mx-auto w-full max-w-5xl px-4 py-14">
-          <h2 className="inf-titulo text-3xl">
-            Tu noche, <span className="inf-degradado-texto">en vivo</span>
-          </h2>
-          <p className="mt-2 max-w-md text-[var(--inf-tenue)]">
-            Para el dueño: el símbolo de Infinity se llena con las entradas vendidas y la gente que ya entró.
-          </p>
-          <div className="mt-8 max-w-md">
-            <NightRings />
-          </div>
-        </section>
-
+              <InstagramIcon className="size-9" />
+              <h2 className="inf-titulo mt-5 max-w-xl text-2xl text-balance sm:text-4xl">Las fotos de cada noche están en Instagram</h2>
+              <p className="mt-3 text-white/80">@{ig}</p>
+              <span className="mt-7 inline-flex min-h-12 items-center rounded-full bg-[var(--inf-luz)] px-7 font-semibold text-[var(--inf-noche)] transition-transform duration-200 ease-out group-hover:scale-[1.04] group-active:scale-[0.97]">
+                Ver más fotos
+              </span>
+            </a>
+          </section>
+        )}
       </main>
 
-      <footer className="border-t border-white/5 px-4 py-10 text-center text-sm text-[var(--inf-tenue)]">
+      {/* Las dos líneas del cartel siguen bajando y envuelven las fotos y el Instagram. */}
+      <NeonThread />
+
+      <footer className="flex flex-col items-center border-t border-white/5 px-4 py-10 text-center text-sm text-[var(--inf-tenue)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/brand/infinity/infinity-mark.svg" alt="" className="mx-auto mb-3 h-6" />
         Infinity Producciones · San Salvador de Jujuy
       </footer>
     </>
+  );
+}
+
+function InstagramIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle cx="17.3" cy="6.7" r="1.2" fill="currentColor" />
+    </svg>
   );
 }

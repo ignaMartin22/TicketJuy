@@ -10,23 +10,25 @@ export function generateStaticParams() {
   return events.map((e) => ({ venue: e.venueSlug, event: e.slug }));
 }
 
-export default async function CheckoutPage({
-  params,
-}: PageProps<"/[venue]/[event]/checkout">) {
+export default function CheckoutPage({ params }: PageProps<"/[venue]/[event]/checkout">) {
+  return (
+    <main className="mx-auto w-full max-w-5xl px-4 pb-8 pt-8 sm:px-6 sm:pt-12">
+      <h1 className="display mb-6 text-4xl sm:mb-10 sm:text-5xl">Tus datos</h1>
+      {/*
+        La fecha (en la ruta) y el carrito (?t=...) salen de la URL: el formulario
+        va dentro de Suspense, así al navegar el título y el lugar aparecen al instante.
+      */}
+      <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-noche-2" />}>
+        <Checkout params={params} />
+      </Suspense>
+    </main>
+  );
+}
+
+async function Checkout({ params }: { params: PageProps<"/[venue]/[event]/checkout">["params"] }) {
   const { venue: venueSlug, event: eventSlug } = await params;
   const venue = getVenue(venueSlug);
   const event = getEvent(venueSlug, eventSlug);
   if (!venue || !event) notFound();
-
-  return (
-    <main className="mx-auto w-full max-w-5xl px-4 pb-8 pt-6 sm:px-6 sm:pt-8">
-      <h1 className="display mb-5 text-5xl sm:mb-8 sm:text-6xl uppercase">Tus datos</h1>
-      {/* El carrito viene en la URL (?t=...), que se lee al momento del pedido. */}
-      <Suspense
-        fallback={<div className="h-96 animate-pulse rounded-2xl bg-noche-2" />}
-      >
-        <CheckoutForm venue={venue} event={event} />
-      </Suspense>
-    </main>
-  );
+  return <CheckoutForm venue={venue} event={event} />;
 }

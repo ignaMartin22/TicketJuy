@@ -5,7 +5,7 @@ export function DateBlock({ iso, className = "" }: { iso: string; className?: st
   const d = nightParts(iso);
   return (
     <div className={`flex w-14 shrink-0 flex-col items-center text-center ${className}`}>
-      <span className="display text-5xl tabular-nums">{d.day}</span>
+      <span className="display text-3xl tabular-nums">{d.day}</span>
       <span className="mt-1 text-sm font-semibold capitalize text-accent">
         {d.month}
       </span>

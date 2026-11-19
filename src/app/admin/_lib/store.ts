@@ -7,13 +7,14 @@ import type { AdminEvent } from "./types";
 /*
  * Store del panel, solo en el navegador.
  * PROVISORIO: hasta conectar Supabase, los eventos se guardan en localStorage
- * y arrancan con los datos de prueba de Moon. Cuando haya backend, este
+ * y arrancan con los datos de prueba del boliche. Cuando haya backend, este
  * archivo se reemplaza por llamadas a la API y el resto del panel no cambia.
  */
 
-const STORAGE_KEY = "tj-admin-events-v1";
+// v2: el boliche pasó de "moon" a "infinity"; lo guardado antes se descarta.
+const STORAGE_KEY = "tj-admin-events-v2";
 /** Por ahora el panel administra un solo boliche. */
-export const ADMIN_VENUE_SLUG = "moon";
+export const ADMIN_VENUE_SLUG = "infinity";
 
 const SEED: AdminEvent[] = mockEvents
   .filter((e) => e.venueSlug === ADMIN_VENUE_SLUG)

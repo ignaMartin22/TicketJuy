@@ -3,9 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useRef, useState, type ReactNode } from "react";
-import { resetEvents } from "../_lib/store";
+import { getVenue } from "@/lib/mock-data";
+import { ADMIN_VENUE_SLUG, resetEvents } from "../_lib/store";
 import { ConfirmDialog } from "./confirm-dialog";
 import { CalendarIcon, ChartIcon, CloseIcon, MenuIcon, PlusIcon } from "./icons";
+
+const VENUE_NAME = getVenue(ADMIN_VENUE_SLUG)?.name ?? "Boliche";
 
 const NAV = [
   { href: "/admin", label: "Resumen", icon: ChartIcon },
@@ -86,7 +89,7 @@ function Brand({ onNavigate }: { onNavigate?: () => void }) {
     <Link href="/admin" onClick={onNavigate} className="flex items-center gap-2.5">
       <span className="neon-soft size-2 rounded-full bg-accent" aria-hidden />
       <span className="leading-tight">
-        <span className="block text-sm font-semibold">Moon</span>
+        <span className="block text-sm font-semibold">{VENUE_NAME}</span>
         <span className="block text-xs text-tenue">Panel del boliche</span>
       </span>
     </Link>
@@ -105,7 +108,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       <div className="flex flex-col gap-3 border-t border-linea pt-4 text-sm">
-        <Link href="/moon" className="text-tenue hover:text-luz" onClick={onNavigate}>
+        <Link href={`/${ADMIN_VENUE_SLUG}`} className="text-tenue hover:text-luz" onClick={onNavigate}>
           Ver página pública
         </Link>
         <button
