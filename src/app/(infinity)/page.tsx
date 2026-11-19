@@ -10,7 +10,6 @@ import { HeroVideo } from "./_components/hero-video";
 import { NeonSign, SIGN_INSET } from "./_components/neon-sign";
 import { NeonThread } from "./_components/neon-thread";
 import { SpiralGallery } from "./_components/spiral-gallery";
-import { SectionScroll } from "./_components/section-scroll";
 import { InstallApp } from "@/components/install-app";
 
 // Portada de Infinity Producciones. Las fechas salen del catálogo (src/lib/catalog.ts).
@@ -217,8 +216,6 @@ export default async function InfinityPrototype() {
 
       {/* Las dos líneas del cartel siguen bajando y envuelven las fotos y el Instagram. */}
       <NeonThread />
-      {/* El scroll va de sección en sección, así ninguna animación queda a medias. */}
-      <SectionScroll />
       {/* Ofrece instalar la app (Android: directo; iPhone: con instrucciones). */}
       <InstallApp />
 
