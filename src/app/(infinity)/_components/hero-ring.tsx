@@ -125,20 +125,55 @@ export function HeroRing({
       setStep(Math.min(Math.floor(rest * events.length), events.length - 1));
     };
 
+    /*
+     * El video de fondo es lo más caro de la página: un video a pantalla completa
+     * con filtros (y desenfocado cuando se arma el anillo). Sólo se reproduce
+     * mientras se ve la portada; con el anillo armado o fuera de pantalla queda
+     * quieto en el último cuadro, que igual se ve tenue y desenfocado.
+     */
+    let listo = false;
+    let inView = true;
+    const syncVideo = () => {
+      const v = stage.current?.querySelector("video");
+      if (!v || still) return;
+      const play = inView && !listo;
+      if (play && v.paused) v.play().catch(() => {});
+      else if (!play && !v.paused) v.pause();
+    };
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      syncVideo();
+    });
+    io.observe(el);
+
     // La entrada no salta con cada ruedita: se acerca al scroll de a poco y con
-    // una curva que arranca y termina suave.
+    // una curva que arranca y termina suave. El bucle sólo corre mientras hay que
+    // acercarse; cuando llega, se duerme hasta el próximo scroll.
     const tick = () => {
-      raf = requestAnimationFrame(tick);
       const now = performance.now();
       const dt = Math.min((now - last) / 1000, 0.1);
       last = now;
       const next = still || shown < 0 ? target : shown + (target - shown) * (1 - Math.exp(-dt * 6));
-      if (Math.abs(next - shown) < 0.0005 && next === target) return;
+      if (Math.abs(next - shown) < 0.0005 && next === target) {
+        raf = 0;
+        return;
+      }
+      raf = requestAnimationFrame(tick);
       shown = Math.abs(next - target) < 0.001 ? target : next;
       eased = shown * shown * (3 - 2 * shown);
       stage.current?.style.setProperty("--e", eased.toFixed(4));
       draw(eased);
-      if (stage.current) stage.current.dataset.listo = shown >= 0.999 ? "si" : "no";
+      const nowListo = shown >= 0.999;
+      if (stage.current) stage.current.dataset.listo = nowListo ? "si" : "no";
+      if (nowListo !== listo) {
+        listo = nowListo;
+        syncVideo();
+      }
+    };
+    const wake = () => {
+      if (raf) return;
+      last = performance.now();
+      raf = requestAnimationFrame(tick);
     };
 
     // En el celular la tarjeta de la portada va en el hueco entre el cartel y la
@@ -175,17 +210,22 @@ export function HeroRing({
       s.style.setProperty("--hy", `${Math.round(groupTop + cardH / 2 - ringCenter)}px`);
     };
 
+    const onScroll = () => {
+      read();
+      wake();
+    };
     const resize = () => {
       read();
       fit();
       trace();
+      wake();
     };
 
     read();
     fit();
     trace();
-    raf = requestAnimationFrame(tick);
-    window.addEventListener("scroll", read, { passive: true });
+    wake();
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", resize);
     // Las fuentes cambian el alto del texto cuando terminan de cargar.
     document.fonts?.ready.then(() => {
@@ -194,7 +234,8 @@ export function HeroRing({
     });
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", read);
+      io.disconnect();
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", resize);
     };
   }, [events.length]);

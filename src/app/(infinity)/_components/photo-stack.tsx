@@ -53,13 +53,17 @@ export function PhotoStack({
       target = 1 + p * (n - 1);
     };
 
+    // El bucle sólo corre mientras las fotos se están acomodando; después se duerme hasta el próximo scroll.
     const tick = () => {
-      raf = requestAnimationFrame(tick);
       const now = performance.now();
       const dt = Math.min((now - last) / 1000, 0.1);
       last = now;
       const next = still || shown < 0 ? target : shown + (target - shown) * (1 - Math.exp(-dt * 7));
-      if (Math.abs(next - shown) < 0.0005) return;
+      if (Math.abs(next - shown) < 0.0005) {
+        raf = 0;
+        return;
+      }
+      raf = requestAnimationFrame(tick);
       shown = next;
       items.current.forEach((item, i) => {
         if (!item) return;
@@ -71,14 +75,20 @@ export function PhotoStack({
       });
     };
 
-    read();
-    raf = requestAnimationFrame(tick);
-    window.addEventListener("scroll", read, { passive: true });
-    window.addEventListener("resize", read);
+    const wake = () => {
+      read();
+      if (raf) return;
+      last = performance.now();
+      raf = requestAnimationFrame(tick);
+    };
+
+    wake();
+    window.addEventListener("scroll", wake, { passive: true });
+    window.addEventListener("resize", wake);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", read);
-      window.removeEventListener("resize", read);
+      window.removeEventListener("scroll", wake);
+      window.removeEventListener("resize", wake);
     };
   }, [n]);
 

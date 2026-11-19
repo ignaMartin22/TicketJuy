@@ -21,6 +21,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="es-AR"
       className={`${titulo.variable} ${texto.variable} h-full antialiased`}
+      // El scroll suave (globals.css) es para los anclas; Next lo apaga al cambiar de página.
+      data-scroll-behavior="smooth"
     >
       <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>
