@@ -7,7 +7,8 @@ import { eventTotals, formatCount, percent, sumTotals } from "../_lib/stats";
 import { useAdminEvents, useHydrated } from "../_lib/store";
 import { PlusIcon } from "./icons";
 import { PanelLoading } from "./loading";
-import { buttonClass, Card, EventThumb, PageHeader, SalesBar, StatCard, StatusBadge } from "./ui";
+import { CIAN, HelioCard, MAGENTA, PillBars, SpokeRing, Stems } from "./dash-charts";
+import { buttonClass, Card, EventThumb, PageHeader, SalesBar, StatusBadge } from "./ui";
 
 export function SalesOverview() {
   const events = useAdminEvents();
@@ -23,6 +24,8 @@ export function SalesOverview() {
   }));
   const all = sumTotals(rows.map((r) => r.total));
   const vip = sumTotals(rows.map((r) => r.vip));
+  // Lo que se recaudaría vendiendo todo el cupo, a precio de entrada.
+  const potential = rows.reduce((acc, r) => acc + eventPotential(r.event), 0);
 
   return (
     <>
@@ -37,27 +40,72 @@ export function SalesOverview() {
         }
       />
 
-      <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard
-          label="Entradas vendidas"
-          value={formatCount(all.sold)}
-          hint={`de ${formatCount(all.capacity)} disponibles`}
-        />
-        <StatCard
-          label="Recaudación"
-          value={formatPrice(all.revenue)}
-          hint="A precio de entrada"
-        />
-        <StatCard
-          label="Ocupación"
-          value={`${percent(all.sold, all.capacity)} %`}
-          hint="Sobre el cupo total"
-        />
-        <StatCard
-          label="VIP vendidas"
-          value={formatCount(vip.sold)}
-          hint={vip.capacity ? `de ${formatCount(vip.capacity)}` : "Sin VIP a la venta"}
-        />
+      {/* Tres tarjetas: cada una con un gráfico interactivo y dos números al pie. */}
+      <div className="mt-8 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <HelioCard
+          title="Vendidas"
+          subtitle="por tanda"
+          badge={`${percent(all.sold, all.capacity)}% del cupo`}
+          href="/admin/eventos"
+          stats={[
+            ["Vendidas", formatCount(all.sold)],
+            ["Cupo", formatCount(all.capacity)],
+          ]}
+        >
+          <Stems
+            groups={rows.map(({ event }) => {
+              const d = nightParts(event.startsAt);
+              return {
+                label: `${d.day} ${d.month}`,
+                items: event.ticketTypes.map((t) => ({
+                  label: t.name,
+                  value: t.capacity ? t.sold / t.capacity : 0,
+                  detail: `${event.title} · ${t.name}: ${formatCount(t.sold)} de ${formatCount(t.capacity)}`,
+                })),
+              };
+            })}
+          />
+        </HelioCard>
+
+        <HelioCard
+          title="Ocupación"
+          subtitle="por tipo"
+          badge={`${formatCount(vip.sold)} VIP`}
+          href="/admin/eventos"
+          stats={[
+            ["Vendido", `${percent(all.sold, all.capacity)}%`],
+            ["Libres", formatCount(all.capacity - all.sold)],
+          ]}
+        >
+          <SpokeRing
+            center={["Del cupo", `${percent(all.sold, all.capacity)}%`]}
+            parts={[
+              { label: "Común", value: all.sold - vip.sold, color: CIAN },
+              { label: "VIP", value: vip.sold, color: MAGENTA },
+              { label: "Libres", value: all.capacity - all.sold, color: "rest" },
+            ]}
+          />
+        </HelioCard>
+
+        <HelioCard
+          title="Recaudación"
+          subtitle="vs. potencial"
+          badge={`${percent(all.revenue, potential)}%`}
+          href="/admin/eventos"
+          className="md:col-span-2 xl:col-span-1"
+          stats={[
+            ["Recaudado", formatCompact(all.revenue)],
+            ["Potencial", formatCompact(potential)],
+          ]}
+        >
+          <PillBars
+            format={formatCompact}
+            items={rows.map(({ event, total }) => {
+              const d = nightParts(event.startsAt);
+              return { label: `${d.day} ${d.month}`, value: total.revenue, max: eventPotential(event) };
+            })}
+          />
+        </HelioCard>
       </div>
 
       <Card className="mt-6 overflow-hidden">
@@ -184,4 +232,16 @@ function Fraction({ sold, capacity }: { sold: number; capacity: number }) {
       {formatCount(sold)} <span className="text-tenue">/ {formatCount(capacity)}</span>
     </>
   );
+}
+
+/** Lo que recaudaría la fecha vendiendo todo el cupo. */
+function eventPotential(event: { ticketTypes: { capacity: number; price: number }[] }) {
+  return event.ticketTypes.reduce((acc, t) => acc + t.capacity * t.price, 0);
+}
+
+/** "$ 14,3 M", "$ 936 mil": montos cortos para las tarjetas. */
+function formatCompact(n: number) {
+  if (n >= 1_000_000) return `$ ${(n / 1_000_000).toLocaleString("es-AR", { maximumFractionDigits: 1 })} M`;
+  if (n >= 1_000) return `$ ${Math.round(n / 1_000).toLocaleString("es-AR")} mil`;
+  return formatPrice(n);
 }
