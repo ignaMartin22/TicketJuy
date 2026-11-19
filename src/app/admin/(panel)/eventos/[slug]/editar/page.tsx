@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { EditEventEditor } from "../../../_components/event-editors";
-import { PanelLoading } from "../../../_components/loading";
+import { EditEventEditor } from "@/app/admin/_components/event-editors";
+import { PanelLoading } from "@/app/admin/_components/loading";
 
 export const metadata: Metadata = { title: "Editar evento" };
 

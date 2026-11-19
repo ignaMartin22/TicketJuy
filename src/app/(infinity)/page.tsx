@@ -55,6 +55,19 @@ export default async function InfinityPrototype() {
                 <InstagramIcon className="size-[1.125rem]" />
               </a>
             )}
+            {/* PROVISORIO: acceso al panel del boliche. Después se esconde para el público. */}
+            <Link
+              href="/admin/ingresar"
+              prefetch={false}
+              aria-label="Ingresar al panel"
+              title="Ingresar al panel"
+              className="grid size-9 place-items-center rounded-full text-white/75 transition-colors duration-200 hover:text-white"
+            >
+              <svg viewBox="0 0 24 24" className="size-[1.125rem]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21c1.5-3.8 4.4-5.5 8-5.5s6.5 1.7 8 5.5" />
+              </svg>
+            </Link>
             <a
               href="#fechas-ancla"
               className="rounded-full bg-[var(--inf-luz)] px-4 py-2 font-semibold text-[var(--inf-noche)] transition-transform duration-200 ease-out active:scale-[0.97]"
