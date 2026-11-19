@@ -6,6 +6,7 @@ import { Suspense, useRef, useState, type ReactNode } from "react";
 import { getVenue } from "@/lib/mock-data";
 import { ADMIN_VENUE_SLUG, resetEvents } from "../_lib/store";
 import { ConfirmDialog } from "./confirm-dialog";
+import { PageTransition } from "./page-transition";
 import { CalendarIcon, ChartIcon, CloseIcon, MenuIcon, PlusIcon } from "./icons";
 
 const VENUE_NAME = getVenue(ADMIN_VENUE_SLUG)?.name ?? "Boliche";
@@ -78,7 +79,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
       </aside>
 
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
-        <div className="mx-auto max-w-6xl">{children}</div>
+        <div className="mx-auto max-w-6xl">
+          <PageTransition>{children}</PageTransition>
+        </div>
       </main>
     </div>
   );
@@ -170,6 +173,8 @@ function NavLinks({
             <Link
               href={href}
               onClick={onNavigate}
+              // Hacia una pestaña de más abajo el contenido sube; hacia una de más arriba, baja.
+              transitionTypes={activeIndex < 0 || i === activeIndex ? undefined : [i > activeIndex ? "adm-sube" : "adm-baja"]}
               aria-current={active ? "page" : undefined}
               className={`flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors duration-300 ${
                 active ? "text-luz" : "text-tenue hover:bg-white/5 hover:text-luz"
