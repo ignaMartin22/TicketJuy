@@ -5,8 +5,10 @@ import { notFound } from "next/navigation";
 import { getEventCatalog, hasLiveCatalog } from "@/lib/catalog";
 import { TicketStub } from "@/components/ticket-stub";
 import { formatNight, formatPrice } from "@/lib/format";
-import { getOrder } from "@/lib/orders";
+import { getOrder, syncOrder, type Order } from "@/lib/orders";
 import { qrSvg } from "@/lib/qr";
+import { PayButton } from "./pay-button";
+import { PaymentWatcher } from "./payment-watcher";
 import { ReservationTimer } from "./reservation-timer";
 
 export const metadata: Metadata = {
@@ -16,7 +18,22 @@ export const metadata: Metadata = {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Pedido reservado en ticketera-core, esperando el pago. */
+/**
+ * Lee el pedido. Si todavía no figura pagado, primero le pide al backend que consulte
+ * Mercado Pago (sync): así el comprador que vuelve del pago ve sus entradas aunque
+ * el aviso de Mercado Pago no haya llegado. Si el sync falla, se muestra lo que hay.
+ */
+async function loadOrder(venueSlug: string, eventSlug: string, orderId: string): Promise<Order | null> {
+  const order = await getOrder(venueSlug, eventSlug, orderId);
+  if (!order || order.status === "paid") return order;
+  try {
+    return (await syncOrder(venueSlug, eventSlug, orderId)) ?? order;
+  } catch {
+    return order;
+  }
+}
+
+/** Pedido reservado en ticketera-core: espera el pago o muestra las entradas. */
 export default function OrderPage({ params }: PageProps<"/[venue]/[event]/pedido/[order]">) {
   return (
     <main className="mx-auto w-full max-w-xl px-4 pb-8 pt-8 sm:px-6 sm:pt-12">
@@ -32,7 +49,7 @@ async function OrderContent({ params }: { params: PageProps<"/[venue]/[event]/pe
   if (!hasLiveCatalog() || !UUID.test(orderId)) notFound();
   const [catalog, order] = await Promise.all([
     getEventCatalog(venueSlug, eventSlug),
-    getOrder(venueSlug, eventSlug, orderId),
+    loadOrder(venueSlug, eventSlug, orderId),
   ]);
   if (!catalog || !order) notFound();
   const { event, venue } = catalog;
@@ -41,21 +58,49 @@ async function OrderContent({ params }: { params: PageProps<"/[venue]/[event]/pe
   const backHref = `/${venueSlug}/${eventSlug}`;
   const paid = order.status === "paid";
   const expired = order.status === "expired";
+  // Pago aprobado que no se pudo convertir en entradas: lo resuelve el boliche a mano.
+  const review = order.paymentReview && !paid;
   const qrs = paid ? await Promise.all(order.tickets.map((t) => qrSvg(t.qr))) : [];
   const count = order.tickets.length;
 
   return (
     <div style={paid ? ({ "--accent": venue.accent } as CSSProperties) : undefined}>
       <h1 className="display text-4xl sm:text-5xl">
-        {paid ? "Tus entradas" : expired ? "La reserva venció" : "Reservamos tus entradas"}
+        {paid ? "Tus entradas" : review ? "Recibimos tu pago" : expired ? "La reserva venció" : "Reservamos tus entradas"}
       </h1>
       <p className="mt-2 text-tenue">
         {paid
           ? `${count === 1 ? "Tenés 1 entrada" : `Tenés ${count} entradas`}. Cada QR sirve para un solo ingreso.`
-          : expired
+          : review
+            ? "Pero no pudimos emitir tus entradas. Escribile al boliche con este número de pedido."
+            : expired
             ? "Pasaron los 10 minutos y el cupo se liberó. Podés volver a elegir tus entradas."
             : "Las guardamos a tu nombre mientras completás el pago."}
       </p>
+
+      {order.paymentReview && (
+        <section role="alert" className="mt-6 rounded-3xl border border-amber-300/40 bg-amber-300/10 p-5">
+          <p className="font-semibold text-amber-200">
+            {paid ? "Recibimos un pago de más en este pedido." : "Tu pago quedó en revisión."}
+          </p>
+          <p className="mt-1 text-sm text-luz/80">
+            {paid
+              ? "Tus entradas son válidas. Escribile al boliche con este número de pedido para que te devuelvan lo que sobra."
+              : "No se hace un reembolso automático. Escribile al boliche y pasale este número de pedido:"}
+          </p>
+          <p className="mt-3 select-all break-all rounded-xl bg-noche/60 px-3 py-2 font-mono text-sm">{order.id}</p>
+          {venue.instagram && (
+            <a
+              href={`https://instagram.com/${venue.instagram.replace(/^@/, "")}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-block text-sm font-semibold underline underline-offset-4"
+            >
+              Escribirle a {venue.name} por Instagram
+            </a>
+          )}
+        </section>
+      )}
 
       {paid && (
         <ol className="mt-6 flex flex-col items-center gap-8">
@@ -112,7 +157,17 @@ async function OrderContent({ params }: { params: PageProps<"/[venue]/[event]/pe
         </div>
       </section>
 
-      {paid ? (
+      {!paid && !order.paymentReview && (
+        <PaymentWatcher
+          venueSlug={venueSlug}
+          eventSlug={eventSlug}
+          orderId={order.id}
+          status={order.status}
+          expiresAt={order.expiresAt}
+        />
+      )}
+
+      {paid || review ? (
         <Link href={backHref} className="mt-6 block py-3 text-center text-tenue underline underline-offset-4">
           Ver la fecha
         </Link>
@@ -126,15 +181,7 @@ async function OrderContent({ params }: { params: PageProps<"/[venue]/[event]/pe
       ) : (
         <div className="mt-6">
           <ReservationTimer expiresAt={order.expiresAt} backHref={backHref} />
-          {/* Acá va el botón a Checkout Pro: la preferencia se crea con el token del boliche y el marketplace_fee. */}
-          <button
-            type="button"
-            disabled
-            className="mt-4 flex min-h-14 w-full items-center justify-center rounded-full bg-luz text-lg font-semibold text-noche opacity-50"
-          >
-            Pagar con Mercado Pago
-          </button>
-          <p className="mt-2 text-center text-sm text-tenue">El pago online todavía no está habilitado.</p>
+          <PayButton venueSlug={venueSlug} eventSlug={eventSlug} orderId={order.id} />
         </div>
       )}
     </div>
