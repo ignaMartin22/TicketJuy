@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { EventRing, type RingEvent } from "./event-ring";
 
 /*
@@ -13,6 +13,9 @@ import { EventRing, type RingEvent } from "./event-ring";
  * El avance de la entrada (0 a 1) queda en la variable CSS --e del escenario;
  * todo lo demás (fondo, portada, tarjetas) se mueve con esa variable en CSS.
  */
+/** Cuánto scroll (en svh) dura la entrada del cartel al anillo armado. */
+const ENTRY = 70;
+
 /** Los elementos que leen --e en infinity.css. Si se agrega uno nuevo, va acá. */
 const E_CONSUMERS = [
   ".inf-fondo",
@@ -48,7 +51,6 @@ export function HeroRing({
 }) {
   const section = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
-  const [step, setStep] = useState(0);
 
   useEffect(() => {
     const el = section.current;
@@ -135,11 +137,8 @@ export function HeroRing({
     const read = () => {
       const r = el.getBoundingClientRect();
       const travel = Math.max(r.height - window.innerHeight, 1);
-      const p = Math.min(Math.max(-r.top / travel, 0), 1);
-      // El primer tramo es la entrada; el resto, una fecha por tramo.
-      target = Math.min(p / 0.3, 1);
-      const rest = Math.max(p - 0.3, 0) / 0.7;
-      setStep(Math.min(Math.floor(rest * events.length), events.length - 1));
+      // Todo el recorrido de la sección es la entrada: al terminar, el anillo queda armado.
+      target = Math.min(Math.max(-r.top / travel, 0), 1);
     };
 
     /*
@@ -273,9 +272,14 @@ export function HeroRing({
   }, [events.length]);
 
   return (
-    <section ref={section} className="relative" style={{ height: `${100 + events.length * 55}svh` }}>
-      {/* Adonde lleva "Ver próximas fechas": el punto donde el anillo ya está armado. */}
-      <span id="fechas-ancla" className="absolute" style={{ top: `${0.3 * events.length * 55}svh` }} aria-hidden />
+    <section ref={section} className="relative" style={{ height: `${100 + ENTRY}svh` }}>
+      {/*
+        Puntos de descanso del scroll (ver SectionScroll): la portada y el anillo
+        armado, que es también adonde llevan los links a "Fechas". Las fechas se
+        recorren con las flechas o deslizando el anillo, no con el scroll.
+      */}
+      <span className="inf-snap" style={{ top: 0 }} aria-hidden />
+      <span id="fechas-ancla" className="inf-snap" style={{ top: `${ENTRY}svh` }} aria-hidden />
       <div
         ref={stage}
         data-listo="no"
@@ -294,7 +298,7 @@ export function HeroRing({
         {/* El título va junto al anillo, arriba de la tarjeta: así nunca se pisan, sea cual sea el alto de la pantalla. */}
         <div className="inf-anillo-lugar absolute inset-x-0 top-[calc(50%+1.75rem)] -translate-y-1/2">
           <h2 className="inf-titulo-fechas inf-titulo mb-4 text-center text-2xl sm:mb-6 sm:text-3xl">Próximas fechas</h2>
-          <EventRing events={events} backdrop={backdrop} step={step} underCard={underCard} />
+          <EventRing events={events} backdrop={backdrop} underCard={underCard} />
         </div>
 
         {/* Los tubos del cartel que bajan al scrollear y envuelven la tarjeta del medio. */}
