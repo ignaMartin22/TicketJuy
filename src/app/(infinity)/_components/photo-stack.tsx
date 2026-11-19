@@ -87,8 +87,11 @@ export function PhotoStack({
       <div className="sticky top-0 flex h-svh flex-col overflow-hidden pt-14 sm:flex-row sm:items-center">
         <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8 sm:flex-row sm:items-center sm:gap-10 sm:px-10">
           <div className="inf-revela sm:w-[38%]">
-            <h2 className="inf-titulo text-3xl text-balance sm:text-5xl">{title}</h2>
-            <p className="mt-4 max-w-sm text-[var(--inf-tenue)]">{text}</p>
+            {/* El hilo de neón (ver NeonThread) baja desde la tarjeta y envuelve este bloque. */}
+            <div data-hilo="fotos" className="w-fit px-5 py-4 sm:px-7 sm:py-6">
+              <h2 className="inf-titulo text-3xl text-balance sm:text-5xl">{title}</h2>
+              <p className="mt-3 max-w-sm text-white/70 sm:text-lg">{text}</p>
+            </div>
           </div>
           <div className="relative flex min-h-0 flex-1 items-center justify-center">
             <div className="inf-pila relative">

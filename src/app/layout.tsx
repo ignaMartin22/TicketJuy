@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Unbounded } from "next/font/google";
+import { Archivo, Geist } from "next/font/google";
 import "./globals.css";
 
-// Unbounded: ancha y redonda, de cartel de boliche. Bricolage: un texto con carácter que se lee bien chico.
-const titulo = Unbounded({ variable: "--font-titulo", subsets: ["latin"] });
-const texto = Bricolage_Grotesque({ variable: "--font-texto", subsets: ["latin"] });
+// Archivo, pesada y un poco ancha, para títulos: geométrica como las letras del logo.
+// Geist para el texto: neutra y muy legible en tamaños chicos.
+const titulo = Archivo({ variable: "--font-titulo", subsets: ["latin"], axes: ["wdth"] });
+const texto = Geist({ variable: "--font-texto", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: { default: "Infinity Producciones", template: "%s | Infinity Producciones" },
