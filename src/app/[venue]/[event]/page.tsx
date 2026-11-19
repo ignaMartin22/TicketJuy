@@ -1,10 +1,11 @@
-import { Suspense, type ReactNode } from "react";
+import { Suspense, type CSSProperties, type ReactNode } from "react";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TicketPicker } from "@/components/ticket-picker";
 import { eventParams, getEventCatalog } from "@/lib/catalog";
 import { nightParts } from "@/lib/format";
-// Las variables y estilos de la marca (las entradas con talón) viven acá.
+// Las variables y estilos de la marca (afiche, franja y entradas) viven acá.
 import "@/app/(infinity)/infinity.css";
 
 export function generateStaticParams() {
@@ -23,7 +24,7 @@ export default function EventPage({ params }: PageProps<"/[venue]/[event]">) {
     // .infinity trae las variables de la marca; el fondo lo sigue poniendo el body.
     <div className="infinity bg-transparent!">
       {/* Todo en una pantalla: los datos de la fecha, las entradas y listo. */}
-      <main className="ev-grilla mx-auto w-full max-w-5xl px-4 pb-6 pt-8 sm:px-6 sm:pt-12 lg:pb-4 lg:pt-12">
+      <main className="ev-grilla mx-auto w-full max-w-5xl px-4 pb-6 pt-8 sm:px-6 sm:pt-12 lg:pb-4 lg:pt-8">
         {/*
           Lo que depende de la fecha (que sale de la URL) va dentro de Suspense: al
           navegar desde otra página, la grilla y el esqueleto aparecen al instante y
@@ -42,55 +43,71 @@ async function EventContent({ params }: { params: PageProps<"/[venue]/[event]">[
   const catalog = await getEventCatalog(venueSlug, eventSlug);
   if (!catalog) notFound();
   const { venue, event } = catalog;
-
-  const lugar = venue.address === venue.city ? venue.city : `${venue.address}, ${venue.city}`;
   const d = nightParts(event.startsAt);
+  const tone = eventTone(event.slug);
 
   return (
-    <>
-      <header className="entra [grid-area:titulo]">
-        <h1 className="inf-titulo text-[clamp(1.9rem,7vw,3.25rem)] uppercase leading-[0.95] text-balance">{event.title}</h1>
-        <p className="mt-2 text-white/75 sm:text-lg">{event.lineup.join(" · ")}</p>
+    <div className="contents" style={{ "--tono": tone } as CSSProperties}>
+      {/* El afiche de la fecha: la foto de la pista teñida con el color de la noche, y el título encima. */}
+      <header className="ev-afiche entra relative isolate flex flex-col justify-end overflow-hidden rounded-[1.75rem] [grid-area:afiche]">
+        {venue.flyerBackdrop && (
+          // En su propia capa: Image con fill necesita un padre posicionado y el afiche es sticky en la compu.
+          <div className="absolute inset-0 -z-30">
+            <Image src={venue.flyerBackdrop} alt="" fill priority sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
+          </div>
+        )}
+        <div className="ev-afiche-tinte absolute inset-0 -z-20" aria-hidden />
+        <div className="inf-grano -z-10" aria-hidden />
+        <div className="p-5 sm:p-7">
+          <p className="inf-titulo text-xs uppercase tracking-[0.2em] text-white/70">
+            {d.weekday} {d.day} {d.monthLong}
+          </p>
+          <h1 className="inf-titulo mt-2 text-[clamp(2rem,8vw,3.6rem)] uppercase leading-[0.92] text-balance">{event.title}</h1>
+          <p className="mt-3 text-white/80 sm:text-lg">{event.lineup.join(" · ")}</p>
+          {/* En la compu la descripción va en el afiche, así la columna de la compra entra en la pantalla. */}
+          <p className="mt-3 max-w-[30rem] text-sm text-white/65 text-pretty max-lg:hidden">{event.description}</p>
+        </div>
+      </header>
 
-        {/* Los detalles de la fecha, como en una entrada impresa. */}
-        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-y border-white/10 py-4 sm:mt-6">
-          <Dato icon={<IconoCalendario />} label="Fecha">
-            <span className="capitalize">{d.weekday.slice(0, 3)}</span> {d.day} {d.month}, {d.time} h
+      <div className="flex flex-col gap-5 [grid-area:compra] lg:gap-4">
+        {/* Los datos como el talón de una entrada impresa: una franja, sin íconos. */}
+        <dl className="ev-franja entra" style={{ "--d": "120ms" } as CSSProperties}>
+          <Dato label="Abre">
+            {d.day} {d.month} · {d.time}
           </Dato>
-          <Dato icon={<IconoPin />} label="Lugar">
+          <Dato label="Lugar">
             {venue.mapsUrl ? (
-              <a href={venue.mapsUrl} target="_blank" rel="noreferrer" className="underline decoration-white/30 underline-offset-4 transition-colors hover:decoration-[var(--inf-magenta)]">
+              <a href={venue.mapsUrl} target="_blank" rel="noreferrer" className="underline decoration-white/30 underline-offset-4 hover:decoration-[var(--tono)]">
                 {venue.name}
               </a>
             ) : (
               venue.name
             )}
-            <span className="text-white/50 max-sm:hidden">, {lugar}</span>
           </Dato>
-          <Dato icon={<IconoDni />} label="Edad">
-            +{event.ageLimit}, con DNI
-          </Dato>
-          <Dato icon={<IconoPuerta />} label="Ingreso">
-            {event.doorsNote}
-          </Dato>
-          {event.dressCode && (
-            <Dato icon={<IconoRemera />} label="Vestimenta">
-              {event.dressCode}
-            </Dato>
-          )}
+          <Dato label="Edad">+{event.ageLimit} · con DNI</Dato>
+          <Dato label="Ingreso">{event.doorsNote}</Dato>
+          {event.dressCode && <Dato label="Vestimenta">{event.dressCode}</Dato>}
         </dl>
-      </header>
 
-      <section aria-labelledby="entradas" className="[grid-area:compra] lg:sticky lg:top-24 lg:self-start">
-        <h2 id="entradas" className="inf-titulo scroll-mt-24 text-xl sm:text-2xl">
-          Elegí tus entradas
-        </h2>
-        <TicketPicker venue={venue} event={event} />
-      </section>
+        <section aria-labelledby="entradas">
+          <h2 id="entradas" className="inf-titulo scroll-mt-24 text-xl sm:text-2xl">
+            Entradas
+          </h2>
+          <TicketPicker venue={venue} event={event} />
+        </section>
 
-      <p className="[grid-area:info] max-w-[34rem] text-white/70 text-pretty">{event.description}</p>
-    </>
+        <p className="max-w-[34rem] text-sm text-white/60 text-pretty lg:hidden">{event.description}</p>
+      </div>
+    </div>
   );
+}
+
+/** El color de cada noche, siempre el mismo para la misma fecha: celeste, magenta o violeta. */
+function eventTone(slug: string) {
+  const tones = ["#ee10b8", "#17b8f1", "#8b5cf6"];
+  let h = 0;
+  for (const ch of slug) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return tones[h % tones.length];
 }
 
 /** Mientras llegan los datos: la misma grilla, con bloques en el lugar de cada cosa. */
@@ -98,92 +115,24 @@ function EventSkeleton() {
   const bloque = "animate-pulse rounded-xl bg-white/[0.06]";
   return (
     <>
-      <div className="[grid-area:titulo]" aria-hidden>
-        <div className={`${bloque} h-10 w-4/5 sm:h-14`} />
-        <div className={`${bloque} mt-3 h-10 w-3/5 sm:h-14`} />
-        <div className={`${bloque} mt-3 h-5 w-2/5`} />
-        <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-y border-white/10 py-4 sm:mt-6">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className={`${bloque} h-10`} />
-          ))}
-        </div>
-      </div>
-      <section className="[grid-area:compra]" aria-busy="true" aria-label="Cargando entradas">
-        <h2 className="inf-titulo text-xl sm:text-2xl">Elegí tus entradas</h2>
-        <div className="mt-3 flex flex-col gap-2.5">
-          <div className={`${bloque} h-11 rounded-2xl`} />
-          <div className={`${bloque} h-28 rounded-[1.25rem]`} />
-          <div className={`${bloque} h-28 rounded-[1.25rem]`} />
+      <div className={`${bloque} rounded-[1.75rem] [grid-area:afiche]`} aria-hidden />
+      <section className="flex flex-col gap-5 [grid-area:compra]" aria-busy="true" aria-label="Cargando entradas">
+        <div className={`${bloque} h-16`} />
+        <h2 className="inf-titulo text-xl sm:text-2xl">Entradas</h2>
+        <div className="flex flex-col gap-2">
+          <div className={`${bloque} h-16`} />
+          <div className={`${bloque} h-16`} />
         </div>
       </section>
-      <div className="[grid-area:info]" aria-hidden>
-        <div className={`${bloque} h-4 w-full max-w-[34rem]`} />
-        <div className={`${bloque} mt-2 h-4 w-2/3 max-w-[24rem]`} />
-      </div>
     </>
   );
 }
 
-function Dato({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
+function Dato({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex min-w-0 items-start gap-2.5">
-      <span className="mt-0.5 text-[var(--inf-magenta)]">{icon}</span>
-      <div className="min-w-0">
-        <dt className="text-xs text-white/50">{label}</dt>
-        <dd className="text-[0.95rem] leading-snug text-white/90">{children}</dd>
-      </div>
+    <div className="min-w-0">
+      <dt className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/45">{label}</dt>
+      <dd className="inf-titulo mt-1 text-[0.9rem] uppercase leading-snug text-pretty">{children}</dd>
     </div>
-  );
-}
-
-const icono = {
-  viewBox: "0 0 24 24",
-  className: "size-[1.1rem]",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 2,
-  strokeLinecap: "round",
-  strokeLinejoin: "round",
-  "aria-hidden": true,
-} as const;
-
-function IconoCalendario() {
-  return (
-    <svg {...icono}>
-      <rect x="3" y="5" width="18" height="16" rx="3" />
-      <path d="M3 10h18M8 3v4M16 3v4" />
-    </svg>
-  );
-}
-function IconoPin() {
-  return (
-    <svg {...icono}>
-      <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z" />
-      <circle cx="12" cy="9.5" r="2.5" />
-    </svg>
-  );
-}
-function IconoDni() {
-  return (
-    <svg {...icono}>
-      <rect x="3" y="5" width="18" height="14" rx="3" />
-      <circle cx="9" cy="11" r="2" />
-      <path d="M6 16c.6-1.4 1.7-2 3-2s2.4.6 3 2M15 10h3M15 14h3" />
-    </svg>
-  );
-}
-function IconoPuerta() {
-  return (
-    <svg {...icono}>
-      <path d="M5 21V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v17M3 21h18" />
-      <circle cx="15" cy="12" r="1" fill="currentColor" />
-    </svg>
-  );
-}
-function IconoRemera() {
-  return (
-    <svg {...icono}>
-      <path d="M8 3 3 6l2 4 2-1v12h10V9l2 1 2-4-5-3a4 4 0 0 1-8 0z" />
-    </svg>
   );
 }

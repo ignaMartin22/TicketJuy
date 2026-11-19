@@ -816,74 +816,125 @@
 
 /* ---------- Página de cada fecha ---------- */
 
-/* La grilla: en el celu, datos → entradas → descripción, todo en una pantalla.
-   En la compu, las entradas ocupan la columna derecha. */
+/* En el celu: afiche arriba (bajo, tipo banner) y la compra debajo. En la compu: afiche a la izquierda, compra a la derecha. */
 .ev-grilla {
   display: grid;
   gap: 1.25rem;
-  grid-template-areas: "titulo" "compra" "info";
+  grid-template-areas: "afiche" "compra";
+}
+.ev-afiche {
+  min-height: 13.5rem;
 }
 @media (min-width: 1024px) {
   .ev-grilla {
-    grid-template-columns: 1fr 25rem;
-    grid-template-rows: auto 1fr;
-    column-gap: 3.5rem;
-    row-gap: 1.75rem;
-    grid-template-areas:
-      "titulo compra"
-      "info compra";
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr);
+    column-gap: 2.5rem;
+    grid-template-areas: "afiche compra";
+    align-items: start;
+  }
+  /* El afiche ocupa el alto de la pantalla (debajo de la barra) y se queda mientras se elige. */
+  .ev-afiche {
+    position: sticky;
+    top: 5.5rem;
+    /* Barra arriba (≈5.5rem con el margen) y el pie abajo (≈3.5rem): todo entra sin scroll. */
+    height: min(calc(100svh - 10rem), 40rem);
   }
 }
 
-/* Las entradas, con forma de entrada: cuerpo, línea punteada y talón con dos cortes. */
-.ev-ticket {
-  --talon: 8.25rem;
-  --corte: 0.7rem;
-  transition: filter 300ms ease-out;
+/* El color de la noche sobre la foto, y oscuro abajo para que se lea el título. */
+.ev-afiche-tinte {
+  background:
+    linear-gradient(to top, #05040af2 0%, #05040a99 38%, transparent 70%),
+    linear-gradient(140deg in oklch, color-mix(in oklab, var(--tono) 70%, transparent), transparent 75%);
 }
-/* En celulares angostos el talón se achica para que el cuerpo respire. */
-@media (max-width: 380px) {
-  .ev-ticket {
-    --talon: 7rem;
+.ev-afiche {
+  box-shadow:
+    inset 0 0 0 1px #ffffff1a,
+    0 40px 80px -40px color-mix(in oklab, var(--tono) 70%, transparent);
+}
+
+/* La franja de datos: un talón impreso, celdas separadas por línea punteada. */
+.ev-franja {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-block: 1px dashed #ffffff2e;
+}
+.ev-franja > div {
+  padding: 0.7rem 0.9rem 0.75rem 0;
+}
+/* En la compu, más compacta: tiene que entrar con las entradas en la misma columna. */
+@media (min-width: 1024px) {
+  .ev-franja > div {
+    padding-block: 0.45rem 0.5rem;
   }
 }
-.ev-ticket-cuerpo {
-  display: grid;
-  grid-template-columns: 1fr var(--talon);
-  border-radius: 1.25rem;
-  background:
-    radial-gradient(120% 140% at 0% 0%, #17b8f112, transparent 60%),
-    linear-gradient(180deg, #ffffff0d, #ffffff05),
-    color-mix(in oklab, var(--inf-superficie) 85%, transparent);
-  box-shadow: inset 0 0 0 1px #ffffff1c;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  -webkit-mask:
-    radial-gradient(circle at calc(100% - var(--talon)) 0, #0000 var(--corte), #000 calc(var(--corte) + 0.5px)) top / 100% 51% no-repeat,
-    radial-gradient(circle at calc(100% - var(--talon)) 100%, #0000 var(--corte), #000 calc(var(--corte) + 0.5px)) bottom / 100% 51% no-repeat;
-  mask:
-    radial-gradient(circle at calc(100% - var(--talon)) 0, #0000 var(--corte), #000 calc(var(--corte) + 0.5px)) top / 100% 51% no-repeat,
-    radial-gradient(circle at calc(100% - var(--talon)) 100%, #0000 var(--corte), #000 calc(var(--corte) + 0.5px)) bottom / 100% 51% no-repeat;
-  transition: background 300ms ease-out, box-shadow 300ms ease-out;
+.ev-franja > div:nth-child(even) {
+  padding-left: 0.9rem;
+  border-left: 1px dashed #ffffff2e;
 }
-.ev-talon {
-  border-left: 2px dashed #ffffff24;
-  margin-block: calc(var(--corte) + 0.4rem);
+.ev-franja > div:nth-child(n + 3) {
+  border-top: 1px dashed #ffffff2e;
 }
-/* Elegida: se enciende con el color del evento. El brillo va en el contenedor
-   para que siga la forma recortada. */
-.ev-ticket[data-elegida] {
-  filter: drop-shadow(0 0 1px var(--accent)) drop-shadow(0 14px 30px color-mix(in oklab, var(--accent) 45%, transparent));
+/* En 4 columnas sólo cuando la compra ocupa todo el ancho (tablet); en la compu va en una columna angosta. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .ev-franja {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .ev-franja > div {
+    padding-left: 0.9rem;
+    border-left: 1px dashed #ffffff2e;
+  }
+  .ev-franja > div:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .ev-franja > div:nth-child(n + 3) {
+    border-top: 0;
+  }
+  .ev-franja > div:nth-child(n + 5) {
+    border-top: 1px dashed #ffffff2e;
+    grid-column: 1 / -1;
+    padding-left: 0;
+    border-left: 0;
+  }
 }
-.ev-ticket[data-elegida] .ev-ticket-cuerpo {
-  background:
-    radial-gradient(120% 140% at 100% 100%, color-mix(in oklab, var(--accent) 28%, transparent), transparent 65%),
-    linear-gradient(180deg, #ffffff12, #ffffff05),
-    color-mix(in oklab, var(--inf-superficie) 85%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 80%, transparent);
+
+/* Las entradas: filas limpias. La elegida se enciende con el borde de neón de la marca. */
+.ev-fila {
+  position: relative;
+  isolation: isolate;
+  border-radius: 1rem;
+  background: #ffffff08;
+  transition: background-color 250ms ease-out;
 }
-.ev-ticket[data-elegida] .ev-talon {
-  border-left-color: color-mix(in oklab, var(--accent) 55%, transparent);
+.ev-fila::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background: #ffffff1a;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+.ev-fila[data-elegida] {
+  background: color-mix(in oklab, var(--tono, var(--accent)) 10%, #ffffff05);
+}
+.ev-fila[data-elegida]::before {
+  padding: 1.5px;
+  background: linear-gradient(100deg in oklch, var(--inf-cian), var(--inf-magenta));
+}
+.ev-fila[data-elegida]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  border-radius: inherit;
+  box-shadow: -10px 0 30px -14px var(--inf-cian), 10px 0 30px -14px var(--inf-magenta);
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {

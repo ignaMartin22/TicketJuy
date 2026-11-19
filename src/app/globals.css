@@ -32,8 +32,9 @@
   --color-error: var(--error);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --font-sans: var(--font-texto);
-  --font-display: var(--font-titulo);
+  /* Con respaldo genérico: si la fuente no llega a cargar, no cae en la letra con serifa del navegador. */
+  --font-sans: var(--font-texto), system-ui, sans-serif;
+  --font-display: var(--font-titulo), system-ui, sans-serif;
 }
 
 body {
@@ -51,7 +52,7 @@ body {
 
 /* Títulos: Archivo pesada y un poco ancha, geométrica como el logo. */
 .display {
-  font-family: var(--font-titulo);
+  font-family: var(--font-titulo), system-ui, sans-serif;
   font-weight: 800;
   font-stretch: 112%;
   line-height: 1;

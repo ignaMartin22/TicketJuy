@@ -66,25 +66,20 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
       )}
       <ul
         ref={listRef}
-        className="entra-lista mt-3 flex flex-col gap-2.5"
+        className="entra-lista mt-3 flex flex-col gap-2"
         style={{ "--d": "550ms" } as React.CSSProperties}
       >
         {event.ticketTypes.map((t) => {
           const left = availableTickets(t);
           const soldOut = left <= 0;
           const qty = cart[t.id] ?? 0;
-          const fee = serviceFee(t.price, venue.buyerFeeRate);
 
-          // Agotada: una línea, sin ocupar lo mismo que las que se pueden comprar.
+          // Agotada: una línea tenue, sin controles.
           if (soldOut) {
             return (
-              <li
-                key={t.id}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-dashed border-white/12 px-4 py-2.5 text-sm text-white/50"
-              >
-                <span className="flex items-center gap-2 font-medium">
-                  {t.name}
-                  <span className="rounded-full bg-white/8 px-2 py-0.5 text-xs">Agotada</span>
+              <li key={t.id} className="flex items-center justify-between gap-3 px-4 py-2 text-sm text-white/40">
+                <span>
+                  {t.name} <span className="text-white/30">· agotada</span>
                 </span>
                 <span className="tabular-nums line-through">{formatPrice(finalPrice(t.price))}</span>
               </li>
@@ -92,62 +87,58 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
           }
 
           return (
-            <li key={t.id} className="ev-ticket" data-elegida={qty > 0 || undefined}>
-              <div className="ev-ticket-cuerpo">
-                <div className="min-w-0 px-4 py-3">
-                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-semibold leading-tight">
-                    {t.name}
-                    {left <= 30 && (
-                      <span className="whitespace-nowrap rounded-full bg-[color-mix(in_oklab,var(--accent)_18%,transparent)] px-2 py-0.5 text-xs font-medium text-accent">
-                        Quedan {left}
-                      </span>
-                    )}
-                  </p>
-                  {/* "Ingreso general." es lo de siempre: sólo se muestra lo que agrega algo (VIP, etc.). */}
-                  {t.description !== "Ingreso general." && (
-                    <p className="mt-0.5 text-xs text-tenue">{t.description}</p>
-                  )}
-                  <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2">
-                    <span className="inf-titulo text-xl tabular-nums">{formatPrice(finalPrice(t.price))}</span>
-                    {buyerPays && <span className="text-xs text-tenue">incluye {formatPrice(fee)} de servicio</span>}
-                  </p>
-                </div>
-
-                {/* El talón, separado por la línea punteada: ahí se elige cuántas. */}
-                <div className="ev-talon grid place-items-center">
-                  <div className="flex items-center">
-                    <button
-                      type="button"
-                      onClick={() => change(t.id, -1)}
-                      disabled={qty === 0}
-                      aria-label={`Quitar una entrada ${t.name}`}
-                      className="grid size-11 place-items-center rounded-full text-2xl leading-none max-[380px]:size-10 transition-transform duration-150 ease-out active:scale-90 disabled:opacity-25"
-                    >
-                      −
-                    </button>
-                    <span
-                      key={qty}
-                      className={`ev-titila w-7 max-[380px]:w-6 text-center text-xl font-semibold tabular-nums ${qty > 0 ? "text-accent" : ""}`}
-                      aria-live="polite"
-                    >
-                      {qty}
+            <li key={t.id} className="ev-fila flex items-center gap-3 py-3 pl-4 pr-2.5" data-elegida={qty > 0 || undefined}>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold leading-tight">
+                  {t.name}
+                  {left <= 30 && (
+                    <span className="ml-2 text-sm font-medium text-[var(--tono,var(--accent))]">
+                      {left <= 10 ? `¡últimas ${left}!` : `quedan ${left}`}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => change(t.id, 1)}
-                      disabled={count >= MAX_PER_ORDER || qty >= left}
-                      aria-label={`Agregar una entrada ${t.name}`}
-                      className="grid size-11 place-items-center rounded-full bg-luz max-[380px]:size-10 text-2xl leading-none text-noche transition-transform duration-150 ease-out active:scale-90 disabled:opacity-25"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
+                  )}
+                </p>
+                {/* "Ingreso general." es lo de siempre: sólo se muestra lo que agrega algo (VIP, etc.). */}
+                {t.description !== "Ingreso general." && (
+                  <p className="mt-0.5 text-xs text-tenue">{t.description}</p>
+                )}
+                {/* En el celu el precio va debajo del nombre, así el nombre no se parte. */}
+                <p className="inf-titulo mt-1 text-lg tabular-nums sm:hidden">{formatPrice(finalPrice(t.price))}</p>
+              </div>
+              <span className="inf-titulo shrink-0 text-lg tabular-nums max-sm:hidden">{formatPrice(finalPrice(t.price))}</span>
+              <div className="flex shrink-0 items-center">
+                <button
+                  type="button"
+                  onClick={() => change(t.id, -1)}
+                  disabled={qty === 0}
+                  aria-label={`Quitar una entrada ${t.name}`}
+                  className="grid size-10 place-items-center rounded-full text-2xl leading-none transition-transform duration-150 ease-out active:scale-90 disabled:opacity-20"
+                >
+                  −
+                </button>
+                <span
+                  key={qty}
+                  className={`ev-titila w-6 text-center text-lg font-semibold tabular-nums ${qty > 0 ? "text-luz" : "text-white/40"}`}
+                  aria-live="polite"
+                >
+                  {qty}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => change(t.id, 1)}
+                  disabled={count >= MAX_PER_ORDER || qty >= left}
+                  aria-label={`Agregar una entrada ${t.name}`}
+                  className="grid size-10 place-items-center rounded-full bg-luz text-2xl leading-none text-noche transition-transform duration-150 ease-out active:scale-90 disabled:opacity-25"
+                >
+                  +
+                </button>
               </div>
             </li>
           );
         })}
       </ul>
+      {buyerPays && from !== null && (
+        <p className="mt-2 px-1 text-xs text-tenue">Los precios incluyen el cargo de servicio.</p>
+      )}
       {count >= MAX_PER_ORDER && (
         <p className="mt-3 text-sm text-tenue">
           Máximo {MAX_PER_ORDER} entradas por compra.
@@ -156,7 +147,7 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
 
       {/* En la compu el resumen va dentro del panel fijo; la barra de abajo es para el celu. */}
       {from !== null && (
-        <div className="mt-3 hidden items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 lg:flex">
+        <div className="mt-3 hidden items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 lg:flex">
           {hasCart ? (
             <div>
               <p className="text-sm text-tenue">
