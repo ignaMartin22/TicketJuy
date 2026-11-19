@@ -5,9 +5,8 @@ import { useState, type ReactNode } from "react";
 
 /*
  * Tarjetas del resumen al estilo de los paneles de energía: vidrio oscuro con un
- * brillo arriba, un gráfico fino e interactivo como protagonista y dos números
- * grandes al pie. Al pasar el mouse (o tocar) se ilumina un dato y aparece su
- * globito; sin interacción queda iluminado el más importante.
+ * brillo arriba, un gráfico fino como protagonista y dos números grandes al pie.
+ * Cada gráfico se lee sin pasar el mouse: los nombres y los números están escritos.
  * Los colores son los de la marca: blanco para lo destacado, celeste y magenta
  * para separar tipos de entrada.
  */
@@ -76,113 +75,6 @@ export function HelioCard({
   );
 }
 
-/** Globito blanco con el valor, sobre el dato iluminado. */
-function Pill({ children, x, y }: { children: ReactNode; x: string; y: string }) {
-  return (
-    <span
-      className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full bg-luz px-2 py-0.5 text-[0.66rem] font-bold tabular-nums text-noche shadow-[0_6px_18px_-6px_#000]"
-      style={{ left: x, top: y }}
-    >
-      {children}
-    </span>
-  );
-}
-
-export type StemGroup = { label: string; items: { label: string; value: number; detail: string }[] };
-
-/**
- * Palitos con un punto arriba, agrupados (una "montaña" por fecha) y unidos por
- * una línea de puntitos en el piso. Cada palito es una tanda de entradas y su
- * alto es cuánto se vendió de esa tanda.
- */
-export function Stems({ groups }: { groups: StemGroup[] }) {
-  // Posiciones: palitos de una fecha juntos, puntitos de separación entre fechas.
-  const GAP = 3; // puntitos entre fechas
-  const cols: ({ kind: "stem"; g: number; i: number; value: number } | { kind: "dot" })[] = [];
-  groups.forEach((g, gi) => {
-    if (gi > 0) for (let k = 0; k < GAP; k++) cols.push({ kind: "dot" });
-    g.items.forEach((it, i) => cols.push({ kind: "stem", g: gi, i, value: it.value }));
-  });
-  const stems = cols.flatMap((c, x) => (c.kind === "stem" ? [{ ...c, x }] : []));
-  const best = stems.reduce((a, s) => (s.value > a.value ? s : a), stems[0]);
-  const [hover, setHover] = useState<number | null>(null);
-  const lit = stems.find((s) => s.x === hover) ?? best;
-  if (!stems.length) return <p className="text-sm text-tenue">Sin fechas próximas.</p>;
-
-  const W = cols.length * 10;
-  const H = 100;
-  const xOf = (x: number) => x * 10 + 5;
-  const yOf = (v: number) => H - 6 - v * (H - 22);
-  const item = groups[lit.g].items[lit.i];
-
-  return (
-    <div className="relative w-full" onPointerLeave={() => setHover(null)}>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="none"
-        className="block h-40 w-full overflow-visible"
-        role="img"
-        aria-label={stems.map((s) => groups[s.g].items[s.i].detail).join(". ")}
-      >
-        {cols.map((c, x) =>
-          c.kind === "dot" ? (
-            <circle key={x} cx={xOf(x)} cy={H - 4} r="1.1" fill="#ffffff26" vectorEffect="non-scaling-stroke" />
-          ) : null,
-        )}
-        {stems.map((s) => {
-          const on = s.x === lit.x;
-          const sameGroup = s.g === lit.g;
-          return (
-            <g key={s.x} className="adm-stem" style={{ animationDelay: `${s.x * 18}ms` }}>
-              <line
-                x1={xOf(s.x)}
-                x2={xOf(s.x)}
-                y1={H - 4}
-                y2={yOf(s.value)}
-                stroke={on ? "#f6f6f6" : sameGroup ? "#ffffff70" : "#ffffff38"}
-                strokeWidth={on ? 1.6 : 1.1}
-                vectorEffect="non-scaling-stroke"
-              />
-              {/* Zona de toque más ancha que el palito. */}
-              <rect x={xOf(s.x) - 5} y="0" width="10" height={H} fill="transparent" onPointerEnter={() => setHover(s.x)} onPointerDown={() => setHover(s.x)} />
-            </g>
-          );
-        })}
-      </svg>
-      {/* Los puntos arriba de cada palito, en HTML para que queden redondos aunque el SVG se estire. */}
-      {stems.map((s) => {
-        const on = s.x === lit.x;
-        return (
-          <span
-            key={s.x}
-            className={`pointer-events-none absolute size-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full ${on ? "bg-luz shadow-[0_0_10px_#fff]" : "bg-white/55"}`}
-            style={{ left: `${(xOf(s.x) / W) * 100}%`, top: `${(yOf(s.value) / H) * 100}%` }}
-            aria-hidden
-          />
-        );
-      })}
-      <Pill x={`${(xOf(lit.x) / W) * 100}%`} y={`calc(${(yOf(lit.value) / H) * 100}% - 8px)`}>
-        {Math.round(item.value * 100)}%
-      </Pill>
-      {/* Etiquetas de cada fecha, centradas bajo su montaña. */}
-      <div className="relative mt-2 h-4 text-[0.62rem] tabular-nums text-white/40">
-        {groups.map((g, gi) => {
-          const xs = stems.filter((s) => s.g === gi).map((s) => xOf(s.x));
-          const mid = (Math.min(...xs) + Math.max(...xs)) / 2;
-          return (
-            <span key={gi} className={`absolute -translate-x-1/2 whitespace-nowrap ${gi === lit.g ? "text-luz" : ""}`} style={{ left: `${(mid / W) * 100}%` }}>
-              {g.label}
-            </span>
-          );
-        })}
-      </div>
-      <p className="mt-1 truncate text-center text-[0.7rem] text-white/55" aria-live="polite">
-        {item.detail}
-      </p>
-    </div>
-  );
-}
-
 export type RingPart = { label: string; value: number; color: string };
 
 /**
@@ -202,9 +94,12 @@ export function SpokeRing({
   const N = 110;
   const spokes: { a: number; part: number }[] = [];
   // Dónde empieza y termina cada sector, en fracción de la vuelta.
-  const bounds = parts.map((_, i) => {
-    const from = parts.slice(0, i).reduce((a, p) => a + p.value, 0) / total;
-    return [from, from + parts[i].value / total] as const;
+  // Un sector con algo, aunque sea muy chico, ocupa al menos 3 rayitas para que se vea.
+  const shares = parts.map((p) => (p.value > 0 ? Math.max(p.value / total, 3 / N) : 0));
+  const sum = shares.reduce((a, s) => a + s, 0) || 1;
+  const bounds = shares.map((_, i) => {
+    const from = shares.slice(0, i).reduce((a, s) => a + s, 0) / sum;
+    return [from, from + shares[i] / sum] as const;
   });
   for (let i = 0; i < N; i++) {
     const f = (i + 0.5) / N;
@@ -280,57 +175,91 @@ export function SpokeRing({
 }
 
 /**
- * Barras redondeadas, una por fecha: la parte llena es lo recaudado y la tenue,
- * lo que se puede recaudar si se vende todo. La iluminada muestra su monto.
+ * Una fila por fecha: el nombre, una barra de rayitas que se encienden hasta lo
+ * vendido (celeste a magenta) y el número escrito. Se lee sin pasar el mouse.
  */
-export function PillBars({
-  items,
+export function TickRows({
+  rows,
+}: {
+  rows: { title: string; date: string; sold: number; capacity: number }[];
+}) {
+  const N = 36;
+  if (!rows.length) return <p className="text-sm text-tenue">Sin fechas próximas.</p>;
+  return (
+    <ul className="flex w-full flex-col gap-3.5">
+      {rows.map((r, ri) => {
+        const frac = r.capacity ? r.sold / r.capacity : 0;
+        const lit = Math.round(frac * N);
+        return (
+          <li key={r.title + r.date}>
+            <div className="flex items-baseline justify-between gap-3 text-[0.8rem]">
+              <p className="min-w-0 truncate">
+                <span className="font-semibold text-luz">{r.title}</span>
+                <span className="ml-1.5 text-white/40">{r.date}</span>
+              </p>
+              <p className="shrink-0 tabular-nums text-white/60">
+                <span className="font-semibold text-luz">{r.sold.toLocaleString("es-AR")}</span>/{r.capacity.toLocaleString("es-AR")}
+                <span className="ml-1.5 inline-block w-9 text-right font-semibold text-luz">{Math.round(frac * 100)}%</span>
+              </p>
+            </div>
+            {/* La barra: N rayitas; las vendidas encendidas con el degradado de la marca. */}
+            <div className="mt-1.5 flex h-4 gap-[3px]" aria-hidden>
+              {Array.from({ length: N }, (_, i) => (
+                <span
+                  key={i}
+                  className="adm-tick flex-1 rounded-full"
+                  style={{
+                    background: i < lit ? `color-mix(in oklch, ${CIAN}, ${MAGENTA} ${(i / (N - 1)) * 100}%)` : "#ffffff14",
+                    animationDelay: `${ri * 60 + i * 12}ms`,
+                  }}
+                />
+              ))}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/**
+ * Una fila por fecha: lo recaudado lleno, dentro de lo que se puede recaudar
+ * vendiendo todo (tenue), con los dos montos escritos.
+ */
+export function MoneyRows({
+  rows,
   format,
 }: {
-  items: { label: string; value: number; max: number }[];
+  rows: { title: string; value: number; max: number }[];
   format: (v: number) => string;
 }) {
-  const top = Math.max(...items.map((i) => i.max), 1);
-  const best = items.reduce((a, it, i) => (it.value > items[a].value ? i : a), 0);
-  const [hover, setHover] = useState<number | null>(null);
-  const lit = hover ?? best;
-  if (!items.length) return <p className="text-sm text-tenue">Sin fechas próximas.</p>;
+  const top = Math.max(...rows.map((r) => r.max), 1);
+  if (!rows.length) return <p className="text-sm text-tenue">Sin fechas próximas.</p>;
   return (
-    <div className="w-full" onPointerLeave={() => setHover(null)}>
-      <ol className="flex h-40 items-end gap-2.5" role="img" aria-label={items.map((i) => `${i.label}: ${format(i.value)} de ${format(i.max)}`).join(", ")}>
-        {items.map((it, i) => {
-          const on = i === lit;
-          return (
-            <li
-              key={i}
-              className="relative flex h-full flex-1 flex-col items-center justify-end"
-              onPointerEnter={() => setHover(i)}
-              onPointerDown={() => setHover(i)}
-            >
-              {/* Lo que se puede recaudar, tenue. */}
-              <span className="adm-barra relative block w-full max-w-9 overflow-hidden rounded-[0.6rem] bg-white/[0.06]" style={{ height: `${Math.max(8, (it.max / top) * 100)}%`, animationDelay: `${i * 50}ms` }}>
-                {/* Lo recaudado, lleno. */}
-                <span
-                  className={`absolute inset-x-0 bottom-0 rounded-[0.6rem] transition-colors duration-200 ${on ? "bg-luz shadow-[0_0_18px_-2px_#fff9]" : "bg-white/20"}`}
-                  style={{ height: `${it.max ? Math.max(6, (it.value / it.max) * 100) : 0}%` }}
-                />
-              </span>
-              {on && (
-                <Pill x="50%" y={`calc(${100 - (it.max / top) * 100 * (it.max ? it.value / it.max : 0)}% - 6px)`}>
-                  {format(it.value)}
-                </Pill>
-              )}
-            </li>
-          );
-        })}
-      </ol>
-      <ol className="mt-2 flex gap-2.5 text-center text-[0.62rem] tabular-nums text-white/40">
-        {items.map((it, i) => (
-          <li key={i} className={`flex-1 truncate ${i === lit ? "text-luz" : ""}`}>
-            {it.label}
+    <div className="w-full">
+      <p className="mb-3 flex gap-4 text-[0.7rem] text-white/50" aria-hidden>
+        <span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-luz" />Recaudado</span>
+        <span className="flex items-center gap-1.5"><span className="size-2 rounded-sm border border-white/25 bg-white/[0.06]" />Falta vender</span>
+      </p>
+      <ul className="flex flex-col gap-3.5">
+        {rows.map((r, i) => (
+          <li key={r.title}>
+            <div className="flex items-baseline justify-between gap-3 text-[0.8rem]">
+              <p className="min-w-0 truncate font-semibold text-luz">{r.title}</p>
+              <p className="shrink-0 tabular-nums text-white/50">
+                <span className="font-semibold text-luz">{format(r.value)}</span> de {format(r.max)}
+              </p>
+            </div>
+            {/* El largo de la pista es el potencial de la fecha (comparado con la más grande). */}
+            <div className="mt-1.5 h-2.5 rounded-full bg-white/[0.06] ring-1 ring-inset ring-white/10" style={{ width: `${Math.max(12, (r.max / top) * 100)}%` }}>
+              <div
+                className="adm-barra-x h-full rounded-full bg-luz shadow-[0_0_14px_-3px_#fff]"
+                style={{ width: `${r.max ? (r.value / r.max) * 100 : 0}%`, animationDelay: `${i * 70}ms` }}
+              />
+            </div>
           </li>
         ))}
-      </ol>
+      </ul>
     </div>
   );
 }

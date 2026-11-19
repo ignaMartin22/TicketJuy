@@ -524,6 +524,11 @@ html {
   .adm-barra {
     animation: adm-barra 700ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   }
+  /* Las barras de plata crecen de izquierda a derecha. */
+  .adm-barra-x {
+    transform-origin: left;
+    animation: adm-barra-x 800ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
   /* Los palitos crecen desde el piso, uno tras otro. */
   .adm-stem {
     transform-box: fill-box;
@@ -540,6 +545,11 @@ html {
     transform: scaleY(0);
     transform-origin: bottom;
     opacity: 0;
+  }
+}
+@keyframes adm-barra-x {
+  from {
+    transform: scaleX(0);
   }
 }
 @keyframes adm-tick {
