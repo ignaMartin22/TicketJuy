@@ -202,11 +202,11 @@ function Card({ ev, backdrop }: { ev: RingEvent; backdrop?: string }) {
       <div className="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-black/80 to-transparent" aria-hidden />
 
       <header className="flex items-center justify-between gap-2 text-[4cqi] font-semibold">
-        <span className="flex items-center gap-2 whitespace-nowrap rounded-full bg-black/40 px-3 py-1.5 backdrop-blur-md">
+        <span className="flex items-center gap-2 whitespace-nowrap rounded-full bg-black/60 px-3 py-1.5">
           <span className={`size-1.5 rounded-full ${ev.from ? "inf-punto-vivo bg-[#9dff7a]" : "bg-white/50"}`} aria-hidden />
           {ev.from ? "En venta" : "Agotada"}
         </span>
-        <span className="whitespace-nowrap rounded-full bg-black/40 px-3 py-1.5 capitalize tabular-nums backdrop-blur-md">{ev.date}</span>
+        <span className="whitespace-nowrap rounded-full bg-black/60 px-3 py-1.5 capitalize tabular-nums">{ev.date}</span>
       </header>
 
       <div>

@@ -155,6 +155,16 @@
  * Mientras dura la entrada todo sigue al scroll sin transiciones; con el
  * anillo armado, girar de fecha en fecha sí se anima.
  */
+/*
+ * --e no se hereda: hero-ring.tsx lo escribe en cada elemento que lo usa (E_CONSUMERS).
+ * Si se heredara, cambiarlo en el escenario recalcularía los estilos de toda la
+ * portada en cada cuadro del scroll, que es lo que la trababa en Android.
+ */
+@property --e {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
 .inf-escena {
   /* Dónde está la tarjeta en la portada, respecto del centro del anillo. */
   --hx: min(24vw, 22rem);
@@ -184,8 +194,12 @@
 /* El video de la pista: protagonista en la portada; en las fechas queda tenue y desenfocado. */
 .inf-fondo {
   opacity: calc(0.85 - var(--e) * 0.63);
-  filter: blur(calc(var(--e) * 14px)) saturate(calc(1.15 + var(--e) * 0.2)) contrast(1.1);
   transform: scale(calc(1 + var(--e) * 0.08));
+}
+/* El desenfoque sólo cuando la portada empieza a irse: un filtro sobre un video que se
+   reproduce se recalcula en cada cuadro del video, y en la portada no hace falta. */
+.inf-escena[data-movido] .inf-fondo {
+  filter: blur(calc(var(--e) * 14px));
 }
 /*
  * Encima del video: un teñido celeste a magenta para que cualquier toma quede
@@ -689,17 +703,37 @@
     rotateY(calc(var(--o) * -40deg * var(--e)));
   z-index: calc(10 - var(--abs));
   opacity: calc(0.85 + var(--e) * 0.15);
-  box-shadow: 0 30px 60px -30px #000;
   transition:
     transform 850ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 500ms ease-out,
-    box-shadow 600ms ease-out;
+    opacity 500ms ease-out;
 }
 .inf-tarjeta[data-centro] {
   opacity: 1;
-  box-shadow:
-    0 50px 90px -30px color-mix(in oklab, var(--tono) 70%, transparent),
-    0 24px 40px -24px #000;
+}
+/*
+ * La sombra y el halo de color, dibujados con degradados (un desenfoque ya hecho) en
+ * vez de box-shadow: una sombra de 90px sobre una tarjeta que se mueve y cambia de
+ * escala se vuelve a pintar en cada cuadro, y en Android eso trababa la entrada.
+ */
+.inf-tarjeta::before,
+.inf-tarjeta::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+.inf-tarjeta::before {
+  inset: 58% 4% -12%;
+  background: radial-gradient(closest-side, #000000c0, transparent);
+}
+.inf-tarjeta::after {
+  inset: 40% -6% -24%;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--tono) 62%, transparent), transparent);
+  opacity: 0;
+  transition: opacity 600ms ease-out;
+}
+.inf-tarjeta[data-centro]::after {
+  opacity: 1;
 }
 .inf-tarjeta[aria-hidden="true"] {
   opacity: 0;
@@ -728,11 +762,17 @@
 }
 /* La foto teñida con el color de la tarjeta; las de los costados, apenas. */
 .inf-tarjeta-luz {
+  /* Mezcla normal (no hard-light): un modo de mezcla obliga a recomponer la tarjeta en cada cuadro. */
+  /* Un foco de luz del color arriba al centro, y los bordes que se oscurecen, como la foto bajo un reflector. */
   background:
-    radial-gradient(60% 45% at 50% 34%, color-mix(in oklab, var(--tono) 55%, white), transparent 72%),
-    radial-gradient(120% 95% at 50% 40%, var(--tono), color-mix(in oklab, var(--tono) 20%, #05040a) 88%);
-  mix-blend-mode: hard-light;
-  opacity: 0.3;
+    radial-gradient(48% 34% at 50% 24%, color-mix(in oklab, var(--tono) 90%, white), transparent 100%),
+    radial-gradient(
+      115% 90% at 50% 34%,
+      color-mix(in oklab, var(--tono) 35%, transparent),
+      color-mix(in oklab, var(--tono) 50%, #05040a40) 50%,
+      color-mix(in oklab, var(--tono) 10%, #05040a) 86%
+    );
+  opacity: 0.35;
   transition: opacity 600ms ease-out;
 }
 .inf-tarjeta[data-centro] .inf-tarjeta-luz {
@@ -769,10 +809,16 @@
   background: radial-gradient(circle at var(--gx, 50%) var(--gy, 0%), #ffffff66, transparent 50%);
   mix-blend-mode: overlay;
   opacity: 0;
-  transition: opacity 400ms ease-out;
+  /* Oculto del todo mientras no hay mouse encima: así su modo de mezcla no cuesta nada (en el celu nunca aparece). */
+  visibility: hidden;
+  transition:
+    opacity 400ms ease-out,
+    visibility 0s linear 400ms;
 }
 .inf-tarjeta[data-inclinada] .inf-tarjeta-brillo {
   opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
 }
 /* Sin mouse (celulares): la tarjeta del medio flota suave, como suspendida sobre la pista. */
 @media (hover: none) and (prefers-reduced-motion: no-preference) {
@@ -875,9 +921,8 @@
   margin: 0;
   padding: 0.42rem 0.8rem 0.42rem 0.7rem;
   border-radius: 9999px;
-  background: color-mix(in oklab, #05040a 78%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  /* Sin vidrio esmerilado: encima del video se recalcularía en cada cuadro. */
+  background: color-mix(in oklab, #05040a 88%, transparent);
   box-shadow:
     inset 0 0 0 1px #ffffff1f,
     0 12px 30px -12px #000,

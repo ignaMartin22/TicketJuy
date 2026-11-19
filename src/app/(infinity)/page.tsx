@@ -25,7 +25,7 @@ export default function InfinityPrototype() {
       <header className="inf-baja fixed inset-x-0 top-0 z-30 px-3 pt-3">
         <nav
           aria-label="Infinity Producciones"
-          className="mx-auto flex h-12 max-w-3xl items-center justify-between gap-2 rounded-full border border-white/10 bg-[color-mix(in_oklch,var(--inf-noche)_62%,transparent)] pl-5 pr-1.5 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)] backdrop-blur-xl"
+          className="mx-auto flex h-12 max-w-3xl items-center justify-between gap-2 rounded-full border border-white/10 bg-[color-mix(in_oklch,var(--inf-noche)_86%,transparent)] pl-5 pr-1.5 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)]"
         >
           <Link href="/" aria-label="Infinity Producciones, inicio">
             {/* eslint-disable-next-line @next/next/no-img-element */}
