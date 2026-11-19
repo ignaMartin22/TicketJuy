@@ -10,13 +10,26 @@ export type OrderItem = {
   unitServiceFee: string;
 };
 
+/** Entrada emitida de un pedido pagado. */
+export type OrderTicket = {
+  id: string;
+  ticketTypeId: string;
+  ticketTypeName: string;
+  /** Texto exacto que va dentro del QR. */
+  qr: string;
+  /** Fecha ISO en que se quemó en la puerta, o null si sigue sin usar. */
+  usedAt: string | null;
+};
+
 export type Order = {
   id: string;
-  status: "pending_payment" | "expired";
+  status: "pending_payment" | "expired" | "paid";
   expiresAt: string;
   currency: "ARS";
   total: string;
   items: OrderItem[];
+  /** Vacío si el pedido no está pagado. */
+  tickets: OrderTicket[];
 };
 
 export async function getOrder(venueSlug: string, eventSlug: string, orderId: string): Promise<Order | null> {
