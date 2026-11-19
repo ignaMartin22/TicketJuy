@@ -8,7 +8,8 @@ import { HeroRing } from "./_components/hero-ring";
 import { HeroVideo } from "./_components/hero-video";
 import { NeonSign, SIGN_INSET } from "./_components/neon-sign";
 import { NeonThread } from "./_components/neon-thread";
-import { PhotoStack } from "./_components/photo-stack";
+import { SpiralGallery } from "./_components/spiral-gallery";
+import { SectionScroll } from "./_components/section-scroll";
 
 // Portada de Infinity Producciones. Por ahora con datos de prueba (src/lib/mock-data.ts).
 
@@ -139,12 +140,24 @@ export default function InfinityPrototype() {
           })}
         />
 
-        <PhotoStack
-          id="fotos"
-          title="Así se vive la noche"
-          text="Lo que pasa en la pista no se cuenta: se ve."
-          photos={Array.from({ length: 9 }, (_, i) => `/venues/infinity/galeria/${String(i + 1).padStart(2, "0")}.jpg`)}
-        />
+        {/* Las fotos: una sola parada del scroll. A la izquierda el título; a la derecha el espiral, que se recorre deslizando de costado. */}
+        <section id="fotos" className="relative h-svh">
+          <span className="inf-snap" style={{ top: 0 }} aria-hidden />
+          {/* En celulares bajos, el cartel más compacto: el espacio es para las fotos. */}
+          <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-6 px-6 pb-6 pt-20 max-sm:[@media(max-height:720px)]:gap-3 max-sm:[@media(max-height:720px)]:px-4 max-sm:[@media(max-height:720px)]:pb-3 max-sm:[@media(max-height:720px)]:pt-[4.5rem] sm:flex-row sm:items-center sm:gap-10 sm:px-10 sm:pb-10 sm:pt-24">
+            <div className="sm:w-[38%]">
+              {/* El hilo de neón (ver NeonThread) baja desde la tarjeta y envuelve este bloque. */}
+              <div data-hilo="fotos" className="w-fit px-5 py-4 max-sm:[@media(max-height:720px)]:px-4 max-sm:[@media(max-height:720px)]:py-3 sm:px-7 sm:py-6">
+                <h2 className="inf-titulo text-3xl text-balance max-sm:[@media(max-height:720px)]:text-2xl sm:text-5xl">Así se vive la noche</h2>
+                <p className="mt-3 max-w-sm text-white/70 max-sm:[@media(max-height:720px)]:mt-1.5 max-sm:[@media(max-height:720px)]:text-sm sm:text-lg">Lo que pasa en la pista no se cuenta: se ve.</p>
+              </div>
+            </div>
+            <SpiralGallery
+              className="min-h-0 flex-1 sm:h-[min(78svh,36rem)]"
+              photos={Array.from({ length: 9 }, (_, i) => `/venues/infinity/galeria/${String(i + 1).padStart(2, "0")}.jpg`)}
+            />
+          </div>
+        </section>
 
         {/* Más fotos en Instagram: las mismas fotos de fondo, teñidas como la portada. */}
         {ig && (
@@ -152,10 +165,12 @@ export default function InfinityPrototype() {
             {/* El final del hilo de neón (ver NeonThread): las dos líneas envuelven la invitación a Instagram. */}
             <a
               data-hilo="instagram"
+              // El último punto de descanso del scroll: la invitación, centrada en la pantalla.
+              data-snap="centro"
               href={igUrl}
               target="_blank"
               rel="noreferrer"
-              className="inf-revela group relative isolate mx-auto flex min-h-[22rem] max-w-6xl flex-col items-center justify-center overflow-hidden rounded-[2rem] px-6 py-14 text-center sm:min-h-[26rem]"
+              className="group relative isolate mx-auto flex min-h-[22rem] max-w-6xl flex-col items-center justify-center overflow-hidden rounded-[2rem] px-6 py-14 text-center sm:min-h-[26rem]"
             >
               <div className="absolute inset-0 -z-20 grid grid-cols-3 sm:grid-cols-5" aria-hidden>
                 {[3, 5, 8, 2, 7].map((n, i) => (
@@ -185,8 +200,10 @@ export default function InfinityPrototype() {
 
       {/* Las dos líneas del cartel siguen bajando y envuelven las fotos y el Instagram. */}
       <NeonThread />
+      {/* El scroll va de sección en sección, así ninguna animación queda a medias. */}
+      <SectionScroll />
 
-      <footer className="flex flex-col items-center border-t border-white/5 px-4 py-10 text-center text-sm text-[var(--inf-tenue)]">
+      <footer data-snap="fin" className="flex flex-col items-center border-t border-white/5 px-4 py-10 text-center text-sm text-[var(--inf-tenue)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/brand/infinity/infinity-mark.svg" alt="" className="mx-auto mb-3 h-6" />
         Infinity Producciones · San Salvador de Jujuy

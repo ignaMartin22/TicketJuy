@@ -235,14 +235,22 @@
   visibility: hidden;
 }
 
-/* El título y los controles del anillo aparecen cuando el anillo ya está armado. */
+/*
+ * El título y los controles del anillo entran mientras el anillo se arma: suben y se
+ * aclaran en la segunda mitad de la entrada, en vez de aparecer de golpe al final.
+ * El título se enciende como un neón: un brillo que se va asentando.
+ */
 .inf-titulo-fechas,
 .inf-anillo-controles {
-  opacity: clamp(0, calc((var(--e) - 0.8) * 5), 1);
+  opacity: clamp(0, calc((var(--e) - 0.45) * 2.2), 1);
+  transform: translateY(calc(clamp(0, 1 - (var(--e) - 0.45) * 2.2, 1) * 1.5rem));
 }
-.inf-escena[data-listo="no"] .inf-titulo-fechas,
+.inf-titulo-fechas {
+  text-shadow: 0 0 calc(clamp(0, 1 - (var(--e) - 0.7) * 3.4, 1) * 24px) #ee10b8;
+}
+/* Mientras se arma, los controles no reciben clics. */
 .inf-escena[data-listo="no"] .inf-anillo-controles {
-  visibility: hidden;
+  pointer-events: none;
 }
 
 /* Luz de escenario en el piso, del color de la marca. */
@@ -646,31 +654,6 @@
   pointer-events: auto;
 }
 
-/* ---------- Pila de fotos ---------- */
-
-.inf-pila {
-  width: min(23rem, 28vw, 50svh);
-  aspect-ratio: 4 / 5;
-}
-@media (max-width: 639px) {
-  .inf-pila {
-    width: min(58vw, 40svh);
-    /* En el celular las fotos se abren menos para no salirse de la pantalla. */
-    --abre: 0.4;
-  }
-}
-.inf-foto {
-  /* --in: cuánto entró (0 a 1). --prof: cuántas fotos tiene encima. */
-  transform:
-    translate(calc(var(--x) * var(--abre, 1) * 1%), calc(var(--y) * 1%))
-    rotate(calc(var(--r) * 1deg))
-    scale(calc(var(--in) * (1 - var(--prof) * 0.035)));
-  filter: brightness(calc(1 - var(--prof) * 0.1));
-  border: 1px solid #ffffff2e;
-  box-shadow: 0 30px 60px -25px #000;
-  will-change: transform;
-}
-
 /* ---------- Carrusel de fechas en anillo ---------- */
 
 .inf-anillo {
@@ -995,4 +978,46 @@
 .inf-linea-magenta {
   stroke: color-mix(in oklab, var(--inf-magenta) 35%, white);
   filter: drop-shadow(0 0 2px var(--inf-magenta)) drop-shadow(0 0 10px var(--inf-magenta));
+}
+
+/* ---------- Scroll por secciones ---------- */
+
+/* Los puntos de descanso del scroll (ver section-scroll.tsx): invisibles, sólo marcan dónde frenar. */
+.inf-snap {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+/* ---------- Galería en espiral (ver spiral-gallery.tsx) ---------- */
+
+.inf-espiral {
+  /* Las fotos se miden contra el espacio real del espiral (unidades cq), no contra la pantalla. */
+  container-type: size;
+}
+/* En el celu el espiral va debajo del título: las fotos de atrás se desvanecen arriba en vez de pisarlo. */
+@media (max-width: 639px) {
+  .inf-espiral {
+    overflow-y: clip;
+    overflow-x: visible;
+    -webkit-mask: linear-gradient(to bottom, transparent, #000 9%);
+    mask: linear-gradient(to bottom, transparent, #000 9%);
+  }
+}
+.inf-espiral-foto {
+  /* Grande, pero siempre dentro de la zona: alto como máximo el 72% (con el espiral subiendo y bajando). */
+  width: min(17rem, 72cqw, 80cqh * 0.8);
+  aspect-ratio: 4 / 5;
+  /* Centrada en su lugar; el transform (que escribe el componente) la lleva por el espiral. */
+  translate: -50% -50%;
+  backface-visibility: hidden;
+  border: 1px solid #ffffff2e;
+  box-shadow: 0 30px 60px -25px #000;
+}
+@media (min-width: 640px) {
+  .inf-espiral-foto {
+    width: min(16rem, 38cqw, 64cqh * 0.8);
+  }
 }
