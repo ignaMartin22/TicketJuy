@@ -1,9 +1,8 @@
 import QRCode from "qrcode";
 
 /**
- * QR en SVG, generado en el servidor.
- * PROVISORIO: hoy codifica el código de la entrada; el real va a llevar un
- * token firmado (HMAC/JWT) de un solo uso.
+ * QR en SVG, generado en el servidor. Codifica el texto tal como lo manda la
+ * API (el token firmado de un solo uso), sin modificarlo.
  */
 export function qrSvg(payload: string) {
   return QRCode.toString(payload, {

@@ -32,7 +32,7 @@ export function TicketStub({
   venue: Venue;
   event: Event;
   type: TicketType;
-  ticket: Pick<Ticket, "code" | "holderName" | "status" | "note">;
+  ticket: Pick<Ticket, "code" | "status" | "note"> & { holderName?: string };
   qr: string;
   className?: string;
   /** Versión animada de la portada: sin brillo propio (lo pone el anillo) y con escáner. */
@@ -92,11 +92,13 @@ export function TicketStub({
       </div>
 
       <dl className={`grid grid-cols-2 gap-x-4 gap-y-3 px-6 pb-6 pt-4 ${big ? "text-base" : "text-sm"}`}>
-        <div>
-          <dt className="text-tenue">Titular</dt>
-          <dd className="font-semibold">{ticket.holderName}</dd>
-        </div>
-        <div>
+        {ticket.holderName && (
+          <div>
+            <dt className="text-tenue">Titular</dt>
+            <dd className="font-semibold">{ticket.holderName}</dd>
+          </div>
+        )}
+        <div className={ticket.holderName ? undefined : "col-span-2"}>
           <dt className="text-tenue">Entrada</dt>
           <dd className="font-semibold">{type.name}</dd>
         </div>
