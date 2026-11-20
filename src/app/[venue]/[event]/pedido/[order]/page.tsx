@@ -141,6 +141,7 @@ async function OrderContent({ params }: { params: PageProps<"/[venue]/[event]/pe
                   status: ticket.usedAt ? "used" : "valid",
                 }}
                 qr={qrs[i]}
+                validUntil={ticket.validUntil}
                 big
               />
             </li>

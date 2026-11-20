@@ -45,12 +45,18 @@ async function Content() {
       </>
     );
   }
-  const venues = mine.data;
+  const venues = mine.data.venues;
+  const rrpp = mine.data.rrpp;
   if (venues.length === 0) {
     return (
       <>
         <h1 className="display text-4xl">Portería</h1>
         <p className="mt-3 text-tenue">Tu usuario no tiene permiso de portería en ningún boliche.</p>
+        {rrpp && (
+          <Link href="/rrpp" className="mt-6 flex min-h-12 items-center justify-center rounded-full bg-luz px-5 text-base font-semibold text-noche">
+            Mis listas
+          </Link>
+        )}
         <form action={logout} className="mt-6">
           <button type="submit" className="min-h-12 rounded-full border border-linea px-5 text-base font-semibold">
             Salir
@@ -70,11 +76,18 @@ async function Content() {
           <p className="text-xs font-semibold tracking-[0.2em] text-tenue uppercase">Portería</p>
           <h1 className="display mt-1 text-4xl">Elegí la fecha</h1>
         </div>
-        <form action={logout}>
-          <button type="submit" className="min-h-11 rounded-full border border-linea px-4 text-sm font-semibold text-tenue">
-            Salir
-          </button>
-        </form>
+        <div className="flex items-center gap-2">
+          {rrpp && (
+            <Link href="/rrpp" className="flex min-h-11 items-center rounded-full border border-linea px-4 text-sm font-semibold">
+              Mis listas
+            </Link>
+          )}
+          <form action={logout}>
+            <button type="submit" className="min-h-11 rounded-full border border-linea px-4 text-sm font-semibold text-tenue">
+              Salir
+            </button>
+          </form>
+        </div>
       </div>
       <div className="mt-8 flex flex-col gap-8">
         {venues.map((venue, i) => {

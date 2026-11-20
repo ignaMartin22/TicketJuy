@@ -8,7 +8,7 @@ import { apiUrl, hasLiveCatalog } from "@/lib/catalog";
 
 export const STAFF_COOKIE = "tj_staff";
 
-export type StaffRole = "admin" | "door" | "cashier";
+export type StaffRole = "admin" | "door" | "cashier" | "rrpp";
 
 export type StaffMembership = {
   venue: { slug: string; name: string };
@@ -78,10 +78,13 @@ const isAdmin = (m: StaffMembership) => m.role === "admin";
 /** La portería la usan puerta y administración. */
 const isDoor = (m: StaffMembership) => m.role === "door" || m.role === "admin";
 
-/** Adónde va cada uno después de entrar: administración al panel, puerta al escáner. */
+const isRrpp = (m: StaffMembership) => m.role === "rrpp";
+
+/** Adónde va cada uno después de entrar: administración al panel, puerta al escáner, RRPP a sus listas. */
 export function homeFor(memberships: StaffMembership[]): string {
   if (memberships.some(isAdmin)) return "/admin";
   if (memberships.some(isDoor)) return "/puerta";
+  if (memberships.some(isRrpp)) return "/rrpp";
   // Solo caja (todavía sin pantalla): el panel le muestra que no tiene acceso.
   return "/admin";
 }
@@ -91,8 +94,9 @@ export function homeFor(memberships: StaffMembership[]): string {
  * del panel o de la portería (nunca otro sitio) y según su rol.
  */
 export function canReturnTo(path: string, memberships: StaffMembership[]): boolean {
-  if (path.startsWith("//") || path.startsWith("/puerta/sesion-vencida")) return false;
+  if (path.startsWith("//") || path.endsWith("/sesion-vencida")) return false;
   if (path === "/admin" || path.startsWith("/admin/")) return memberships.some(isAdmin);
   if (path === "/puerta" || path.startsWith("/puerta/")) return memberships.some(isDoor);
+  if (path === "/rrpp" || path.startsWith("/rrpp/")) return memberships.some(isRrpp);
   return false;
 }

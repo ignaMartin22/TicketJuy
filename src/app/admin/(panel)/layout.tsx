@@ -44,6 +44,7 @@ async function PanelGuard({ children }: { children: React.ReactNode }) {
   if (!membership) {
     // Puerta sin administración: su lugar es el escáner, no el panel.
     if (session.memberships.some((m) => m.role === "door")) redirect("/puerta");
+    if (session.memberships.some((m) => m.role === "rrpp")) redirect("/rrpp");
     return <SinAcceso session={session} />;
   }
   return (

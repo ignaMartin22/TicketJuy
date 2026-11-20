@@ -7,7 +7,7 @@ const STAFF_COOKIE = "tj_staff";
 const LOGIN_PATH = "/ingresar";
 
 /** Rutas del personal que se pueden abrir sin sesión. */
-const OPEN = ["/admin/ingresar", "/puerta/sesion-vencida"];
+const OPEN = ["/admin/ingresar", "/puerta/sesion-vencida", "/rrpp/sesion-vencida"];
 
 /**
  * Antes de cada ruta del panel y de la portería:
@@ -30,4 +30,4 @@ export function proxy(request: NextRequest) {
   return NextResponse.next({ request: { headers } });
 }
 
-export const config = { matcher: ["/admin", "/admin/:path*", "/puerta", "/puerta/:path*"] };
+export const config = { matcher: ["/admin", "/admin/:path*", "/puerta", "/puerta/:path*", "/rrpp", "/rrpp/:path*"] };
