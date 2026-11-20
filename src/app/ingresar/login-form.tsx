@@ -9,10 +9,13 @@ const field =
 
 /*
  * El login le pega a ticketera-core y la sesión queda en una cookie httpOnly
- * que solo lee el servidor de Next. Sin API configurada el panel entra en modo demo.
+ * que solo lee el servidor de Next (la comparten panel y portería).
+ * Sin API configurada el panel entra en modo demo.
  */
 export function LoginForm() {
-  const desde = useSearchParams().get("desde") ?? "";
+  const params = useSearchParams();
+  const desde = params.get("desde") ?? "";
+  const vencida = params.has("vencida");
   const [state, formAction, isPending] = useActionState(loginStaff, undefined);
 
   return (
@@ -26,9 +29,9 @@ export function LoginForm() {
         Contraseña
         <input name="clave" type="password" autoComplete="current-password" className={field} />
       </label>
-      {state?.error && (
+      {(state?.error || vencida) && (
         <p role="alert" className="text-sm text-error">
-          {state.error}
+          {state?.error ?? "La sesión venció. Entrá de nuevo."}
         </p>
       )}
       <button

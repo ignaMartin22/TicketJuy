@@ -57,7 +57,7 @@ export default async function InfinityPrototype() {
             )}
             {/* PROVISORIO: acceso al panel del boliche. Después se esconde para el público. */}
             <Link
-              href="/admin/ingresar"
+              href="/ingresar"
               prefetch={false}
               aria-label="Ingresar al panel"
               title="Ingresar al panel"

@@ -1,16 +1,15 @@
 import { cookies } from "next/headers";
 import { apiUrl } from "@/lib/catalog";
+import { STAFF_COOKIE } from "@/lib/staff-session";
 
 // API de portería de ticketera-core. Solo se usa desde el servidor de Next:
 // el token vive en una cookie httpOnly y nunca llega al JavaScript del navegador.
 // No importar desde componentes cliente.
 
-export const SESSION_COOKIE = "puerta_session";
-export const SESSION_PATH = "/puerta";
-
 export type DoorVenue = { slug: string; name: string };
 export type DoorEvent = { slug: string; title: string; startsAt: string };
-export type DoorSession = { token: string; venues: DoorVenue[] };
+/** La sesión de la portería es la del personal: solo hace falta el token. */
+export type DoorSession = { token: string };
 
 export type ScanTicket = { id: string; ticketType: string; holderName: string; usedAt: string };
 export type ScanResult =
@@ -38,51 +37,10 @@ export type Call<T> =
   | { ok: true; data: T }
   | { ok: false; reason: "expired" | "network" | "not_found" };
 
-export type LoginOutcome =
-  | { ok: true; token: string; expiresIn: number; venues: DoorVenue[] }
-  | { ok: false; error: "invalid_credentials" | "not_door_staff" | "too_many_attempts" | "network"; retryAfter?: number };
-
-export async function doorLogin(username: string, password: string): Promise<LoginOutcome> {
-  let response: Response;
-  try {
-    response = await fetch(apiUrl("/api/v1/door/login/"), {
-      method: "POST",
-      cache: "no-store",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ username, password }),
-      signal: AbortSignal.timeout(15_000),
-    });
-  } catch {
-    return { ok: false, error: "network" };
-  }
-  const data = (await response.json().catch(() => ({}))) as {
-    token?: string;
-    expiresIn?: number;
-    venues?: DoorVenue[];
-    error?: string;
-    retryAfter?: number;
-  };
-  if (response.ok && data.token && data.expiresIn && Array.isArray(data.venues)) {
-    return { ok: true, token: data.token, expiresIn: data.expiresIn, venues: data.venues };
-  }
-  if (response.status === 401) return { ok: false, error: "invalid_credentials" };
-  if (response.status === 403) return { ok: false, error: "not_door_staff" };
-  if (response.status === 429) {
-    const retry = Number(data.retryAfter ?? response.headers.get("Retry-After"));
-    return { ok: false, error: "too_many_attempts", retryAfter: Number.isFinite(retry) ? retry : undefined };
-  }
-  return { ok: false, error: "network" };
-}
-
-/** Sesión guardada en la cookie, o null si no hay o está mal formada. */
+/** Sesión del personal guardada en la cookie, o null si no hay. Sin llamadas a la API: escanear sigue siendo rápido. */
 export async function getSession(): Promise<DoorSession | null> {
-  const raw = (await cookies()).get(SESSION_COOKIE)?.value;
-  if (!raw) return null;
-  try {
-    const s = JSON.parse(raw) as DoorSession;
-    if (typeof s.token === "string" && Array.isArray(s.venues)) return s;
-  } catch {}
-  return null;
+  const token = (await cookies()).get(STAFF_COOKIE)?.value;
+  return token ? { token } : null;
 }
 
 const seg = (...parts: string[]) => parts.map(encodeURIComponent).join("/");
@@ -114,6 +72,17 @@ async function call<T>(
   if (data && accept.includes(response.status)) return { ok: true, data };
   if (response.status === 404 && !accept.includes(404)) return { ok: false, reason: "not_found" };
   return { ok: false, reason: "network" };
+}
+
+/** Los boliches donde el usuario puede hacer portería (rol puerta o administración), leídos de auth/me. */
+export async function doorVenues(session: DoorSession) {
+  const r = await call<{ memberships: { venue: DoorVenue; role: string }[] }>(session, "/api/v1/auth/me/");
+  if (!r.ok) return r;
+  const venues = new Map<string, DoorVenue>();
+  for (const m of r.data.memberships) {
+    if (m.role === "door" || m.role === "admin") venues.set(m.venue.slug, m.venue);
+  }
+  return { ok: true, data: [...venues.values()] } as const;
 }
 
 export async function doorEvents(session: DoorSession, venue: string) {

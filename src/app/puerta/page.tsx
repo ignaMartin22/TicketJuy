@@ -2,22 +2,21 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { hasLiveCatalog } from "@/lib/catalog";
-import { doorEvents, getSession, type DoorEvent } from "@/lib/door";
+import { doorEvents, doorVenues, getSession, type DoorEvent } from "@/lib/door";
 import { formatNight } from "@/lib/format";
 import { logout } from "./actions";
-import { LoginForm } from "./login-form";
 
-export default function PuertaPage({ searchParams }: PageProps<"/puerta">) {
+export default function PuertaPage() {
   return (
     <main className="mx-auto w-full max-w-xl px-4 pb-10 pt-8 sm:px-6 sm:pt-12">
       <Suspense fallback={<div className="h-72 animate-pulse rounded-3xl bg-noche-2" />}>
-        <Content searchParams={searchParams} />
+        <Content />
       </Suspense>
     </main>
   );
 }
 
-async function Content({ searchParams }: { searchParams: PageProps<"/puerta">["searchParams"] }) {
+async function Content() {
   if (!hasLiveCatalog()) {
     return (
       <>
@@ -26,19 +25,36 @@ async function Content({ searchParams }: { searchParams: PageProps<"/puerta">["s
       </>
     );
   }
+  // Sin sesión, el proxy ya manda al ingreso; esto cubre una cookie que se borró en el medio.
   const session = await getSession();
-  if (!session) {
-    const { vencida } = await searchParams;
+  if (!session) redirect("/ingresar?desde=%2Fpuerta");
+
+  const mine = await doorVenues(session);
+  if (!mine.ok) {
+    if (mine.reason === "expired") redirect("/puerta/sesion-vencida");
     return (
       <>
         <h1 className="display text-4xl">Portería</h1>
-        <p className="mt-2 text-tenue">Entrá con tu usuario de puerta.</p>
-        <LoginForm notice={vencida ? "La sesión venció. Entrá de nuevo." : undefined} />
+        <p className="mt-3 text-error">No pudimos cargar tus boliches. Recargá la página.</p>
+      </>
+    );
+  }
+  const venues = mine.data;
+  if (venues.length === 0) {
+    return (
+      <>
+        <h1 className="display text-4xl">Portería</h1>
+        <p className="mt-3 text-tenue">Tu usuario no tiene permiso de portería en ningún boliche.</p>
+        <form action={logout} className="mt-6">
+          <button type="submit" className="min-h-12 rounded-full border border-linea px-5 text-base font-semibold">
+            Salir
+          </button>
+        </form>
       </>
     );
   }
 
-  const lists = await Promise.all(session.venues.map((v) => doorEvents(session, v.slug)));
+  const lists = await Promise.all(venues.map((v) => doorEvents(session, v.slug)));
   if (lists.some((l) => !l.ok && l.reason === "expired")) redirect("/puerta/sesion-vencida");
 
   return (
@@ -52,12 +68,12 @@ async function Content({ searchParams }: { searchParams: PageProps<"/puerta">["s
         </form>
       </div>
       <div className="mt-6 flex flex-col gap-6">
-        {session.venues.map((venue, i) => {
+        {venues.map((venue, i) => {
           const list = lists[i];
           const events: DoorEvent[] = list.ok ? list.data : [];
           return (
             <section key={venue.slug}>
-              {session.venues.length > 1 && <h2 className="mb-3 font-semibold text-tenue">{venue.name}</h2>}
+              {venues.length > 1 && <h2 className="mb-3 font-semibold text-tenue">{venue.name}</h2>}
               {!list.ok ? (
                 <p className="text-error">No pudimos cargar las fechas. Recargá la página.</p>
               ) : events.length === 0 ? (

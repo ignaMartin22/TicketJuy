@@ -1,18 +1,9 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { hasLiveCatalog } from "@/lib/catalog";
-import {
-  SESSION_COOKIE,
-  SESSION_PATH,
-  doorAttendance,
-  doorLogin,
-  doorScan,
-  getSession,
-} from "@/lib/door";
-
-export type LoginState = { error: string | null };
+import { doorAttendance, doorScan, getSession } from "@/lib/door";
+import { LOGIN_PATH, clearStaffSession } from "@/lib/staff-session";
 
 export type ScanOutcome =
   | { kind: "admitted"; holderName: string; ticketType: string }
@@ -22,43 +13,12 @@ export type ScanOutcome =
   | { kind: "error" }
   | { kind: "expired" };
 
-async function clearSession() {
-  (await cookies()).delete({ name: SESSION_COOKIE, path: SESSION_PATH });
-}
+const clearSession = clearStaffSession;
 
-export async function login(_prev: LoginState, form: FormData): Promise<LoginState> {
-  if (!hasLiveCatalog()) return { error: "La portería necesita la API configurada." };
-  const username = String(form.get("username") ?? "").trim();
-  const password = String(form.get("password") ?? "");
-  if (!username || !password) return { error: "Escribí tu usuario y tu contraseña." };
-
-  const r = await doorLogin(username, password);
-  if (!r.ok) {
-    if (r.error === "invalid_credentials") return { error: "Usuario o contraseña incorrectos." };
-    if (r.error === "not_door_staff") return { error: "Tu usuario no tiene permiso de portería." };
-    if (r.error === "too_many_attempts") {
-      const min = r.retryAfter ? Math.max(1, Math.ceil(r.retryAfter / 60)) : null;
-      return {
-        error: min
-          ? `Demasiados intentos. Probá de nuevo en ${min} ${min === 1 ? "minuto" : "minutos"}.`
-          : "Demasiados intentos. Esperá un rato y probá de nuevo.",
-      };
-    }
-    return { error: "Sin conexión. Probá de nuevo." };
-  }
-  (await cookies()).set(SESSION_COOKIE, JSON.stringify({ token: r.token, venues: r.venues }), {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-    path: SESSION_PATH,
-    maxAge: r.expiresIn,
-  });
-  redirect("/puerta");
-}
-
+/** Sale de la cuenta del personal (es la misma del panel) y vuelve al ingreso. */
 export async function logout() {
-  await clearSession();
-  redirect("/puerta");
+  await clearStaffSession();
+  redirect(LOGIN_PATH);
 }
 
 /** Quema la entrada del QR. Si la sesión venció, borra la cookie y avisa al cliente. */

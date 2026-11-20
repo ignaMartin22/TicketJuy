@@ -62,3 +62,37 @@ export function panelMembership(session: StaffSession, preferredSlug?: string): 
   const admins = session.memberships.filter((m) => m.role === "admin");
   return (preferredSlug && admins.find((m) => m.venue.slug === preferredSlug)) || admins[0] || null;
 }
+
+/** Dónde se entra con la cuenta del personal (panel y portería usan la misma sesión). */
+export const LOGIN_PATH = "/ingresar";
+
+/** Borra la sesión del personal. Solo desde server actions o route handlers. */
+export async function clearStaffSession() {
+  const jar = await cookies();
+  jar.delete(STAFF_COOKIE);
+  // Sesión vieja de la portería, de antes del ingreso único.
+  jar.delete({ name: "puerta_session", path: "/puerta" });
+}
+
+const isAdmin = (m: StaffMembership) => m.role === "admin";
+/** La portería la usan puerta y administración. */
+const isDoor = (m: StaffMembership) => m.role === "door" || m.role === "admin";
+
+/** Adónde va cada uno después de entrar: administración al panel, puerta al escáner. */
+export function homeFor(memberships: StaffMembership[]): string {
+  if (memberships.some(isAdmin)) return "/admin";
+  if (memberships.some(isDoor)) return "/puerta";
+  // Solo caja (todavía sin pantalla): el panel le muestra que no tiene acceso.
+  return "/admin";
+}
+
+/**
+ * Si el usuario puede volver a la pantalla que pidió antes de entrar. Solo rutas
+ * del panel o de la portería (nunca otro sitio) y según su rol.
+ */
+export function canReturnTo(path: string, memberships: StaffMembership[]): boolean {
+  if (path.startsWith("//") || path.startsWith("/puerta/sesion-vencida")) return false;
+  if (path === "/admin" || path.startsWith("/admin/")) return memberships.some(isAdmin);
+  if (path === "/puerta" || path.startsWith("/puerta/")) return memberships.some(isDoor);
+  return false;
+}
