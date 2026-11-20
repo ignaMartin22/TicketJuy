@@ -5,8 +5,8 @@ const MAX_SIDE = 1600;
 const QUALITY = 0.82;
 
 /**
- * Achica la foto y la devuelve como data URL JPEG.
- * Mientras no haya Storage, la portada vive en localStorage y tiene que ser liviana.
+ * Achica la foto y la devuelve como data URL JPEG. Con API se sube así de liviana
+ * (el back la vuelve a achicar y la pasa a WebP); en modo demo se guarda en localStorage.
  */
 export async function compressImage(file: File): Promise<string> {
   if (!file.type.startsWith("image/")) {

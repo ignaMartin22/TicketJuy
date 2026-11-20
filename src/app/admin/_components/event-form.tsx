@@ -13,7 +13,7 @@ import {
   type DraftTicket,
   type Errors,
 } from "../_lib/draft";
-import { createEvent, SaveError, updateEvent, useLive } from "../_lib/store";
+import { CoverError, createEvent, SaveError, updateEvent } from "../_lib/store";
 import type { TicketKind } from "../_lib/types";
 import { CoverInput } from "./cover-input";
 import { PlusIcon, TrashIcon } from "./icons";
@@ -28,10 +28,10 @@ export function EventForm({ initial, slug }: { initial: Draft; slug?: string }) 
   const [draft, setDraft] = useState(initial);
   const [errors, setErrors] = useState<Errors>({});
   const [saveError, setSaveError] = useState<string | null>(null);
+  // Si la fecha se creó pero falló la portada, el próximo guardado la edita en vez de crear otra.
+  const [createdSlug, setCreatedSlug] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
-  // Con API la portada todavía no se guarda en el back: no se ofrece.
-  const live = useLive();
   const summaryRef = useRef<HTMLDivElement>(null);
 
   // Avisar antes de cerrar la pestaña con cambios sin guardar.
@@ -93,12 +93,13 @@ export function EventForm({ initial, slug }: { initial: Draft; slug?: string }) 
     setSaving(true);
     try {
       const input = draftToInput(draft);
-      let saved = slug;
+      let saved = slug ?? createdSlug ?? undefined;
       if (saved) await updateEvent(saved, input);
       else saved = await createEvent(input);
       setDirty(false);
       router.push(`/admin/eventos/${saved}`);
     } catch (err) {
+      if (err instanceof CoverError) setCreatedSlug(err.slug);
       setSaveError(err instanceof SaveError ? err.message : "No se pudo guardar. Probá de nuevo.");
       requestAnimationFrame(() => summaryRef.current?.focus());
     } finally {
@@ -262,11 +263,9 @@ export function EventForm({ initial, slug }: { initial: Draft; slug?: string }) 
         </div>
 
         <div className="flex flex-col gap-6">
-          {!live && (
-            <Section title="Portada">
-              <CoverInput value={draft.cover} onChange={(v) => set("cover", v)} />
-            </Section>
-          )}
+          <Section title="Portada">
+            <CoverInput value={draft.cover} onChange={(v) => set("cover", v)} />
+          </Section>
 
           <Section title="Venta">
             <label className="flex cursor-pointer items-start gap-3">

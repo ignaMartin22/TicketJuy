@@ -47,6 +47,7 @@ En la VPS corren también la VPN de Rentas y otros servicios: no reiniciar la VP
 - **Polvo de entrada (#31)** en la página de cada fecha.
 - **Pago con Mercado Pago probado de punta a punta**: pedido pagado, webhook recibido y vuelta a la página del pedido en Railway.
 - **Panel conectado a la API de gestión (#34)**: las fechas se guardan en ticketera-core, no en el navegador. Suma "Publicada en la web" (borrador), desactiva en vez de borrar las entradas quitadas, muestra el mensaje de cada error de la API y refresca la web pública al guardar. Sin `TICKETERA_API_URL` sigue el modo demo en el navegador. Una fecha nueva arranca en borrador. Probado contra el back local: crear una fecha de $50, publicarla (aparece en la portada), pasarla a borrador y eliminarla.
+- **Flyer de cada fecha** (front y core, sin desplegar todavía): el dueño sube la portada desde el panel; el back la achica a WebP, la guarda en el volumen `media` de la VPS y la sirve en `/media/`. La tarjeta de la portada, la página del boliche y el afiche de la fecha la muestran a color; sin flyer, siguen con la foto del boliche teñida. Probado en local: 14 de 14 (subir, ver en la web, sacar, volver a subir y borrar la fecha borra el archivo).
 - **Checkout**: mensaje para cuando el dueño pausa la venta (`sales_paused`).
 
 ## Qué falta
@@ -55,17 +56,15 @@ En la VPS corren también la VPN de Rentas y otros servicios: no reiniciar la VP
 
 1. **Probar la portería en un celular real** cuando esté en producción: cámara, vibración y vencimiento de sesión (Mauricio).
 2. **Botón "Conectar Mercado Pago" en el panel**: estado de la conexión, conectar, reconectar cuando `needsReconnect` y desconectar. El back ya tiene las rutas (`/manage/venues/<boliche>/mercadopago/`). Mientras tanto, la plataforma le puede mandar el link al dueño desde su panel.
-3. **Portada de la fecha en el panel**: el formulario la oculta con API porque el back no la guarda. Volver a mostrarla cuando el back la sume.
-4. **Selector de boliche en el panel**, solo si aparece un dueño con más de un boliche a cargo (por ejemplo, una productora con varios lugares). Hoy cada dueño administra uno.
-5. **Pulir las pantallas del comprador en el celu**: pedido, checkout y entrada.
+3. **Selector de boliche en el panel**, solo si aparece un dueño con más de un boliche a cargo (por ejemplo, una productora con varios lugares). Hoy cada dueño administra uno.
+4. **Pulir las pantallas del comprador en el celu**: pedido, checkout y entrada.
 
 ### Back (pedirle a Franco)
 
 1. **Anular los pedidos de prueba** que se hagan en producción (pasarle los números).
-2. **Portada de la fecha**: un campo de imagen en la API de gestión.
-3. **Entradas gratis desde el ABM**: la API exige precio mayor a 0, así que el dueño no puede crear una "Lista free".
-4. **Estado de borrador**: una fecha sin publicar viene con `status: "on_sale"`. Sería más claro `draft` (el panel ya mira `isPublished`).
-5. **`/entrada/[code]`**: sigue con datos de prueba; falta el endpoint de entrada individual.
+2. **Entradas gratis desde el ABM**: la API exige precio mayor a 0, así que el dueño no puede crear una "Lista free".
+3. **Estado de borrador**: una fecha sin publicar viene con `status: "on_sale"`. Sería más claro `draft` (el panel ya mira `isPublished`).
+4. **`/entrada/[code]`**: sigue con datos de prueba; falta el endpoint de entrada individual.
 
 ### Pendiente grande, sin dueño todavía
 

@@ -30,6 +30,17 @@ export function apiUrl(path: string) {
   return new URL(path, base);
 }
 
+/**
+ * URL de una imagen subida al back (la portada de una fecha). El back la manda absoluta;
+ * si viene relativa ("/media/..."), es relativa al back y no al front.
+ */
+export function mediaUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  if (!url.startsWith("/")) return url;
+  const base = process.env.TICKETERA_API_URL;
+  return base ? new URL(url, base).toString() : undefined;
+}
+
 /** La API manda null en los campos vacíos; el front los espera ausentes. */
 function withoutNulls<T extends object>(data: T): T {
   return Object.fromEntries(Object.entries(data).filter(([, v]) => v !== null)) as T;
@@ -41,7 +52,10 @@ function withLocalAssets(venue: Venue): Venue {
   return { ...withoutNulls(venue), logoSize: local?.logoSize };
 }
 
-const normalizeEvent = (event: Event) => withoutNulls(event);
+const normalizeEvent = (event: Event) => {
+  const e = withoutNulls(event);
+  return e.cover ? { ...e, cover: mediaUrl(e.cover) } : e;
+};
 
 async function fetchCatalog<T>(path: string): Promise<T | null> {
   const response = await fetch(apiUrl(path), { headers: { Accept: "application/json" } });

@@ -762,6 +762,16 @@
 .inf-tarjeta[data-centro] .inf-tarjeta-luz {
   opacity: 1;
 }
+/* Con flyer propio de la fecha: a color, sin el foco del tono encima. Los costados, más apagados. */
+.inf-tarjeta-cuerpo[data-flyer] .inf-tarjeta-foto {
+  filter: brightness(0.55) saturate(0.8);
+}
+.inf-tarjeta[data-centro] .inf-tarjeta-cuerpo[data-flyer] .inf-tarjeta-foto {
+  filter: none;
+}
+.inf-tarjeta-cuerpo[data-flyer] .inf-tarjeta-luz {
+  opacity: 0.12;
+}
 
 @media (prefers-reduced-motion: no-preference) {
   .inf-punto-vivo {
@@ -847,6 +857,10 @@
   background:
     linear-gradient(to top, #05040af2 0%, #05040a99 38%, transparent 70%),
     linear-gradient(140deg in oklch, color-mix(in oklab, var(--tono) 70%, transparent), transparent 75%);
+}
+/* Con flyer propio: solo la sombra de abajo para que se lea el título, sin teñir la foto. */
+.ev-afiche[data-flyer] .ev-afiche-tinte {
+  background: linear-gradient(to top, #05040af2 0%, #05040a8c 30%, transparent 58%);
 }
 .ev-afiche {
   box-shadow:

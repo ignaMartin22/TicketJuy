@@ -56,6 +56,8 @@ export type Event = {
   doorsNote: string;
   ageLimit: number;
   dressCode?: string;
+  /** Flyer de la fecha (URL absoluta del back). Sin flyer, se usa la foto del boliche teñida. */
+  cover?: string;
   ticketTypes: TicketType[];
 };
 

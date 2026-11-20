@@ -3,9 +3,8 @@ import { useId, ViewTransition } from "react";
 import type { Event } from "@/lib/mock-data";
 
 /**
- * Flyer provisorio: foto del boliche (si hay) teñida con su neón, y el título
- * como afiche. Se reemplaza por el flyer real de cada fecha cuando vivan en
- * Supabase Storage.
+ * El flyer de la fecha si lo subieron; si no, la foto del boliche teñida con su
+ * neón. Encima, el título como afiche.
  */
 export function Flyer({
   event,
@@ -22,6 +21,7 @@ export function Flyer({
   priority?: boolean;
 }) {
   const grano = useId();
+  const photo = event.cover ?? backdrop;
   // Mismo nombre en la lista y en el evento: el flyer "viaja" al navegar.
   return (
     <ViewTransition name={`flyer-${event.venueSlug}-${event.slug}`} share="flyer-vuela" default="none">
@@ -30,18 +30,18 @@ export function Flyer({
       role="img"
       aria-label={`Flyer de ${event.title}`}
     >
-      {backdrop && (
+      {photo && (
         <Image
-          src={backdrop}
+          src={photo}
           alt=""
           fill
           priority={priority}
           sizes={size === "lg" ? "(min-width: 1024px) 480px, 100vw" : "96px"}
-          className="-z-20 object-cover opacity-80 contrast-110"
+          className={`-z-20 object-cover ${event.cover ? "" : "opacity-80 contrast-110"}`}
         />
       )}
-      {/* Teñido celeste a magenta, como el video de la portada */}
-      <div className="tinte absolute inset-0 -z-10" aria-hidden />
+      {/* Teñido celeste a magenta, como el video de la portada. El flyer propio va a color. */}
+      {!event.cover && <div className="tinte absolute inset-0 -z-10" aria-hidden />}
       {/* Grano */}
       <svg className="absolute inset-0 -z-10 size-full opacity-[0.12] mix-blend-overlay" aria-hidden>
         <filter id={grano}>

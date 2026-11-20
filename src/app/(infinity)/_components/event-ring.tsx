@@ -23,6 +23,8 @@ export type RingEvent = {
   scarcity: string | null;
   /** Color de la luz de la tarjeta. */
   tone: string;
+  /** Flyer propio de la fecha. Sin él, la tarjeta usa la foto del boliche teñida. */
+  cover?: string;
 };
 
 /**
@@ -191,14 +193,19 @@ function untilt(e: React.PointerEvent<HTMLElement>) {
  */
 function Card({ ev, backdrop }: { ev: RingEvent; backdrop?: string }) {
   const soldOut = !ev.from;
+  const photo = ev.cover ?? backdrop;
   return (
-    <article className="inf-tarjeta-cuerpo @container relative isolate h-full overflow-hidden rounded-[inherit]">
-      {backdrop && (
+    <article
+      className="inf-tarjeta-cuerpo @container relative isolate h-full overflow-hidden rounded-[inherit]"
+      // Con flyer propio, la foto va a color y apenas iluminada (ver infinity.css).
+      data-flyer={ev.cover ? "" : undefined}
+    >
+      {photo && (
         <Image
-          src={backdrop}
+          src={photo}
           alt=""
           fill
-          // Todas usan la misma foto; la del medio es lo primero que se ve.
+          // La del medio es lo primero que se ve; sin flyers propios, todas comparten la foto.
           loading="eager"
           sizes="(min-width: 640px) 20rem, 72vw"
           className="inf-tarjeta-foto -z-30 object-cover"

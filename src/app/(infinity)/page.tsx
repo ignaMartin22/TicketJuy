@@ -153,6 +153,7 @@ export default async function InfinityPrototype() {
               from: desde ? formatPrice(desde) : null,
               // Solo se avisa cuando queda poco de la entrada que está a la venta.
               scarcity: open && left <= open.capacity * 0.15 ? `${open.name}: últimas ${left}` : null,
+              cover: e.cover,
               tone: i % 2 ? "var(--inf-cian)" : "var(--inf-magenta)",
             };
           })}
