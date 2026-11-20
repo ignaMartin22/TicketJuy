@@ -93,6 +93,11 @@ export function EventForm({ initial, slug }: { initial: Draft; slug?: string }) 
     setSaving(true);
     try {
       const input = draftToInput(draft);
+      // En el alta lo decide el botón tocado: "Crear y publicar" o "Guardar borrador".
+      if (isNew) {
+        const submitter = (e.nativeEvent as SubmitEvent).submitter;
+        input.isPublished = submitter?.getAttribute("value") === "publish";
+      }
       let saved = slug ?? createdSlug ?? undefined;
       if (saved) await updateEvent(saved, input);
       else saved = await createEvent(input);
@@ -268,20 +273,23 @@ export function EventForm({ initial, slug }: { initial: Draft; slug?: string }) 
           </Section>
 
           <Section title="Venta">
-            <label className="flex cursor-pointer items-start gap-3">
-              <input
-                type="checkbox"
-                checked={draft.isPublished}
-                onChange={(e) => set("isPublished", e.target.checked)}
-                className="mt-0.5 size-5 accent-[var(--accent)]"
-              />
-              <span>
-                <span className="block font-medium">Publicada en la web</span>
-                <span className="block text-sm text-tenue">
-                  Si la desactivás, queda como borrador: solo la ves vos en el panel.
+            {/* En el alta no hay tilde: publicar o borrador lo decide el botón de abajo. */}
+            {!isNew && (
+              <label className="flex cursor-pointer items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={draft.isPublished}
+                  onChange={(e) => set("isPublished", e.target.checked)}
+                  className="mt-0.5 size-5 accent-[var(--accent)]"
+                />
+                <span>
+                  <span className="block font-medium">Publicada en la web</span>
+                  <span className="block text-sm text-tenue">
+                    Si la desactivás, queda como borrador: solo la ves vos en el panel.
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
+            )}
             <label className="flex cursor-pointer items-start gap-3">
               <input
                 type="checkbox"
@@ -305,9 +313,32 @@ export function EventForm({ initial, slug }: { initial: Draft; slug?: string }) 
         <Link href={slug ? `/admin/eventos/${slug}` : "/admin/eventos"} className={buttonClass.secondary}>
           Cancelar
         </Link>
-        <button type="submit" disabled={saving} className={buttonClass.primary}>
-          {saving ? "Guardando…" : isNew ? "Crear evento" : "Guardar cambios"}
-        </button>
+        {isNew ? (
+          <>
+            <button
+              type="submit"
+              name="intent"
+              value="draft"
+              disabled={saving}
+              className={buttonClass.secondary}
+            >
+              {saving ? "Guardando…" : "Guardar borrador"}
+            </button>
+            <button
+              type="submit"
+              name="intent"
+              value="publish"
+              disabled={saving}
+              className={buttonClass.primary}
+            >
+              {saving ? "Guardando…" : "Crear y publicar"}
+            </button>
+          </>
+        ) : (
+          <button type="submit" disabled={saving} className={buttonClass.primary}>
+            {saving ? "Guardando…" : "Guardar cambios"}
+          </button>
+        )}
       </div>
     </form>
   );
