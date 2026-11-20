@@ -73,6 +73,22 @@ export function EventDetail() {
         />
       </div>
 
+      {!past && !event.isPublished && (
+        <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-amber-300/40 bg-amber-300/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-medium text-amber-200">
+            Esta fecha es un borrador: no aparece en la web ni se puede comprar.
+          </p>
+          <button
+            type="button"
+            disabled={action.pending}
+            className={buttonClass.primary}
+            onClick={() => action.run(() => setPublished(event.slug, true))}
+          >
+            Publicar ahora
+          </button>
+        </div>
+      )}
+
       {action.error && (
         <p role="alert" className="mt-6 rounded-2xl border border-error/40 bg-error/10 p-4 text-sm text-error">
           {action.error}
