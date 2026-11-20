@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { SITE } from "@/lib/site";
 
 /*
  * Botón para instalar la app. Aparece abajo, discreto, unos segundos después de
@@ -126,7 +127,7 @@ export function InstallApp() {
         >
           <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#0e0c16] p-6" onClick={(e) => e.stopPropagation()}>
             <h2 id="instalar-titulo" className="text-lg font-semibold">
-              Instalá Infinity en tu iPhone
+              Instalá {SITE.shortName} en tu iPhone
             </h2>
             <ol className="mt-4 flex flex-col gap-4 text-white/80">
               <li className="flex items-center gap-3">

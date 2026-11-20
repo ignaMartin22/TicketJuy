@@ -64,7 +64,7 @@ export default async function VenuePage({ params }: PageProps<"/[venue]">) {
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
+      <div id="fechas" className="mx-auto w-full max-w-5xl scroll-mt-20 px-4 py-8 sm:px-6">
 
       {!featured && (
         <p className="mt-10 rounded-2xl border border-dashed border-linea p-6 text-tenue">

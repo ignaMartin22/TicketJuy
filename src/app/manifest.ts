@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { SITE } from "@/lib/site";
 
 /**
  * Manifiesto de la app: lo que hace que el sitio se pueda instalar en el celu
@@ -6,9 +7,9 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Infinity Producciones",
-    short_name: "Infinity",
-    description: "Las fechas de Infinity en San Salvador de Jujuy. Comprás en un minuto y te llega por WhatsApp.",
+    name: SITE.name,
+    short_name: SITE.shortName,
+    description: SITE.description,
     id: "/",
     start_url: "/",
     scope: "/",
