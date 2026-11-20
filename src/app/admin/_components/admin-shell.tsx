@@ -150,6 +150,10 @@ function SidebarBody({
         >
           Ver página pública
         </Link>
+        {/* Administración también puede escanear: misma sesión, sin volver a entrar. */}
+        <Link href="/puerta" className="text-tenue hover:text-luz" onClick={onNavigate}>
+          Portería (escanear entradas)
+        </Link>
         <button
           type="button"
           className="text-left text-tenue hover:text-luz"

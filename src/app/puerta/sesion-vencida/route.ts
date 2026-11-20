@@ -1,9 +1,8 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE, SESSION_PATH } from "@/lib/door";
+import { LOGIN_PATH, clearStaffSession } from "@/lib/staff-session";
 
-/** Las páginas no pueden borrar cookies: cuando la API da 401 mandan acá, que la borra y vuelve al login. */
+/** Las páginas no pueden borrar cookies: cuando la API da 401 mandan acá, que la borra y vuelve al ingreso. */
 export async function GET() {
-  (await cookies()).delete({ name: SESSION_COOKIE, path: SESSION_PATH });
-  redirect("/puerta?vencida=1");
+  await clearStaffSession();
+  redirect(`${LOGIN_PATH}?desde=%2Fpuerta&vencida=1`);
 }

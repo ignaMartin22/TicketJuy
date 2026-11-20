@@ -20,7 +20,7 @@ async function Content({ params }: { params: PageProps<"/puerta/[venue]/[event]/
   const { venue, event } = await params;
   if (!hasLiveCatalog()) redirect("/puerta");
   const session = await getSession();
-  if (!session) redirect("/puerta");
+  if (!session) redirect("/ingresar?desde=%2Fpuerta");
   const r = await doorAttendance(session, venue, event);
   if (!r.ok) {
     if (r.reason === "expired") redirect("/puerta/sesion-vencida");

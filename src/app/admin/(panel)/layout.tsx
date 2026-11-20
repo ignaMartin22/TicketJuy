@@ -6,7 +6,7 @@ import { demoSession, getStaffSession, panelMembership } from "@/lib/staff-sessi
 import { AdminShell } from "../_components/admin-shell";
 import { SinAcceso } from "./sin-acceso";
 
-/** Las pantallas del panel, con el menú. El ingreso (/admin/ingresar) queda afuera. */
+/** Las pantallas del panel, con el menú. El ingreso (/ingresar) queda afuera. */
 export default function PanelLayout({ children }: { children: React.ReactNode }) {
   return (
     <Suspense
@@ -38,10 +38,14 @@ async function PanelGuard({ children }: { children: React.ReactNode }) {
   if (!session) {
     // El proxy deja el path pedido en x-tj-path para volver después del ingreso.
     const path = (await headers()).get("x-tj-path") ?? "/admin";
-    redirect(`/admin/ingresar?desde=${encodeURIComponent(path)}`);
+    redirect(`/ingresar?desde=${encodeURIComponent(path)}`);
   }
   const membership = panelMembership(session, HOME_VENUE);
-  if (!membership) return <SinAcceso session={session} />;
+  if (!membership) {
+    // Puerta sin administración: su lugar es el escáner, no el panel.
+    if (session.memberships.some((m) => m.role === "door")) redirect("/puerta");
+    return <SinAcceso session={session} />;
+  }
   return (
     <AdminShell session={session} membership={membership}>
       {children}

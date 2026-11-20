@@ -171,10 +171,16 @@ TICKETERA_API_URL=http://127.0.0.1:8000
 
 Con la variable, la portada, la página del boliche y las fechas leen el catálogo de la API desde el servidor de Next (el navegador nunca habla directo con Django). El catálogo se vuelve a pedir cada minuto. El checkout reserva el cupo por 10 minutos (`POST .../orders/`) con una clave de idempotencia por intento y lleva a `/<boliche>/<fecha>/pedido/<id>`. El pago con Mercado Pago todavía no está conectado: esa página muestra la reserva y el tiempo que queda.
 
-### Panel del boliche (`/admin`)
+### Ingreso del personal (`/ingresar`), panel (`/admin`) y portería (`/puerta`)
 
-Con `TICKETERA_API_URL` configurada, `/admin` queda protegido: se entra desde `/admin/ingresar` con el usuario y la contraseña del personal, que se validan contra `POST /api/v1/auth/login/` del core. El token (12 h) viaja en una cookie httpOnly (`tj_staff`) que solo lee el servidor de Next; nunca va a localStorage ni a JS del navegador. Sin sesión válida se redirige a `/admin/ingresar?desde=<ruta>`, y "Cerrar sesión" borra la cookie y vuelve al ingreso.
+Con `TICKETERA_API_URL` configurada, el panel y la portería quedan protegidos y comparten **un solo ingreso**: `/ingresar`, con el usuario y la contraseña del personal, que se validan contra `POST /api/v1/auth/login/` del core. El token (12 h) viaja en una cookie httpOnly (`tj_staff`) que solo lee el servidor de Next; nunca va a localStorage ni a JS del navegador. Sin sesión se redirige a `/ingresar?desde=<ruta>`, y "Cerrar sesión" (o "Salir" en la portería) borra la cookie y vuelve al ingreso. `/admin/ingresar` redirige a `/ingresar`.
 
-Cada usuario del personal tiene membresías por boliche con un rol (`admin`, `door`, `cashier`); el panel solo abre para el rol `admin`, el resto ve una pantalla de "sin acceso". El alta de usuarios y membresías **no es autogestionada**: la hace la plataforma desde `/plataforma/` del core o el admin de Django.
+Cada usuario del personal tiene membresías por boliche con un rol (`admin`, `door`, `cashier`). Después de entrar, cada uno va a lo suyo:
+
+- `admin` → el panel. También puede escanear: el menú tiene "Portería" y entra sin volver a loguearse.
+- `door` → directo a la portería (elegir fecha y escanear). Si abre `/admin`, vuelve a la portería.
+- solo `cashier` → pantalla de "sin acceso" (la caja todavía no tiene pantalla).
+
+La portería no consulta `auth/me` al escanear: usa el token de la cookie, así cada escaneo es una sola llamada a la API. El alta de usuarios y membresías **no es autogestionada**: la hace la plataforma desde `/plataforma/` del core o el admin de Django.
 
 Sin `TICKETERA_API_URL` (modo demo) el panel sigue abierto sin login, con una sesión de demostración.

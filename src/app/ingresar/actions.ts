@@ -3,28 +3,24 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { apiUrl, hasLiveCatalog } from "@/lib/catalog";
-import { STAFF_COOKIE } from "@/lib/staff-session";
+import { STAFF_COOKIE, canReturnTo, homeFor, type StaffMembership } from "@/lib/staff-session";
 
 export type LoginState = { error: string } | undefined;
 
-type LoginResponse = { token?: string; expiresIn?: number };
-
-/** Sólo se vuelve a una pantalla del panel (nunca a otro sitio). */
-function destino(desde: FormDataEntryValue | null) {
-  return typeof desde === "string" && desde.startsWith("/admin") && !desde.startsWith("//")
-    ? desde
-    : "/admin";
-}
+type LoginResponse = { token?: string; expiresIn?: number; memberships?: StaffMembership[] };
 
 /**
- * Login del personal contra ticketera-core (POST /api/v1/auth/login/).
- * El token queda en una cookie httpOnly que solo lee el servidor de Next;
- * sin API configurada el panel sigue entrando en modo demo.
+ * Ingreso único del personal contra ticketera-core (POST /api/v1/auth/login/).
+ * El token queda en una cookie httpOnly que solo lee el servidor de Next, y la
+ * usan el panel y la portería. Después de entrar, cada uno va a lo suyo:
+ * administración al panel, puerta al escáner (o a la pantalla que había pedido,
+ * si su rol la permite). Sin API configurada el panel entra en modo demo.
  */
 export async function loginStaff(prev: LoginState, formData: FormData): Promise<LoginState> {
-  const desde = destino(formData.get("desde"));
+  const desde = formData.get("desde");
+  const pedido = typeof desde === "string" ? desde : "";
 
-  if (!hasLiveCatalog()) redirect(desde);
+  if (!hasLiveCatalog()) redirect(pedido.startsWith("/admin") && !pedido.startsWith("//") ? pedido : "/admin");
 
   const usuario = formData.get("usuario");
   const clave = formData.get("clave");
@@ -44,6 +40,7 @@ export async function loginStaff(prev: LoginState, formData: FormData): Promise<
       cache: "no-store",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ username: usuario.trim(), password: clave }),
+      signal: AbortSignal.timeout(15_000),
     });
   } catch {
     return { error: "No se pudo conectar con el servidor. Probá de nuevo." };
@@ -52,6 +49,7 @@ export async function loginStaff(prev: LoginState, formData: FormData): Promise<
   if (response.ok) {
     const data = (await response.json().catch(() => ({}))) as LoginResponse;
     if (!data.token) return { error: "No se pudo conectar con el servidor. Probá de nuevo." };
+    const memberships = Array.isArray(data.memberships) ? data.memberships : [];
     (await cookies()).set(STAFF_COOKIE, data.token, {
       httpOnly: true,
       sameSite: "lax",
@@ -59,7 +57,7 @@ export async function loginStaff(prev: LoginState, formData: FormData): Promise<
       path: "/",
       maxAge: data.expiresIn ?? 43200,
     });
-    redirect(desde);
+    redirect(canReturnTo(pedido, memberships) ? pedido : homeFor(memberships));
   }
 
   if (response.status === 401) return { error: "Usuario o contraseña incorrectos." };
