@@ -167,7 +167,8 @@
 }
 .inf-escena {
   /* Dónde está la tarjeta en la portada, respecto del centro del anillo. */
-  --hx: min(24vw, 22rem);
+  /* Lo bastante a la derecha para que el abanico no pise el cartel ni el eslogan. */
+  --hx: min(29vw, 26rem);
   --hy: 3svh;
   --hr: 5deg;
   --hs: 1;
