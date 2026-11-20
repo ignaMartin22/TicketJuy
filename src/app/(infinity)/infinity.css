@@ -1080,36 +1080,13 @@
   }
 }
 
-/* ---------- La tarjeta como flyer con talón de entrada ---------- */
+/* ---------- La tarjeta como flyer ---------- */
 
-.inf-tarjeta-cuerpo {
-  /* Alto del talón, proporcional a la tarjeta (--w viene del anillo). */
-  --talon: calc(var(--w) * 0.25);
-  --recorte: calc(var(--w) * 0.045);
-  /* Los dos recortes semicirculares del corte, como una entrada de papel. Máscara fija: no se anima. */
-  -webkit-mask:
-    radial-gradient(circle var(--recorte) at 0 calc(100% - var(--talon)), #0000 98%, #000) top / 100% 100%,
-    radial-gradient(circle var(--recorte) at 100% calc(100% - var(--talon)), #0000 98%, #000) top / 100% 100%;
-  -webkit-mask-composite: source-in;
-  mask:
-    radial-gradient(circle var(--recorte) at 0 calc(100% - var(--talon)), #0000 98%, #000) top / 100% 100%,
-    radial-gradient(circle var(--recorte) at 100% calc(100% - var(--talon)), #0000 98%, #000) top / 100% 100%;
-  mask-composite: intersect;
-}
-.inf-talon {
-  position: relative;
-  height: var(--talon);
-  flex-shrink: 0;
-  background: #05040ab3;
-}
-/* El corte: punteado entre los dos recortes. */
-.inf-talon::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: calc(var(--recorte) + 0.5rem);
-  right: calc(var(--recorte) + 0.5rem);
-  border-top: 2px dashed #ffffff40;
+/* Separa lo de comprar: un tubo de neón fino del color de la fecha, apagado en las puntas. */
+.inf-linea-neon {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--tono) 80%, white) 18%, color-mix(in oklab, var(--tono) 80%, white) 82%, transparent);
+  box-shadow: 0 0 10px 0 color-mix(in oklab, var(--tono) 70%, transparent);
 }
 /* La fecha sobre la luz de la tarjeta: una sombra apenas para que se lea sobre el foco. */
 .inf-fecha-afiche {

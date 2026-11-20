@@ -152,7 +152,7 @@ export default async function InfinityPrototype() {
               time: p.time,
               from: desde ? formatPrice(desde) : null,
               // Solo se avisa cuando queda poco de la entrada que está a la venta.
-              scarcity: open && left <= open.capacity * 0.15 ? `Últimas ${left} · ${open.name}` : null,
+              scarcity: open && left <= open.capacity * 0.15 ? `${open.name}: últimas ${left}` : null,
               tone: i % 2 ? "var(--inf-cian)" : "var(--inf-magenta)",
             };
           })}
