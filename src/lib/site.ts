@@ -9,7 +9,7 @@ export const SITE = {
   name: "Infinity Producciones",
   /** Nombre corto (debajo del ícono en el celu). */
   shortName: "Infinity",
-  description: "Las fechas de Infinity en San Salvador de Jujuy. Comprás en un minuto y te llega por WhatsApp.",
+  description: "Las fechas de Infinity en San Salvador de Jujuy. Comprás en un minuto y entrás con el QR desde el celu.",
 } as const;
 
 /** Página principal de un boliche: la raíz para el de la portada, /<boliche> para el resto. */

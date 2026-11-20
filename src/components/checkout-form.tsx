@@ -7,15 +7,15 @@ import { createOrder } from "@/app/[venue]/[event]/checkout/actions";
 import { decodeCart, encodeCart } from "@/lib/cart";
 import { formatNight, formatPrice, serviceFee } from "@/lib/format";
 import { tickets, type Event, type Venue } from "@/lib/mock-data";
-import { nationalPhone } from "@/lib/phone";
 
-type FieldName = "name" | "phone" | "email";
+// Sin teléfono: las entradas todavía no se envían por WhatsApp.
+type FieldName = "name" | "email";
 type Values = Record<FieldName, string>;
 type Errors = Partial<Record<FieldName, string>>;
 type Line = { type: Event["ticketTypes"][number]; qty: number };
 
 /** Orden en pantalla: el primer campo con error es el que recibe el foco. */
-const FIELD_ORDER: FieldName[] = ["name", "phone", "email"];
+const FIELD_ORDER: FieldName[] = ["name", "email"];
 
 /** Lo que la API puede rechazar, dicho para el comprador. */
 const ORDER_ERRORS: Record<string, string> = {
@@ -27,7 +27,6 @@ const ORDER_ERRORS: Record<string, string> = {
 };
 const FIELD_ERRORS: Record<string, FieldName> = {
   invalid_name: "name",
-  invalid_phone: "phone",
   invalid_email: "email",
 };
 /** Errores que se arreglan cambiando las entradas: se ofrece volver a elegirlas. */
@@ -39,11 +38,6 @@ function validate(field: FieldName, value: string): string | undefined {
     if (!v) return "Escribí tu nombre y apellido.";
     if (v.split(/\s+/).filter((w) => w.length > 1).length < 2)
       return "Falta el apellido. Poné nombre y apellido.";
-  }
-  if (field === "phone") {
-    if (!v) return "Escribí tu número de WhatsApp.";
-    if (nationalPhone(v).length !== 10)
-      return "Revisá el número: son 10 dígitos con característica, sin 0 ni 15. Ej: 388 412 3456.";
   }
   if (field === "email") {
     if (!v) return "Escribí tu email.";
@@ -57,7 +51,7 @@ export function CheckoutForm({ venue, event, live }: { venue: Venue; event: Even
   const searchParams = useSearchParams();
   const cart = decodeCart(searchParams.get("t"), event);
   const [paying, setPaying] = useState(false);
-  const [values, setValues] = useState<Values>({ name: "", phone: "", email: "" });
+  const [values, setValues] = useState<Values>({ name: "", email: "" });
   const [errors, setErrors] = useState<Errors>({});
   const [orderError, setOrderError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -107,7 +101,7 @@ export function CheckoutForm({ venue, event, live }: { venue: Venue; event: Even
   }
 
   async function reserve() {
-    const payload = JSON.stringify([values.name.trim(), nationalPhone(values.phone), values.email.trim(), encodeCart(cart)]);
+    const payload = JSON.stringify([values.name.trim(), values.email.trim(), encodeCart(cart)]);
     if (attempt.current?.payload !== payload) attempt.current = { payload, key: crypto.randomUUID() };
     const result = await createOrder(venue.slug, event.slug, values, cart, attempt.current.key);
     if (result.ok) {
@@ -195,9 +189,9 @@ export function CheckoutForm({ venue, event, live }: { venue: Venue; event: Even
 
       <fieldset disabled={paying} className="flex min-w-0 flex-col gap-5 lg:col-start-1 lg:row-start-1">
         <legend className="mb-3">
-          <span className="block text-xl font-semibold">¿A quién le mandamos las entradas?</span>
+          <span className="block text-xl font-semibold">¿A nombre de quién van?</span>
           <span className="mt-1 block text-tenue">
-            Te llegan por WhatsApp y por email. No hace falta crear una cuenta.
+            No hace falta crear una cuenta. Al pagar, tus entradas aparecen en pantalla con su QR.
           </span>
         </legend>
         <Field
@@ -210,20 +204,6 @@ export function CheckoutForm({ venue, event, live }: { venue: Venue; event: Even
           error={errors.name}
           onChange={(v) => setValue("name", v)}
           onBlur={() => onBlur("name")}
-        />
-        <Field
-          label="WhatsApp"
-          name="phone"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel-national"
-          enterKeyHint="next"
-          placeholder="388 412 3456"
-          hint="Con característica, sin 0 ni 15."
-          value={values.phone}
-          error={errors.phone}
-          onChange={(v) => setValue("phone", v)}
-          onBlur={() => onBlur("phone")}
         />
         <Field
           label="Email"
