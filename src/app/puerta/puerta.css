@@ -69,30 +69,34 @@
 
 /* ---------- Resultado ---------- */
 
-.puerta-ok {
-  background: radial-gradient(120% 70% at 50% 30%, #22c55e, #047a3c 70%);
-  color: #fff;
+/*
+ * Color plano: es la señal, no un adorno. Sin degradés ni brillos, así el verde y el
+ * rojo se distinguen de reojo y el texto mantiene contraste en toda la pantalla.
+ */
+.puerta-ok { background: #15803d; color: #fff; }
+.puerta-no { background: #b91c1c; color: #fff; }
+.puerta-aviso { background: #f2b705; color: #1a1300; }
+.puerta-error { background: #27272a; color: #fff; }
+
+/* La línea de corte del talón, con las dos muescas del troquel contra los bordes. */
+.puerta-talon {
+  position: relative;
+  display: block;
+  margin-inline: -1.5rem;
+  border-top: 2px dashed color-mix(in oklab, currentColor 45%, transparent);
 }
-.puerta-no {
-  background: radial-gradient(120% 70% at 50% 30%, #ef4444, #8f1111 70%);
-  color: #fff;
+.puerta-talon::before,
+.puerta-talon::after {
+  content: "";
+  position: absolute;
+  top: -13px;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: #000;
 }
-.puerta-aviso {
-  background: radial-gradient(120% 70% at 50% 30%, #fcd34d, #d97706 75%);
-  color: #1a0f00;
-}
-.puerta-error {
-  background: radial-gradient(120% 70% at 50% 30%, #52525b, #18181b 75%);
-  color: #fff;
-}
-.puerta-icono {
-  background: #ffffff26;
-  box-shadow: 0 0 0 12px #ffffff14;
-}
-.puerta-aviso .puerta-icono {
-  background: #00000014;
-  box-shadow: 0 0 0 12px #0000000d;
-}
+.puerta-talon::before { left: -12px; }
+.puerta-talon::after { right: -12px; }
 
 /* La barra que se vacía mientras el resultado se cierra solo. */
 .puerta-cuenta {
@@ -107,11 +111,8 @@
   .puerta-ventana[data-leyendo] .puerta-esquina {
     animation: puerta-late 700ms ease-in-out infinite alternate;
   }
-  .puerta-icono {
-    animation: puerta-aparece 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  }
   .puerta-texto {
-    animation: puerta-sube 380ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
+    animation: puerta-sube 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   .puerta-cuenta {
     animation: puerta-cuenta var(--dur, 2500ms) linear both;
@@ -128,11 +129,8 @@
 @keyframes puerta-late {
   to { opacity: 0.35; }
 }
-@keyframes puerta-aparece {
-  from { opacity: 0; transform: scale(0.5); }
-}
 @keyframes puerta-sube {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(8px); }
 }
 @keyframes puerta-cuenta {
   from { transform: scaleX(1); }

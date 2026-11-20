@@ -17,7 +17,8 @@ const STAMP: Record<Ticket["status"], string | null> = {
 
 /**
  * La entrada: tarjeta oscura con borde de neón, troquel con muescas y el QR
- * sobre blanco (se escanea con poca luz en la puerta).
+ * sobre blanco (se escanea con poca luz en la puerta). Cuando ya no sirve (usada,
+ * transferida o anulada) el cartel se apaga: sin brillo, sin color y con el sello.
  */
 export function TicketStub({
   venue,
@@ -42,10 +43,11 @@ export function TicketStub({
 }) {
   const d = nightParts(event.startsAt);
   const stamp = STAMP[ticket.status];
+  const off = stamp !== null;
 
   return (
     <article
-      className={`${live ? "" : "neon"} relative w-full ${big ? "max-w-sm" : "max-w-[22rem]"} overflow-hidden rounded-[1.75rem] bg-noche-2 ${className}`}
+      className={`${off ? "entrada-apagada" : live ? "" : "neon"} relative w-full ${big ? "max-w-sm" : "max-w-[22rem]"} overflow-hidden rounded-[1.75rem] bg-noche-2 ${className}`}
     >
       <header className={`px-6 ${big ? "pb-3 pt-5" : "pb-5 pt-6"}`}>
         <p className="text-sm font-semibold text-accent">
@@ -54,7 +56,7 @@ export function TicketStub({
         <h2 className={`display mt-2 uppercase text-balance ${big ? "text-2xl" : "text-3xl"}`}>
           {event.title}
         </h2>
-        <p className={`capitalize ${big ? "mt-2 text-base text-luz" : "mt-3 text-sm text-tenue"}`}>
+        <p className={`capitalize ${big ? `mt-2 text-base ${off ? "" : "text-luz"}` : "mt-3 text-sm text-tenue"}`}>
           {d.weekday} {d.day} {d.month}, {d.time} h
         </p>
       </header>
@@ -69,7 +71,7 @@ export function TicketStub({
       <div className={`relative flex flex-col items-center pb-2 ${big ? "px-4 pt-3" : "px-6 pt-4"}`}>
         <div
           className={`w-full ${big ? "max-w-72" : "max-w-52"} rounded-2xl bg-white p-3 [&_svg]:block [&_svg]:h-auto [&_svg]:w-full ${
-            stamp ? "opacity-20" : ""
+            off ? "opacity-10 grayscale" : ""
           }`}
           role="img"
           aria-label={`Código QR de la entrada ${ticket.code}`}
@@ -81,7 +83,7 @@ export function TicketStub({
           </div>
         )}
         {stamp && (
-          <p className="neon-text display absolute top-[42%] -translate-y-1/2 -rotate-12 rounded-lg border-2 border-accent px-4 py-1 text-3xl uppercase">
+          <p className="display absolute top-[42%] -translate-y-1/2 -rotate-12 rounded-lg border-2 border-current px-4 py-1 text-3xl uppercase text-luz/70">
             {stamp}
           </p>
         )}
