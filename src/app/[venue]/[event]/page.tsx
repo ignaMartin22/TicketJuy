@@ -45,15 +45,28 @@ async function EventContent({ params }: { params: PageProps<"/[venue]/[event]">[
   const { venue, event } = catalog;
   const d = nightParts(event.startsAt);
   const tone = eventTone(event.slug);
+  // El flyer de la fecha si lo subieron; si no, la foto del boliche (teñida con el color de la noche).
+  const poster = event.cover ?? venue.flyerBackdrop;
 
   return (
     <div className="contents" style={{ "--tono": tone } as CSSProperties}>
       {/* El afiche de la fecha: la foto de la pista teñida con el color de la noche, y el título encima. */}
-      <header className="ev-afiche entra relative isolate flex flex-col justify-end overflow-hidden rounded-[1.75rem] [grid-area:afiche]">
-        {venue.flyerBackdrop && (
+      <header
+        className="ev-afiche entra relative isolate flex flex-col justify-end overflow-hidden rounded-[1.75rem] [grid-area:afiche]"
+        // Con flyer propio de la fecha no se tiñe (ver infinity.css).
+        data-flyer={event.cover ? "" : undefined}
+      >
+        {poster && (
           // En su propia capa: Image con fill necesita un padre posicionado y el afiche es sticky en la compu.
           <div className="absolute inset-0 -z-30">
-            <Image src={venue.flyerBackdrop} alt="" fill priority sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
+            <Image
+              src={poster}
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 1024px) 40vw, 100vw"
+              className="object-cover"
+            />
           </div>
         )}
         <div className="ev-afiche-tinte absolute inset-0 -z-20" aria-hidden />

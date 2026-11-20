@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { updateTag } from "next/cache";
-import { apiUrl, hasLiveCatalog } from "@/lib/catalog";
+import { apiUrl, hasLiveCatalog, mediaUrl } from "@/lib/catalog";
 import { STAFF_COOKIE } from "@/lib/staff-session";
 import type { AdminEvent, AdminTicketType } from "./types";
 
@@ -34,6 +34,7 @@ type ApiEvent = {
   doorsNote?: string;
   ageLimit?: number;
   dressCode?: string | null;
+  cover?: string | null;
   ticketTypes?: ApiTicket[];
 };
 
@@ -46,7 +47,10 @@ export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 const seg = (s: string) => encodeURIComponent(s);
 const base = (venue: string) => `/api/v1/manage/venues/${seg(venue)}/events/`;
 
-async function call<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<Result<T>> {
+async function call<T>(
+  path: string,
+  init: { method?: string; body?: unknown; form?: FormData } = {},
+): Promise<Result<T>> {
   if (!hasLiveCatalog()) return { ok: false, error: "network" };
   const token = (await cookies()).get(STAFF_COOKIE)?.value;
   if (!token) return { ok: false, error: "expired" };
@@ -58,10 +62,11 @@ async function call<T>(path: string, init: { method?: string; body?: unknown } =
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
+        // Con FormData, fetch arma el Content-Type multipart con su boundary.
         ...(init.body !== undefined ? { "Content-Type": "application/json" } : {}),
       },
-      body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
-      signal: AbortSignal.timeout(15_000),
+      body: init.form ?? (init.body !== undefined ? JSON.stringify(init.body) : undefined),
+      signal: AbortSignal.timeout(init.form ? 30_000 : 15_000),
     });
   } catch {
     return { ok: false, error: "network" };
@@ -84,6 +89,7 @@ function fromApi(venue: string, e: ApiEvent): AdminEvent {
     doorsNote: e.doorsNote ?? "",
     ageLimit: e.ageLimit ?? 18,
     dressCode: e.dressCode ?? undefined,
+    cover: mediaUrl(e.cover),
     salesOpen: e.salesOpen,
     isPublished: e.isPublished,
     ticketTypes: (e.ticketTypes ?? []).map(
@@ -188,6 +194,25 @@ export async function patchEvent(
 
 export async function deleteEvent(venue: string, slug: string): Promise<Result<null>> {
   const r = await call<null>(`${base(venue)}${seg(slug)}/`, { method: "DELETE" });
+  if (!r.ok) return r;
+  refreshCatalog(venue);
+  return { ok: true, data: null };
+}
+
+/** Sube la portada (el archivo va en `file`). Devuelve la URL nueva. */
+export async function uploadCover(venue: string, slug: string, form: FormData): Promise<Result<string | undefined>> {
+  const file = form.get("file");
+  if (!(file instanceof Blob)) return { ok: false, error: "invalid_cover" };
+  const body = new FormData();
+  body.append("file", file, "portada.jpg");
+  const r = await call<{ cover: string | null }>(`${base(venue)}${seg(slug)}/cover/`, { method: "POST", form: body });
+  if (!r.ok) return r;
+  refreshCatalog(venue);
+  return { ok: true, data: mediaUrl(r.data.cover) };
+}
+
+export async function removeCover(venue: string, slug: string): Promise<Result<null>> {
+  const r = await call<{ cover: null }>(`${base(venue)}${seg(slug)}/cover/`, { method: "DELETE" });
   if (!r.ok) return r;
   refreshCatalog(venue);
   return { ok: true, data: null };

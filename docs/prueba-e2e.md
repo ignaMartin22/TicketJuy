@@ -75,11 +75,11 @@ Con la fecha de $50 que creás en el panel (sección 6, puntos 39 a 41):
 Entrá con `franco`. Lo que guardes acá va al back y se ve en la web.
 
 38. [ ] **Eventos**: aparecen las fechas de Infinity con lo vendido de verdad.
-39. [ ] **Nuevo evento**: cargá nombre "Prueba interna, no comprar", una fecha lejana y hora. En "Entradas comunes" poné General, **$50** y **cantidad 2**. Quitá la fila de VIP con su botón de quitar (si queda vacía, no te deja guardar).
+39. [ ] **Nuevo evento**: cargá nombre "Prueba interna, no comprar", una fecha lejana y hora. En "Entradas comunes" poné General, **$50** y **cantidad 2**. Quitá la fila de VIP con su botón de quitar (si queda vacía, no te deja guardar). En **Portada**, subí una foto vertical (un flyer): se ve la vista previa.
 40. [ ] "Publicada en la web" arranca **sin tildar**. Creala así: queda con la marca "Borrador" y **no aparece** en la portada.
-41. [ ] Tocá **Publicar**: aparece en la portada y en su página. Se ve a $50 (hoy Infinity no le pasa el cargo de servicio al comprador; si se lo pasara, se vería un poco más).
+41. [ ] Tocá **Publicar**: aparece en la portada y en su página, **con el flyer a color** en la tarjeta y en el afiche. Se ve a $50 (hoy Infinity no le pasa el cargo de servicio al comprador; si se lo pasara, se vería un poco más).
 42. [ ] Hacé la sección 3 (pago con Mercado Pago) con esta fecha.
-43. [ ] **Editar**: cambiá el nombre de la entrada y guardá; en la web se ve el nombre nuevo.
+43. [ ] **Editar**: cambiá el nombre de la entrada y la portada, y guardá; en la web se ven los dos cambios. Probá también **Quitar** la portada: la tarjeta vuelve a la foto del boliche teñida.
 44. [ ] Bajá la cantidad por debajo de lo que ya se vendió: muestra un error y no guarda.
 45. [ ] **Pausar la venta** (destildar "Venta abierta"): la fecha se sigue viendo, pero al intentar comprar el checkout avisa que la venta está pausada.
 46. [ ] Intentá **eliminar** la fecha ya con un pedido: no te deja (tiene ventas). Dejala en **borrador** para que no se vea.
@@ -112,5 +112,5 @@ Tienen que pasar todas (hoy son 292). Del front, antes de mergear: `npm run lint
 
 - **`/entrada/[código]`**: muestra datos de prueba hasta que el back tenga el endpoint de entrada suelta.
 - **Botón "Conectar Mercado Pago" en el panel**: pendiente; hoy se conecta desde `/plataforma/`.
-- **Portada de la fecha y entradas gratis desde el panel**: la API de gestión todavía no las tiene.
+- **Entradas gratis desde el panel**: la API de gestión exige precio mayor a 0.
 - **Portería sin internet**: no guarda nada para después; sin conexión no valida.

@@ -52,6 +52,8 @@ const MESSAGES: Record<string, string> = {
   invalid_price: "El precio de cada entrada tiene que ser mayor a 0.",
   invalid_capacity: "La cantidad de cada entrada tiene que ser mayor a 0 y no menor a lo vendido.",
   request_too_large: "Hay demasiado texto. Acortá la descripción.",
+  invalid_cover: "La portada tiene que ser una foto JPG, PNG o WebP.",
+  cover_too_large: "La portada es muy pesada. Probá con una foto más liviana.",
   network: "No pudimos conectar con el servidor. Probá de nuevo.",
 };
 
@@ -59,6 +61,20 @@ const MESSAGES: Record<string, string> = {
 export class SaveError extends Error {
   constructor(public code: string) {
     super(MESSAGES[code] ?? MESSAGES.network);
+  }
+}
+
+/**
+ * La fecha se creó, pero la portada no se pudo subir. Lleva el slug para que el formulario
+ * no la vuelva a crear: el próximo guardado es una edición.
+ */
+export class CoverError extends SaveError {
+  constructor(
+    code: string,
+    public slug: string,
+  ) {
+    super(code);
+    this.message = `La fecha se guardó, pero la portada no se pudo subir. ${this.message}`;
   }
 }
 
@@ -203,16 +219,38 @@ function unwrap<T>(r: api.Result<T>): T {
 }
 
 const payload = (input: EventInput): api.EventPayload => {
-  // La API todavía no guarda la portada.
+  // La portada va aparte (syncCover): es un archivo, no un campo del JSON.
   const { cover, ...rest } = input;
   void cover;
   return rest;
 };
 
+/**
+ * Sube, cambia o saca la portada según lo que quedó en el formulario.
+ * Una portada nueva llega como data URL (la achica cover-input); una que ya estaba, como su URL.
+ */
+async function syncCover(slug: string, next: string | undefined, prev: string | undefined) {
+  if (next === prev) return;
+  if (next?.startsWith("data:")) {
+    const form = new FormData();
+    form.append("file", await (await fetch(next)).blob());
+    unwrap(await api.uploadCover(venue, slug, form));
+  } else if (!next && prev) {
+    unwrap(await api.removeCover(venue, slug));
+  }
+}
+
 /** Crea el evento y devuelve su slug. */
 export async function createEvent(input: EventInput): Promise<string> {
   if (mode === "live") {
     const slug = unwrap(await api.createEvent(venue, payload(input)));
+    try {
+      await syncCover(slug, input.cover, undefined);
+    } catch (err) {
+      await reload();
+      if (err instanceof SaveError) throw new CoverError(err.code, slug);
+      throw err;
+    }
     await reload();
     return slug;
   }
@@ -231,7 +269,11 @@ export async function updateEvent(slug: string, input: EventInput): Promise<void
     const current = read().find((e) => e.slug === slug);
     const existing = current?.ticketTypes.map((t) => t.id) ?? [];
     unwrap(await api.updateEvent(venue, slug, payload(input), existing));
-    await reload();
+    try {
+      await syncCover(slug, input.cover, current?.cover);
+    } finally {
+      await reload();
+    }
     return;
   }
   writeDemo(
