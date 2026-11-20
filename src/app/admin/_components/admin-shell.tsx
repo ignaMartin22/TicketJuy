@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense, useRef, useState, useTransition, type ReactNode } from "react";
+import { Suspense, useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import type { StaffMembership, StaffRole, StaffSession } from "@/lib/staff-session";
 import { logoutStaff } from "../(panel)/actions";
-import { resetEvents } from "../_lib/store";
+import { resetEvents, startPanel, useLoadError } from "../_lib/store";
 import { ConfirmDialog } from "./confirm-dialog";
 import { PageTransition } from "./page-transition";
 import { CalendarIcon, ChartIcon, CloseIcon, MenuIcon, PlusIcon } from "./icons";
@@ -49,6 +49,9 @@ export function AdminShell({
 }) {
   const drawer = useRef<HTMLDialogElement>(null);
   const close = () => drawer.current?.close();
+  // Con API, las fechas salen del boliche de la membresía; sin API, de los datos de prueba.
+  const venueSlug = membership.venue.slug;
+  useEffect(() => startPanel(!demo, venueSlug), [demo, venueSlug]);
 
   return (
     <div className="flex flex-1 flex-col lg:flex-row">
@@ -96,6 +99,7 @@ export function AdminShell({
 
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
         <div className="mx-auto max-w-6xl">
+          <LoadError />
           <PageTransition>{children}</PageTransition>
         </div>
       </main>
@@ -154,13 +158,15 @@ function SidebarBody({
         <Link href="/puerta" className="text-tenue hover:text-luz" onClick={onNavigate}>
           Portería (escanear entradas)
         </Link>
-        <button
-          type="button"
-          className="text-left text-tenue hover:text-luz"
-          onClick={() => setConfirmReset(true)}
-        >
-          Restablecer datos de prueba
-        </button>
+        {demo && (
+          <button
+            type="button"
+            className="text-left text-tenue hover:text-luz"
+            onClick={() => setConfirmReset(true)}
+          >
+            Restablecer datos de prueba
+          </button>
+        )}
         <ConfirmDialog
           open={confirmReset}
           title="¿Volver a los datos de prueba?"
@@ -183,9 +189,11 @@ function SidebarBody({
         >
           {pending ? "Saliendo…" : "Cerrar sesión"}
         </button>
-        <p className="text-xs leading-relaxed text-tenue/80">
-          Modo demo: los cambios se guardan solo en este navegador.
-        </p>
+        {demo && (
+          <p className="text-xs leading-relaxed text-tenue/80">
+            Modo demo: los cambios se guardan solo en este navegador.
+          </p>
+        )}
       </div>
     </>
   );
@@ -238,5 +246,16 @@ function NavLinks({
         );
       })}
     </ul>
+  );
+}
+
+/** Si la API no respondió al cargar las fechas. */
+function LoadError() {
+  const error = useLoadError();
+  if (!error) return null;
+  return (
+    <p role="alert" className="mb-6 rounded-2xl border border-error/40 bg-error/10 p-4 text-sm text-error">
+      {error}
+    </p>
   );
 }

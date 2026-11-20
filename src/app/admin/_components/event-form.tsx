@@ -13,7 +13,7 @@ import {
   type DraftTicket,
   type Errors,
 } from "../_lib/draft";
-import { createEvent, StorageFullError, updateEvent } from "../_lib/store";
+import { createEvent, SaveError, updateEvent, useLive } from "../_lib/store";
 import type { TicketKind } from "../_lib/types";
 import { CoverInput } from "./cover-input";
 import { PlusIcon, TrashIcon } from "./icons";
@@ -29,6 +29,9 @@ export function EventForm({ initial, slug }: { initial: Draft; slug?: string }) 
   const [errors, setErrors] = useState<Errors>({});
   const [saveError, setSaveError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+  // Con API la portada todavía no se guarda en el back: no se ofrece.
+  const live = useLive();
   const summaryRef = useRef<HTMLDivElement>(null);
 
   // Avisar antes de cerrar la pestaña con cambios sin guardar.
@@ -76,8 +79,9 @@ export function EventForm({ initial, slug }: { initial: Draft; slug?: string }) 
     clearErrors(["name", "price", "capacity"].map((field) => `ticket.${id}.${field}`));
   }
 
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
+    if (saving) return;
     const found = validate(draft, { isNew });
     setErrors(found);
     setSaveError(null);
@@ -86,17 +90,19 @@ export function EventForm({ initial, slug }: { initial: Draft; slug?: string }) 
       requestAnimationFrame(() => summaryRef.current?.focus());
       return;
     }
+    setSaving(true);
     try {
       const input = draftToInput(draft);
       let saved = slug;
-      if (saved) updateEvent(saved, input);
-      else saved = createEvent(input);
+      if (saved) await updateEvent(saved, input);
+      else saved = await createEvent(input);
       setDirty(false);
       router.push(`/admin/eventos/${saved}`);
     } catch (err) {
-      setSaveError(
-        err instanceof StorageFullError ? err.message : "No se pudo guardar. Probá de nuevo.",
-      );
+      setSaveError(err instanceof SaveError ? err.message : "No se pudo guardar. Probá de nuevo.");
+      requestAnimationFrame(() => summaryRef.current?.focus());
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -256,11 +262,27 @@ export function EventForm({ initial, slug }: { initial: Draft; slug?: string }) 
         </div>
 
         <div className="flex flex-col gap-6">
-          <Section title="Portada">
-            <CoverInput value={draft.cover} onChange={(v) => set("cover", v)} />
-          </Section>
+          {!live && (
+            <Section title="Portada">
+              <CoverInput value={draft.cover} onChange={(v) => set("cover", v)} />
+            </Section>
+          )}
 
           <Section title="Venta">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={draft.isPublished}
+                onChange={(e) => set("isPublished", e.target.checked)}
+                className="mt-0.5 size-5 accent-[var(--accent)]"
+              />
+              <span>
+                <span className="block font-medium">Publicada en la web</span>
+                <span className="block text-sm text-tenue">
+                  Si la desactivás, queda como borrador: solo la ves vos en el panel.
+                </span>
+              </span>
+            </label>
             <label className="flex cursor-pointer items-start gap-3">
               <input
                 type="checkbox"
@@ -284,8 +306,8 @@ export function EventForm({ initial, slug }: { initial: Draft; slug?: string }) 
         <Link href={slug ? `/admin/eventos/${slug}` : "/admin/eventos"} className={buttonClass.secondary}>
           Cancelar
         </Link>
-        <button type="submit" className={buttonClass.primary}>
-          {isNew ? "Crear evento" : "Guardar cambios"}
+        <button type="submit" disabled={saving} className={buttonClass.primary}>
+          {saving ? "Guardando…" : isNew ? "Crear evento" : "Guardar cambios"}
         </button>
       </div>
     </form>

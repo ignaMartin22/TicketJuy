@@ -5,7 +5,8 @@ import { useState } from "react";
 import { nightParts } from "@/lib/format";
 import { isPast } from "../_lib/dates";
 import { eventTotals, formatCount, hasSales } from "../_lib/stats";
-import { deleteEvent, setSalesOpen, useAdminEvents, useHydrated } from "../_lib/store";
+import { deleteEvent, setPublished, setSalesOpen, useAdminEvents, useHydrated } from "../_lib/store";
+import { usePanelAction } from "../_lib/use-panel-action";
 import type { AdminEvent } from "../_lib/types";
 import { ConfirmDialog } from "./confirm-dialog";
 import { PlusIcon, TrashIcon } from "./icons";
@@ -19,6 +20,7 @@ export function EventList() {
   const hydrated = useHydrated();
   const [filter, setFilter] = useState<Filter>("upcoming");
   const [toDelete, setToDelete] = useState<AdminEvent | null>(null);
+  const action = usePanelAction();
 
   if (!hydrated) return <PanelLoading />;
 
@@ -39,6 +41,12 @@ export function EventList() {
           </Link>
         }
       />
+
+      {action.error && (
+        <p role="alert" className="mt-6 rounded-2xl border border-error/40 bg-error/10 p-4 text-sm text-error">
+          {action.error}
+        </p>
+      )}
 
       <div role="group" aria-label="Filtrar eventos" className="mt-8 inline-flex rounded-full border border-linea bg-noche-2 p-1 text-sm">
         {(
@@ -77,7 +85,14 @@ export function EventList() {
       ) : (
         <ul className="mt-4 flex flex-col gap-3">
           {shown.map((event) => (
-            <EventRow key={event.slug} event={event} onDelete={() => setToDelete(event)} />
+            <EventRow
+              key={event.slug}
+              event={event}
+              busy={action.pending}
+              onDelete={() => setToDelete(event)}
+              onToggleSales={() => action.run(() => setSalesOpen(event.slug, !event.salesOpen))}
+              onPublish={() => action.run(() => setPublished(event.slug, true))}
+            />
           ))}
         </ul>
       )}
@@ -87,14 +102,29 @@ export function EventList() {
         title={`¿Eliminar "${toDelete?.title ?? ""}"?`}
         body="La fecha deja de existir y no se puede recuperar."
         confirmLabel="Eliminar"
-        onConfirm={() => toDelete && deleteEvent(toDelete.slug)}
+        onConfirm={() => {
+          const slug = toDelete?.slug;
+          if (slug) void action.run(() => deleteEvent(slug));
+        }}
         onClose={() => setToDelete(null)}
       />
     </>
   );
 }
 
-function EventRow({ event, onDelete }: { event: AdminEvent; onDelete: () => void }) {
+function EventRow({
+  event,
+  busy,
+  onDelete,
+  onToggleSales,
+  onPublish,
+}: {
+  event: AdminEvent;
+  busy: boolean;
+  onDelete: () => void;
+  onToggleSales: () => void;
+  onPublish: () => void;
+}) {
   const total = eventTotals(event);
   const d = nightParts(event.startsAt);
   const past = isPast(event.startsAt);
@@ -131,12 +161,13 @@ function EventRow({ event, onDelete }: { event: AdminEvent; onDelete: () => void
           <Link href={`/admin/eventos/${event.slug}/editar`} className={buttonClass.secondary}>
             Editar
           </Link>
-          {!past && (
-            <button
-              type="button"
-              className={buttonClass.secondary}
-              onClick={() => setSalesOpen(event.slug, !event.salesOpen)}
-            >
+          {!past && !event.isPublished && (
+            <button type="button" disabled={busy} className={buttonClass.primary} onClick={onPublish}>
+              Publicar
+            </button>
+          )}
+          {!past && event.isPublished && (
+            <button type="button" disabled={busy} className={buttonClass.secondary} onClick={onToggleSales}>
               {event.salesOpen ? "Pausar venta" : "Reanudar venta"}
             </button>
           )}
@@ -145,6 +176,7 @@ function EventRow({ event, onDelete }: { event: AdminEvent; onDelete: () => void
             <button
               type="button"
               className={`${buttonClass.danger} px-3`}
+              disabled={busy}
               onClick={onDelete}
               aria-label={`Eliminar ${event.title}`}
             >

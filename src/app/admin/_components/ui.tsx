@@ -83,8 +83,9 @@ type Status = { label: string; tone: string };
 
 export function eventStatus(event: AdminEvent): Status {
   if (isPast(event.startsAt)) return { label: "Finalizado", tone: "text-tenue border-linea" };
+  if (!event.isPublished) return { label: "Borrador", tone: "text-sky-300 border-sky-300/40" };
   if (!event.salesOpen) return { label: "Venta pausada", tone: "text-amber-300 border-amber-300/40" };
-  const soldOut = event.ticketTypes.every((t) => t.sold >= t.capacity);
+  const soldOut = event.ticketTypes.filter((t) => t.isActive !== false).every((t) => t.sold >= t.capacity);
   if (soldOut) return { label: "Agotado", tone: "text-luz border-luz/40" };
   return { label: "A la venta", tone: "text-emerald-300 border-emerald-300/40" };
 }

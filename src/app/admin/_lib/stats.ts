@@ -4,13 +4,17 @@ export type Totals = { sold: number; capacity: number; revenue: number };
 
 const empty = (): Totals => ({ sold: 0, capacity: 0, revenue: 0 });
 
+/** Cupo que cuenta: una entrada desactivada ya no se vende, así que solo suma lo que vendió. */
+export const liveCapacity = (t: { capacity: number; sold: number; isActive?: boolean }) =>
+  t.isActive === false ? t.sold : t.capacity;
+
 /** Vendidas, cupo y recaudación (a precio de entrada, sin cargo de servicio). */
 export function eventTotals(event: AdminEvent, kind?: TicketKind): Totals {
   return event.ticketTypes
     .filter((t) => !kind || t.kind === kind)
     .reduce((acc, t) => {
       acc.sold += t.sold;
-      acc.capacity += t.capacity;
+      acc.capacity += liveCapacity(t);
       acc.revenue += t.sold * t.price;
       return acc;
     }, empty());

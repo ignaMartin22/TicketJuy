@@ -183,4 +183,6 @@ Cada usuario del personal tiene membresías por boliche con un rol (`admin`, `do
 
 La portería no consulta `auth/me` al escanear: usa el token de la cookie, así cada escaneo es una sola llamada a la API. El alta de usuarios y membresías **no es autogestionada**: la hace la plataforma desde `/plataforma/` del core o el admin de Django.
 
-Sin `TICKETERA_API_URL` (modo demo) el panel sigue abierto sin login, con una sesión de demostración.
+El panel guarda las fechas en ticketera-core con la API de gestión (`/api/v1/manage/venues/<boliche>/events/`), siempre desde el servidor de Next con el token de la sesión. Cada dueño ve las fechas del boliche de su membresía. Las entradas que se quitan en el formulario se desactivan (la API no las borra) y, al guardar, se refresca el catálogo de la web pública. La portada de la fecha todavía no se guarda en el back: con API el formulario no la ofrece.
+
+Sin `TICKETERA_API_URL` (modo demo) el panel sigue abierto sin login, con una sesión de demostración, y guarda las fechas solo en el navegador.

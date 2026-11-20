@@ -28,43 +28,45 @@ En la VPS corren también la VPN de Rentas y otros servicios: no reiniciar la VP
 
 - Ingreso único en `/ingresar` (#24): administración al panel, puerta al escáner, con una sola sesión.
 - Portería en `/puerta` (#22, rediseñada en #25): escáner de QR a pantalla completa y asistencia de la fecha.
-- Panel en `/admin` protegido con login (#21). Todavía guarda las fechas en el navegador.
+- Panel en `/admin` protegido con login (#21) y **conectado a la API de gestión**: alta, edición, publicar o pasar a borrador, pausar la venta y eliminar fechas, con las estadísticas del resumen sacadas de las ventas reales. Cada dueño ve las fechas del boliche de su membresía.
 
 ### Back (listo para usar desde el front)
 
 - Login del personal (`/api/v1/auth/login/`) con roles por boliche: `admin`, `door`, `cashier`.
-- API de gestión de fechas (alta, edición, pausa y baja). Probada de punta a punta en local: 20 de 20 casos bien, incluidos los errores.
+- API de gestión de fechas (alta, edición, pausa y baja), ya usada por el panel.
 - Conexión de Mercado Pago del boliche por OAuth, también desde el panel de la plataforma (Django) con un link para el dueño.
 
-## Recién entrado a `main` (20/11)
+## Hecho el 20/11
 
 - **Ingreso único del personal (#21 y #24)**: `/ingresar` para panel y portería, con una sola sesión. Administración va al panel; puerta, directo al escáner.
 - **Portería rediseñada (#25)**: escáner a pantalla completa, resultados por color y la fecha de hoy marcada.
 - **Tarjeta de la fecha como flyer (#26)** y **scroll suave sin freno con Lenis (#27)** en la portada.
-- **Multi-boliche**: la barra de cada boliche lleva a su página y a sus fechas; la identidad del sitio está en `src/lib/site.ts`.
+- **Multi-boliche (#28)**: la barra de cada boliche lleva a su página y a sus fechas; la identidad del sitio está en `src/lib/site.ts`.
+- **Panel conectado a la API de gestión**: las fechas se guardan en ticketera-core, no en el navegador. Suma "Publicada en la web" (borrador), desactiva en vez de borrar las entradas quitadas, muestra el mensaje de cada error de la API y refresca la web pública al guardar. Sin `TICKETERA_API_URL` sigue el modo demo en el navegador. Probado contra el back local: 13 de 13 casos.
+- **Checkout**: mensaje para cuando el dueño pausa la venta (`sales_paused`).
 
 ## Qué falta
 
-### Front (no depende del back)
+### Front
 
-1. **Conectar el panel `/admin` a la API de gestión.** Hoy guarda las fechas en el navegador (`localStorage`) con Infinity fijo (`ADMIN_VENUE_SLUG`). El login ya está en `main`. Además de cambiar el guardado:
-   - Sumar "Publicar / Borrador" (`isPublished`): una fecha nueva arranca sin publicar y no aparece en la web.
-   - Cambiar "quitar entrada" por "desactivar" (`isActive: false`): la API no borra tipos de entrada.
-   - Traducir los tipos: el panel usa `general` y la API `common`.
-   - Mostrar un mensaje por cada error de la API (cupo por debajo de lo vendido, fecha con pedidos, etc.).
-   - Ojo: una fecha en borrador viene con `status: "on_sale"`; para mostrarla como borrador hay que mirar `isPublished`.
-2. **Selector de boliche en el panel**: una persona puede ser admin de varios boliches (`memberships` del login).
-3. **Mensaje para `sales_paused`** en el checkout (cuando el dueño pausa la venta de una fecha).
-4. **Botón "Conectar Mercado Pago" en el panel** (estado, conectar, reconectar, desconectar). No es urgente: la plataforma ya puede mandarle el link al dueño desde su panel.
-5. **Probar la portería en celulares reales**: cámara, vibración y vencimiento de sesión.
-6. **Pulir las pantallas del comprador en el celu**: pedido, checkout y entrada.
+1. **Probar la portería en un celular real** cuando esté en producción: cámara, vibración y vencimiento de sesión (Mauricio).
+2. **Botón "Conectar Mercado Pago" en el panel**: estado de la conexión, conectar, reconectar cuando `needsReconnect` y desconectar. El back ya tiene las rutas (`/manage/venues/<boliche>/mercadopago/`). Mientras tanto, la plataforma le puede mandar el link al dueño desde su panel.
+3. **Portada de la fecha en el panel**: el formulario la oculta con API porque el back no la guarda. Volver a mostrarla cuando el back la sume.
+4. **Selector de boliche en el panel**, solo si aparece un dueño con más de un boliche a cargo (por ejemplo, una productora con varios lugares). Hoy cada dueño administra uno.
+5. **Pulir las pantallas del comprador en el celu**: pedido, checkout y entrada.
 
 ### Back (pedirle a Franco)
 
-1. **Portada de la fecha**: el formulario del panel deja subir una foto, pero la API de gestión no tiene campo de imagen.
-2. **Entradas gratis desde el ABM**: la API exige precio mayor a 0, así que el dueño no puede crear una "Lista free".
-3. **`/entrada/[code]`**: sigue con datos de prueba; falta el endpoint de entrada individual.
-4. **Usuario dueño de prueba** (rol `admin` en Infinity) en el back de pruebas, para probar el panel contra la VPS. Hoy solo está `puerta_demo`.
+1. **Usuario dueño de prueba** (rol `admin` en Infinity) en el back de pruebas. Con el login en `main`, el panel desplegado pide usuario y hoy nadie puede entrar; `puerta_demo` sí entra a la portería.
+2. **Probar el pago con su cuenta de prueba de Mercado Pago** (ver abajo).
+3. **Portada de la fecha**: un campo de imagen en la API de gestión.
+4. **Entradas gratis desde el ABM**: la API exige precio mayor a 0, así que el dueño no puede crear una "Lista free".
+5. **Estado de borrador**: una fecha sin publicar viene con `status: "on_sale"`. Sería más claro `draft` (el panel ya mira `isPublished`).
+6. **`/entrada/[code]`**: sigue con datos de prueba; falta el endpoint de entrada individual.
+
+### Pendiente grande, sin dueño todavía
+
+- **Portería sin señal**: hoy escanear necesita conexión. El README pide que la puerta funcione sin señal (validación offline y cola de sincronización).
 
 ### Pago con Mercado Pago: prueba trabada
 

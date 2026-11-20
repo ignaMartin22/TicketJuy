@@ -29,6 +29,8 @@ export type Draft = {
   dressCode: string;
   cover?: string;
   salesOpen: boolean;
+  /** false = borrador: la fecha no aparece en la web. */
+  isPublished: boolean;
   tickets: DraftTicket[];
 };
 
@@ -65,6 +67,7 @@ export function emptyDraft(): Draft {
     ageLimit: "18",
     dressCode: "",
     salesOpen: true,
+    isPublished: true,
     tickets: [general, newTicket("vip", [general.id])],
   };
 }
@@ -80,7 +83,9 @@ export function draftFromEvent(e: AdminEvent): Draft {
     dressCode: e.dressCode ?? "",
     cover: e.cover,
     salesOpen: e.salesOpen,
-    tickets: e.ticketTypes.map((t) => ({
+    isPublished: e.isPublished,
+    // Las desactivadas no se editan: siguen contando en las ventas, pero no se venden más.
+    tickets: e.ticketTypes.filter((t) => t.isActive !== false).map((t) => ({
       id: t.id,
       kind: t.kind,
       name: t.name,
@@ -137,6 +142,7 @@ export function draftToInput(d: Draft): EventInput {
     dressCode: d.dressCode.trim() || undefined,
     cover: d.cover,
     salesOpen: d.salesOpen,
+    isPublished: d.isPublished,
     ticketTypes: d.tickets.map(
       (t): AdminTicketType => ({
         id: t.id,
