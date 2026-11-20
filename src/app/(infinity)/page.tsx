@@ -1,7 +1,7 @@
 import { getVenueCatalog, HOME_VENUE } from "@/lib/catalog";
 import { availableTickets, cheapestAvailable } from "@/lib/mock-data";
 import { formatPrice, nightParts, serviceFee } from "@/lib/format";
-import type { CSSProperties } from "react";
+import { Suspense, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CountdownPill } from "./_components/countdown";
@@ -17,7 +17,17 @@ import { SmoothScroll } from "./_components/smooth-scroll";
 
 const ESLOGAN = "La noche que no termina";
 
-export default async function InfinityPrototype() {
+export default function InfinityPage() {
+  return (
+    // Las fechas se piden al back con cada visita (cacheadas): el build no depende de que el back
+    // responda. Mientras llegan, el fondo de la noche; vienen en la misma respuesta.
+    <Suspense fallback={<div className="min-h-svh" aria-busy="true" />}>
+      <InfinityHome />
+    </Suspense>
+  );
+}
+
+async function InfinityHome() {
   const catalog = await getVenueCatalog(HOME_VENUE);
   const venue = catalog?.venue;
   const events = [...(catalog?.events ?? [])].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
@@ -136,8 +146,9 @@ export default async function InfinityPrototype() {
           events={events.map((e, i) => {
             const p = nightParts(e.startsAt);
             const base = cheapestAvailable(e);
-            // Precio final: con cargo de servicio si lo paga el comprador.
-            const desde = base && (venue?.feeMode === "buyer" ? base + serviceFee(base, venue.buyerFeeRate) : base);
+            // Precio final: con cargo de servicio si lo paga el comprador. Ojo: $0 (lista free) es un precio, no "agotada".
+            const desde =
+              base === null ? null : venue?.feeMode === "buyer" ? base + serviceFee(base, venue.buyerFeeRate) : base;
             const open = e.ticketTypes.find((t) => availableTickets(t) > 0);
             const left = open ? availableTickets(open) : 0;
             return {
@@ -150,7 +161,7 @@ export default async function InfinityPrototype() {
               day: p.day,
               month: p.month.replace(".", ""),
               time: p.time,
-              from: desde ? formatPrice(desde) : null,
+              from: desde === null ? null : formatPrice(desde),
               // Solo se avisa cuando queda poco de la entrada que está a la venta.
               scarcity: open && left <= open.capacity * 0.15 ? `${open.name}: últimas ${left}` : null,
               cover: e.cover,
