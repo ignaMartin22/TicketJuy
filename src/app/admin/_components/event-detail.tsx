@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { formatNight, formatPrice } from "@/lib/format";
-import { getEvent } from "@/lib/mock-data";
 import { isPast } from "../_lib/dates";
 import { eventTotals, formatCount, percent } from "../_lib/stats";
-import { ADMIN_VENUE_SLUG, setSalesOpen } from "../_lib/store";
+import { setPublished, setSalesOpen } from "../_lib/store";
+import { usePanelAction } from "../_lib/use-panel-action";
 import { KIND_LABEL, type AdminEvent, type TicketKind } from "../_lib/types";
 import { useEventFromUrl } from "../_lib/use-event-from-url";
 import { EventNotFound } from "./event-editors";
@@ -15,13 +15,13 @@ import { buttonClass, Card, EventThumb, PageHeader, SalesBar, StatCard, StatusBa
 
 export function EventDetail() {
   const { hydrated, event } = useEventFromUrl();
+  const action = usePanelAction();
   if (!hydrated) return <PanelLoading />;
   if (!event) return <EventNotFound />;
 
   const total = eventTotals(event);
   const past = isPast(event.startsAt);
-  // PROVISORIO: la página pública todavía lee los datos de prueba, no los del panel.
-  const isPublic = Boolean(getEvent(ADMIN_VENUE_SLUG, event.slug));
+  const isPublic = event.isPublished;
 
   return (
     <>
@@ -48,8 +48,19 @@ export function EventDetail() {
               {!past && (
                 <button
                   type="button"
+                  disabled={action.pending}
+                  className={event.isPublished ? buttonClass.secondary : buttonClass.primary}
+                  onClick={() => action.run(() => setPublished(event.slug, !event.isPublished))}
+                >
+                  {event.isPublished ? "Pasar a borrador" : "Publicar"}
+                </button>
+              )}
+              {!past && event.isPublished && (
+                <button
+                  type="button"
+                  disabled={action.pending}
                   className={buttonClass.secondary}
-                  onClick={() => setSalesOpen(event.slug, !event.salesOpen)}
+                  onClick={() => action.run(() => setSalesOpen(event.slug, !event.salesOpen))}
                 >
                   {event.salesOpen ? "Pausar venta" : "Reanudar venta"}
                 </button>
@@ -61,6 +72,12 @@ export function EventDetail() {
           }
         />
       </div>
+
+      {action.error && (
+        <p role="alert" className="mt-6 rounded-2xl border border-error/40 bg-error/10 p-4 text-sm text-error">
+          {action.error}
+        </p>
+      )}
 
       <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Vendidas" value={formatCount(total.sold)} hint={`de ${formatCount(total.capacity)}`} />
@@ -119,6 +136,7 @@ function KindBlock({ kind, event }: { kind: TicketKind; event: AdminEvent }) {
               <span>
                 <span className="font-medium">{t.name}</span>{" "}
                 <span className="text-tenue">· {formatPrice(t.price)}</span>
+                {t.isActive === false && <span className="text-tenue"> · desactivada</span>}
               </span>
               <span className="tabular-nums">
                 {formatCount(t.sold)} <span className="text-tenue">/ {formatCount(t.capacity)}</span>

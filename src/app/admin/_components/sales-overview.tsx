@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { formatPrice, nightParts } from "@/lib/format";
 import { isPast } from "../_lib/dates";
-import { eventTotals, formatCount, percent, sumTotals } from "../_lib/stats";
+import { eventTotals, formatCount, percent, sumTotals, liveCapacity } from "../_lib/stats";
 import { useAdminEvents, useHydrated } from "../_lib/store";
 import { PlusIcon } from "./icons";
 import { PanelLoading } from "./loading";
@@ -225,8 +225,8 @@ function Fraction({ sold, capacity }: { sold: number; capacity: number }) {
 }
 
 /** Lo que recaudaría la fecha vendiendo todo el cupo. */
-function eventPotential(event: { ticketTypes: { capacity: number; price: number }[] }) {
-  return event.ticketTypes.reduce((acc, t) => acc + t.capacity * t.price, 0);
+function eventPotential(event: { ticketTypes: { capacity: number; sold: number; price: number; isActive?: boolean }[] }) {
+  return event.ticketTypes.reduce((acc, t) => acc + liveCapacity(t) * t.price, 0);
 }
 
 /** "$ 14,3 M", "$ 936 mil": montos cortos para las tarjetas. */

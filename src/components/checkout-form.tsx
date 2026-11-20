@@ -22,6 +22,7 @@ const ORDER_ERRORS: Record<string, string> = {
   insufficient_capacity: "Ya no quedan tantas entradas de alguno de los tipos que elegiste. Volvé a elegir.",
   ticket_type_unavailable: "Alguna de las entradas que elegiste ya no está a la venta. Volvé a elegir.",
   event_unavailable: "Esta fecha ya no está a la venta.",
+  sales_paused: "La venta de esta fecha está pausada por ahora. Probá más tarde.",
   order_limit_exceeded: "Podés comprar hasta 10 entradas por vez.",
   network: "No pudimos conectarnos. Revisá la señal y probá de nuevo.",
 };
@@ -154,9 +155,9 @@ export function CheckoutForm({ venue, event, live }: { venue: Venue; event: Even
   const errorBox = orderError && (
     <div role="alert" className="mb-3 rounded-2xl border border-error/40 bg-error/10 p-3 text-sm">
       <p>{ORDER_ERRORS[orderError] ?? "No pudimos reservar tus entradas. Probá de nuevo."}</p>
-      {(CART_ERRORS.has(orderError) || orderError === "event_unavailable") && (
+      {(CART_ERRORS.has(orderError) || orderError === "event_unavailable" || orderError === "sales_paused") && (
         <Link href={backHref} className="mt-1 inline-block font-semibold underline underline-offset-4">
-          {orderError === "event_unavailable" ? "Ver la fecha" : "Elegir entradas"}
+          {orderError === "event_unavailable" || orderError === "sales_paused" ? "Ver la fecha" : "Elegir entradas"}
         </Link>
       )}
     </div>

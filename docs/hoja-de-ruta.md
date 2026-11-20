@@ -85,6 +85,8 @@ Que el boliche cargue fechas solo y vea la noche en vivo.
 
 - [x] Ingreso del personal (`/admin/ingresar`) contra ticketera-core: sesión en cookie httpOnly, `/admin` protegido y solo entran membresías con rol `admin` (sin API sigue en modo demo abierto)
 - [x] Ingreso único del personal en `/ingresar` para panel y portería: una sola sesión, y cada rol va a lo suyo (`admin` al panel, `door` al escáner)
+- [x] Panel conectado a la API de gestión de fechas: alta, edición, publicar o borrador, pausar y eliminar contra ticketera-core
+- [ ] Botón "Conectar Mercado Pago" en el panel (estado, conectar, reconectar, desconectar)
 - [ ] Cargar eventos, tipos de entrada y cupos (pantallas listas en `/admin`, falta guardarlos en Supabase)
 - [ ] Ventas, plata e ingresos por fecha
 - [ ] Marca del boliche en su página de venta
