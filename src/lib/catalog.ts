@@ -57,8 +57,25 @@ const normalizeEvent = (event: Event) => {
   return e.cover ? { ...e, cover: mediaUrl(e.cover) } : e;
 };
 
+// En el build, el DNS de Railway a veces no resuelve el dominio del back (sslip.io) y el
+// build se cae. Un error de red (no una respuesta del back) se reintenta: varias veces
+// en el build, una sola con el sitio andando.
+const isBuild = process.env.NEXT_PHASE === "phase-production-build";
+const RETRIES = isBuild ? 5 : 1;
+
+async function fetchWithRetry(url: URL, init: RequestInit): Promise<Response> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fetch(url, init);
+    } catch (err) {
+      if (attempt >= RETRIES) throw err;
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+    }
+  }
+}
+
 async function fetchCatalog<T>(path: string): Promise<T | null> {
-  const response = await fetch(apiUrl(path), { headers: { Accept: "application/json" } });
+  const response = await fetchWithRetry(apiUrl(path), { headers: { Accept: "application/json" } });
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`El catálogo respondió con estado ${response.status}`);
   return response.json() as Promise<T>;
