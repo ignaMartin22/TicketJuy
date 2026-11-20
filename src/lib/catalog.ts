@@ -1,3 +1,4 @@
+import { SITE } from "@/lib/site";
 import { cacheLife, cacheTag } from "next/cache";
 import {
   events as mockEvents,
@@ -16,8 +17,8 @@ import {
 export type VenueCatalog = { venue: Venue; events: Event[] };
 export type EventCatalog = { venue: Venue; event: Event };
 
-/** Boliche de la portada (Infinity Producciones). */
-export const HOME_VENUE = "infinity";
+/** Boliche de la portada. Se define en src/lib/site.ts. */
+export const HOME_VENUE = SITE.homeVenue;
 
 export function hasLiveCatalog() {
   return Boolean(process.env.TICKETERA_API_URL);
