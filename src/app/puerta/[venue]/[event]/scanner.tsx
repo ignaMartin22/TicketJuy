@@ -359,8 +359,8 @@ const icons = {
 };
 
 /**
- * Pantalla completa del resultado: el color se lee desde lejos, el nombre y el tipo
- * de entrada se leen de cerca. La barra de abajo se vacía mientras se cierra sola.
+ * Pantalla completa del resultado: un color plano que se lee desde lejos; el nombre y
+ * el tipo de entrada, de cerca. La barra de abajo se vacía mientras se cierra sola.
  */
 function ResultScreen({ outcome, onClose }: { outcome: Outcome; onClose: () => void }) {
   let tone: string;
@@ -409,23 +409,29 @@ function ResultScreen({ outcome, onClose }: { outcome: Outcome; onClose: () => v
       type="button"
       onClick={onClose}
       role="alert"
-      className={`puerta-resultado fixed inset-0 z-50 flex flex-col items-center justify-center px-6 text-center ${tone}`}
+      className={`puerta-resultado fixed inset-0 z-50 flex flex-col justify-between px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(4rem,env(safe-area-inset-top))] text-left ${tone}`}
       style={{ "--dur": `${RESULT_MS}ms` } as React.CSSProperties}
     >
-      <span className="puerta-icono grid size-36 place-items-center rounded-full">
-        <svg viewBox="0 0 24 24" aria-hidden className="size-20 fill-none stroke-current" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+      <span className="puerta-texto flex w-full flex-col">
+        <svg viewBox="0 0 24 24" aria-hidden className="size-20 fill-none stroke-current" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           {icons[icon]}
         </svg>
+        <span className="display mt-6 text-6xl leading-none text-balance break-words">{heading}</span>
+        {/* El talón de la entrada: arriba el veredicto, abajo de quién es. */}
+        {(name || chip || detail) && (
+          <>
+            <span className="puerta-talon my-8" aria-hidden />
+            <span className="flex flex-col gap-2">
+              {name && <span className="break-words text-3xl font-semibold leading-tight">{name}</span>}
+              {chip && <span className="text-xl font-medium">{chip}</span>}
+              {detail && <span className="max-w-sm text-lg opacity-80 first-letter:uppercase">{detail}</span>}
+            </span>
+          </>
+        )}
       </span>
-      <span className="puerta-texto mt-8 flex max-w-full flex-col items-center gap-3">
-        <span className="display break-words text-5xl uppercase">{heading}</span>
-        {name && <span className="max-w-full break-words text-3xl font-bold">{name}</span>}
-        {chip && <span className="rounded-full bg-black/25 px-4 py-1.5 text-lg font-semibold">{chip}</span>}
-        {detail && <span className="max-w-xs text-lg opacity-90 first-letter:uppercase">{detail}</span>}
-      </span>
-      <span className="absolute inset-x-6 bottom-[max(1.5rem,env(safe-area-inset-bottom))] flex flex-col items-center gap-3">
+      <span className="flex w-full flex-col gap-3">
         <span className="text-base opacity-80">Tocá para seguir</span>
-        <span className="h-1 w-full max-w-xs overflow-hidden rounded-full bg-black/20" aria-hidden>
+        <span className="h-1 w-full overflow-hidden rounded-full bg-black/20" aria-hidden>
           <span className="puerta-cuenta block h-full rounded-full bg-current" />
         </span>
       </span>

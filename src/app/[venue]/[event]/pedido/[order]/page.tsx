@@ -70,7 +70,9 @@ async function OrderContent({ params }: { params: PageProps<"/[venue]/[event]/pe
       </h1>
       <p className="mt-2 text-tenue">
         {paid
-          ? `${count === 1 ? "Tenés 1 entrada" : `Tenés ${count} entradas`}. Cada QR sirve para un solo ingreso.`
+          ? count === 1
+            ? "Tenés 1 entrada. El QR sirve para un solo ingreso."
+            : `Tenés ${count} entradas. Deslizá para verlas: cada QR sirve para un solo ingreso.`
           : review
             ? "Pero no pudimos emitir tus entradas. Escribile al boliche con este número de pedido."
             : expired
@@ -103,12 +105,26 @@ async function OrderContent({ params }: { params: PageProps<"/[venue]/[event]/pe
       )}
 
       {paid && (
-        <ol className="mt-6 flex flex-col items-center gap-8">
+        // Con más de una entrada, carrusel: en la puerta se muestra un QR por vez
+        // y no se escanea el de al lado por error.
+        <ol
+          className={
+            count > 1
+              ? "carrusel -mx-4 mt-6 flex gap-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6"
+              : "mt-6 flex flex-col items-center"
+          }
+        >
           {order.tickets.map((ticket, i) => (
-            <li key={ticket.id} className="flex w-full flex-col items-center gap-3">
-              <p className="font-semibold text-tenue">
-                {`Entrada ${i + 1} de ${count}`}
-              </p>
+            <li
+              key={ticket.id}
+              className={`flex flex-col items-center gap-3 ${count > 1 ? "w-[86%] max-w-sm shrink-0 snap-center" : "w-full"}`}
+            >
+              {count > 1 && (
+                <p className="font-semibold text-tenue tabular-nums">
+                  {`Entrada ${i + 1} de ${count}`}
+                  {ticket.usedAt ? " · usada" : ""}
+                </p>
+              )}
               <TicketStub
                 venue={venue}
                 event={event}
