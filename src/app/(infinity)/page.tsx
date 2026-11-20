@@ -146,12 +146,13 @@ export default async function InfinityPrototype() {
               title: e.title,
               lineup: e.lineup.join(", "),
               date: `${p.weekday.slice(0, 3)} ${p.day} ${p.month}`,
+              weekday: p.weekday.slice(0, 3),
+              day: p.day,
+              month: p.month.replace(".", ""),
               time: p.time,
               from: desde ? formatPrice(desde) : null,
-              tiers: e.ticketTypes.map((t) => ({ id: t.id, sold: t.capacity ? 1 - availableTickets(t) / t.capacity : 1 })),
-              stock: open
-                ? `${open.name}: ${left <= open.capacity * 0.15 ? "últimas" : "quedan"} ${left}`
-                : "No quedan entradas",
+              // Solo se avisa cuando queda poco de la entrada que está a la venta.
+              scarcity: open && left <= open.capacity * 0.15 ? `Últimas ${left} · ${open.name}` : null,
               tone: i % 2 ? "var(--inf-cian)" : "var(--inf-magenta)",
             };
           })}

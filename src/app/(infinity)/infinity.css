@@ -1079,3 +1079,51 @@
     animation: inf-sube 700ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   }
 }
+
+/* ---------- La tarjeta como flyer con talón de entrada ---------- */
+
+.inf-tarjeta-cuerpo {
+  /* Alto del talón, proporcional a la tarjeta (--w viene del anillo). */
+  --talon: calc(var(--w) * 0.25);
+  --recorte: calc(var(--w) * 0.045);
+  /* Los dos recortes semicirculares del corte, como una entrada de papel. Máscara fija: no se anima. */
+  -webkit-mask:
+    radial-gradient(circle var(--recorte) at 0 calc(100% - var(--talon)), #0000 98%, #000) top / 100% 100%,
+    radial-gradient(circle var(--recorte) at 100% calc(100% - var(--talon)), #0000 98%, #000) top / 100% 100%;
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle var(--recorte) at 0 calc(100% - var(--talon)), #0000 98%, #000) top / 100% 100%,
+    radial-gradient(circle var(--recorte) at 100% calc(100% - var(--talon)), #0000 98%, #000) top / 100% 100%;
+  mask-composite: intersect;
+}
+.inf-talon {
+  position: relative;
+  height: var(--talon);
+  flex-shrink: 0;
+  background: #05040ab3;
+}
+/* El corte: punteado entre los dos recortes. */
+.inf-talon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc(var(--recorte) + 0.5rem);
+  right: calc(var(--recorte) + 0.5rem);
+  border-top: 2px dashed #ffffff40;
+}
+/* La fecha sobre la luz de la tarjeta: una sombra apenas para que se lea sobre el foco. */
+.inf-fecha-afiche {
+  text-shadow: 0 1px 14px #0008;
+}
+/* Agotada: un sello de goma cruzado, como el de la puerta. */
+.inf-sello {
+  translate: -50% -50%;
+  rotate: -12deg;
+  padding: 0.1em 0.35em;
+  border: 0.09em solid currentColor;
+  border-radius: 0.18em;
+  color: #ff5470;
+  letter-spacing: 0.04em;
+  opacity: 0.92;
+  mix-blend-mode: normal;
+}
