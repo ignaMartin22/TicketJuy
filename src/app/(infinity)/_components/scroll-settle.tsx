@@ -4,9 +4,12 @@ import { useEffect } from "react";
 import { measureStops } from "./scroll-stops";
 
 /*
- * Scroll libre que se acomoda: mientras se scrollea, nada interviene. Cuando la
- * página se detiene entre dos secciones (con una animación a medias), se desliza
- * suave hasta una de ellas.
+ * Scroll libre que se acomoda, solo en pantallas táctiles: mientras se scrollea,
+ * nada interviene. Cuando, después de soltar el dedo, la página se detiene entre
+ * dos secciones (con una animación a medias), se desliza suave hasta una de ellas.
+ *
+ * Con ruedita o touchpad no actúa: ahí el scroll lo suaviza Lenis (smooth-scroll.tsx)
+ * y acomodar en cada pausa de la ruedita se sentía como un freno.
  *
  * Respeta la dirección: si venías bajando y ya hiciste un cuarto del camino, sigue
  * hasta la siguiente; si no, vuelve a la anterior (y al revés subiendo). Cualquier
@@ -28,6 +31,8 @@ export function ScrollSettle() {
     let lastY = window.scrollY;
     let dir = 0;
     let touching = false;
+    // Solo se acomoda un scroll que empezó con el dedo; la ruedita lo desarma.
+    let byTouch = false;
     let raf = 0;
     let settling = false;
     let timer = 0;
@@ -53,7 +58,7 @@ export function ScrollSettle() {
     };
 
     const settle = () => {
-      if (touching || settling) return;
+      if (!byTouch || touching || settling) return;
       const y = window.scrollY;
       const stops = measureStops();
       // ¿Entre qué dos secciones quedó?
@@ -81,6 +86,7 @@ export function ScrollSettle() {
     // El usuario manda: si vuelve a tocar, girar la ruedita o usar el teclado, se cancela el acomodo.
     const onTouchStart = () => {
       touching = true;
+      byTouch = true;
       cancel();
       window.clearTimeout(timer);
     };
@@ -94,7 +100,12 @@ export function ScrollSettle() {
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("touchcancel", onTouchEnd, { passive: true });
-    window.addEventListener("wheel", cancel, { passive: true });
+    const onWheel = () => {
+      byTouch = false;
+      cancel();
+      window.clearTimeout(timer);
+    };
+    window.addEventListener("wheel", onWheel, { passive: true });
     window.addEventListener("keydown", cancel);
     window.addEventListener("pointerdown", cancel);
     return () => {
@@ -104,7 +115,7 @@ export function ScrollSettle() {
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("touchcancel", onTouchEnd);
-      window.removeEventListener("wheel", cancel);
+      window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", cancel);
       window.removeEventListener("pointerdown", cancel);
     };
