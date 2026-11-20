@@ -48,14 +48,14 @@ export function CoverInput({
       />
 
       {value ? (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="flex flex-col gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={value}
             alt="Vista previa de la portada"
             className="aspect-[4/5] w-full max-w-56 rounded-2xl border border-linea object-cover"
           />
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 whitespace-nowrap">
             <button
               type="button"
               className={buttonClass.secondary}
