@@ -1105,3 +1105,39 @@
   opacity: 0.92;
   mix-blend-mode: normal;
 }
+
+/* ---------- Polvo de entrada: el brillo que barre la fila al sumar ---------- */
+
+/* La fila se "deshace" desde el + hacia la izquierda, a la par del polvo (src/lib/dust.ts). */
+.ev-fila-brillo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ev-fila-brillo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg in oklch,
+    transparent 0%,
+    color-mix(in oklab, var(--inf-cian) 35%, transparent) 40%,
+    color-mix(in oklab, var(--inf-magenta) 45%, transparent) 60%,
+    transparent 100%
+  );
+  opacity: 0;
+  transform: translateX(100%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ev-fila-brillo::before {
+    animation: ev-barre 520ms cubic-bezier(0.25, 1, 0.5, 1);
+  }
+}
+@keyframes ev-barre {
+  0% { opacity: 0; transform: translateX(100%); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-100%); }
+}
