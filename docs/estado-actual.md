@@ -26,7 +26,9 @@ En la VPS corren también la VPN de Rentas y otros servicios: no reiniciar la VP
 
 ### Personal
 
-- Portería en `/puerta` (#22): login, escáner de QR y asistencia de la fecha.
+- Ingreso único en `/ingresar` (#24): administración al panel, puerta al escáner, con una sola sesión.
+- Portería en `/puerta` (#22, rediseñada en #25): escáner de QR a pantalla completa y asistencia de la fecha.
+- Panel en `/admin` protegido con login (#21). Todavía guarda las fechas en el navegador.
 
 ### Back (listo para usar desde el front)
 
@@ -34,16 +36,18 @@ En la VPS corren también la VPN de Rentas y otros servicios: no reiniciar la VP
 - API de gestión de fechas (alta, edición, pausa y baja). Probada de punta a punta en local: 20 de 20 casos bien, incluidos los errores.
 - Conexión de Mercado Pago del boliche por OAuth, también desde el panel de la plataforma (Django) con un link para el dueño.
 
-## En curso
+## Recién entrado a `main` (20/11)
 
-- **Multi-boliche (rama `feat/multi-boliche`)**: la barra de cada boliche llevaba el logo y "Fechas" a la portada de Infinity; ahora van a la página y a las fechas de ese boliche. La identidad del sitio quedó en `src/lib/site.ts`. Probado con un segundo boliche ("Fuego Austral") en un back local.
-- **Login del panel (rama `feat/login-staff`, de Samuel)**: conecta `/admin/ingresar` con el login del personal del back. Sin mergear.
+- **Ingreso único del personal (#21 y #24)**: `/ingresar` para panel y portería, con una sola sesión. Administración va al panel; puerta, directo al escáner.
+- **Portería rediseñada (#25)**: escáner a pantalla completa, resultados por color y la fecha de hoy marcada.
+- **Tarjeta de la fecha como flyer (#26)** y **scroll suave sin freno con Lenis (#27)** en la portada.
+- **Multi-boliche**: la barra de cada boliche lleva a su página y a sus fechas; la identidad del sitio está en `src/lib/site.ts`.
 
 ## Qué falta
 
 ### Front (no depende del back)
 
-1. **Conectar el panel `/admin` a la API de gestión.** Hoy guarda las fechas en el navegador (`localStorage`) con Infinity fijo (`ADMIN_VENUE_SLUG`). Va arriba del login de Samuel. Además de cambiar el guardado:
+1. **Conectar el panel `/admin` a la API de gestión.** Hoy guarda las fechas en el navegador (`localStorage`) con Infinity fijo (`ADMIN_VENUE_SLUG`). El login ya está en `main`. Además de cambiar el guardado:
    - Sumar "Publicar / Borrador" (`isPublished`): una fecha nueva arranca sin publicar y no aparece en la web.
    - Cambiar "quitar entrada" por "desactivar" (`isActive: false`): la API no borra tipos de entrada.
    - Traducir los tipos: el panel usa `general` y la API `common`.
