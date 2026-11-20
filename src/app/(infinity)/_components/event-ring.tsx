@@ -9,16 +9,18 @@ export type RingEvent = {
   href: string;
   title: string;
   lineup: string;
-  /** "vie 20 nov" */
+  /** "vie 20 nov", para lectores de pantalla. */
   date: string;
+  /** Partes de la fecha para el bloque del afiche: "vie", "20", "nov". */
+  weekday: string;
+  day: string;
+  month: string;
   /** "00:30" */
   time: string;
   /** Precio final más barato, ya formateado. null si está agotada. */
   from: string | null;
-  /** Cuánto se vendió de cada tipo de entrada (0 a 1). */
-  tiers: { id: string; sold: number }[];
-  /** "Anticipada, 2ª tanda: quedan 29" */
-  stock: string;
+  /** Aviso solo cuando queda poco ("Últimas 29 · Anticipada"); null si no hace falta. */
+  scarcity: string | null;
   /** Color de la luz de la tarjeta. */
   tone: string;
 };
@@ -182,9 +184,15 @@ function untilt(e: React.PointerEvent<HTMLElement>) {
   delete el.dataset.inclinada;
 }
 
+/**
+ * La tarjeta es un flyer: la fecha como en un afiche arriba, el título abajo y, tras
+ * una línea de neón del color de la fecha, lo de comprar. No dice "en venta" (se
+ * sobreentiende): solo avisa lo que cambia la decisión, que quedan pocas o que no quedan.
+ */
 function Card({ ev, backdrop }: { ev: RingEvent; backdrop?: string }) {
+  const soldOut = !ev.from;
   return (
-    <article className="inf-tarjeta-cuerpo @container relative isolate flex h-full flex-col justify-between overflow-hidden rounded-[inherit] p-5 @max-[13rem]:p-3">
+    <article className="inf-tarjeta-cuerpo @container relative isolate h-full overflow-hidden rounded-[inherit]">
       {backdrop && (
         <Image
           src={backdrop}
@@ -199,40 +207,58 @@ function Card({ ev, backdrop }: { ev: RingEvent; backdrop?: string }) {
       )}
       <div className="inf-tarjeta-luz absolute inset-0 -z-20" aria-hidden />
       <div className="inf-tarjeta-brillo pointer-events-none absolute inset-0 z-10" aria-hidden />
-      <div className="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-black/80 to-transparent" aria-hidden />
+      <div className="absolute inset-x-0 bottom-0 -z-10 h-3/4 bg-gradient-to-t from-black/90 via-black/45 to-transparent" aria-hidden />
 
-      <header className="flex items-center justify-between gap-2 text-[4cqi] font-semibold">
-        <span className="flex items-center gap-2 whitespace-nowrap rounded-full bg-black/60 px-3 py-1.5">
-          <span className={`size-1.5 rounded-full ${ev.from ? "inf-punto-vivo bg-[#9dff7a]" : "bg-white/50"}`} aria-hidden />
-          {ev.from ? "En venta" : "Agotada"}
-        </span>
-        <span className="whitespace-nowrap rounded-full bg-black/60 px-3 py-1.5 capitalize tabular-nums">{ev.date}</span>
-      </header>
-
-      <div>
-        <h3 className="inf-titulo text-[13cqi] uppercase leading-[0.95] text-balance">{ev.title}</h3>
-        <p className="mt-2 text-sm text-white/85 @max-[13rem]:hidden">{ev.lineup}</p>
-        <div className="mt-4 flex gap-1.5 @max-[13rem]:mt-2" aria-hidden>
-          {ev.tiers.map((t) => (
-            <span key={t.id} className="h-1 flex-1 overflow-hidden rounded-full bg-white/20">
-              <span className="block h-full rounded-full bg-white" style={{ width: `${Math.round(t.sold * 100)}%` }} />
-            </span>
-          ))}
-        </div>
-        <p className="mt-2 text-xs font-medium">{ev.stock}</p>
-        <div className="mt-4 flex items-end justify-between gap-3 border-t border-white/15 pt-3 text-sm @max-[13rem]:mt-2 @max-[13rem]:pt-2 @max-[13rem]:text-xs">
-          <p className="text-white/85">
-            {ev.from ? (
-              <>
-                desde <span className="text-base font-semibold text-white tabular-nums">{ev.from}</span>
-              </>
-            ) : (
-              "Sin entradas"
-            )}
+      {/* El padding va acá y no en la tarjeta: en ella achicaría el contenedor que miden las cqi. */}
+      <div className="flex h-full flex-col justify-between p-[7cqi]">
+        <header className="flex items-start justify-between gap-3">
+          <p className="inf-fecha-afiche flex flex-col items-start leading-none">
+            <span className="text-[3.6cqi] font-semibold tracking-[0.22em] uppercase">{ev.weekday}</span>
+            <span className="inf-titulo -ml-[0.04em] text-[19cqi] tabular-nums">{ev.day}</span>
+            <span className="text-[3.6cqi] font-semibold tracking-[0.22em] uppercase">{ev.month}</span>
           </p>
-          <p className="tabular-nums text-white/85">{ev.time} h</p>
+          <p className="pt-[0.2em] text-[4cqi] font-semibold tabular-nums text-white/85">{ev.time} h</p>
+        </header>
+
+        <div>
+          <h3 className="inf-titulo text-[13cqi] uppercase leading-[0.95] text-balance">{ev.title}</h3>
+          <p className="mt-[2.5cqi] line-clamp-1 text-[4.2cqi] text-white/80">{ev.lineup}</p>
+
+          <div className="inf-linea-neon mt-[6cqi]" aria-hidden />
+          <div className="mt-[4.5cqi] flex items-center justify-between gap-3">
+            {soldOut ? (
+              <p className="text-[4.4cqi] font-semibold text-white/70">Sin entradas</p>
+            ) : (
+              <div className="min-w-0">
+                <p className="text-[4.2cqi] text-white/75">
+                  Entradas desde <span className="inf-titulo text-[6.6cqi] text-white tabular-nums">{ev.from}</span>
+                </p>
+                {ev.scarcity && (
+                  <p className="mt-[1cqi] truncate text-[3.8cqi] font-semibold text-[color-mix(in_oklab,var(--tono)_45%,white)]">
+                    {ev.scarcity}
+                  </p>
+                )}
+              </div>
+            )}
+            {!soldOut && (
+              <span
+                className="grid size-[11cqi] shrink-0 place-items-center rounded-full bg-[var(--inf-luz)] text-[var(--inf-noche)]"
+                aria-hidden
+              >
+                <svg viewBox="0 0 20 20" className="size-[45%]">
+                  <path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+            )}
+          </div>
         </div>
       </div>
+
+      {soldOut && (
+        <p className="inf-sello inf-titulo pointer-events-none absolute left-1/2 top-[42%] text-[11cqi] uppercase" aria-hidden>
+          Agotada
+        </p>
+      )}
     </article>
   );
 }

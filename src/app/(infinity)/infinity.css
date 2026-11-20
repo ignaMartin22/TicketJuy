@@ -167,7 +167,8 @@
 }
 .inf-escena {
   /* Dónde está la tarjeta en la portada, respecto del centro del anillo. */
-  --hx: min(24vw, 22rem);
+  /* Lo bastante a la derecha para que el abanico no pise el cartel ni el eslogan. */
+  --hx: min(29vw, 26rem);
   --hy: 3svh;
   --hr: 5deg;
   --hs: 1;
@@ -1078,4 +1079,29 @@
   .inf-instalar {
     animation: inf-sube 700ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   }
+}
+
+/* ---------- La tarjeta como flyer ---------- */
+
+/* Separa lo de comprar: un tubo de neón fino del color de la fecha, apagado en las puntas. */
+.inf-linea-neon {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--tono) 80%, white) 18%, color-mix(in oklab, var(--tono) 80%, white) 82%, transparent);
+  box-shadow: 0 0 10px 0 color-mix(in oklab, var(--tono) 70%, transparent);
+}
+/* La fecha sobre la luz de la tarjeta: una sombra apenas para que se lea sobre el foco. */
+.inf-fecha-afiche {
+  text-shadow: 0 1px 14px #0008;
+}
+/* Agotada: un sello de goma cruzado, como el de la puerta. */
+.inf-sello {
+  translate: -50% -50%;
+  rotate: -12deg;
+  padding: 0.1em 0.35em;
+  border: 0.09em solid currentColor;
+  border-radius: 0.18em;
+  color: #ff5470;
+  letter-spacing: 0.04em;
+  opacity: 0.92;
+  mix-blend-mode: normal;
 }
