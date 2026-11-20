@@ -1,5 +1,6 @@
 import { SITE } from "@/lib/site";
 import { cacheLife, cacheTag } from "next/cache";
+import { connection } from "next/server";
 import {
   events as mockEvents,
   getEvent,
@@ -57,11 +58,8 @@ const normalizeEvent = (event: Event) => {
   return e.cover ? { ...e, cover: mediaUrl(e.cover) } : e;
 };
 
-// En el build, el DNS de Railway a veces no resuelve el dominio del back (sslip.io) y el
-// build se cae. Un error de red (no una respuesta del back) se reintenta: varias veces
-// en el build, una sola con el sitio andando.
-const isBuild = process.env.NEXT_PHASE === "phase-production-build";
-const RETRIES = isBuild ? 5 : 1;
+// Un error de red (no una respuesta del back) se reintenta una vez.
+const RETRIES = 1;
 
 async function fetchWithRetry(url: URL, init: RequestInit): Promise<Response> {
   for (let attempt = 0; ; attempt++) {
@@ -81,7 +79,29 @@ async function fetchCatalog<T>(path: string): Promise<T | null> {
   return response.json() as Promise<T>;
 }
 
+/*
+ * El build no depende del back: el DNS del build de Railway a veces no resuelve el dominio
+ * del back (sslip.io) y el build se caía. Mientras se arma el build, el catálogo espera a un
+ * pedido real (connection): esas partes quedan fuera de lo prerenderizado y se completan, y
+ * se cachean, con la primera visita. Fuera del build no hace nada.
+ */
+const isBuild = process.env.NEXT_PHASE === "phase-production-build";
+
+async function waitForRequestDuringBuild() {
+  if (isBuild && hasLiveCatalog()) await connection();
+}
+
 export async function getVenueCatalog(slug: string): Promise<VenueCatalog | null> {
+  await waitForRequestDuringBuild();
+  return cachedVenueCatalog(slug);
+}
+
+export async function getEventCatalog(venueSlug: string, eventSlug: string): Promise<EventCatalog | null> {
+  await waitForRequestDuringBuild();
+  return cachedEventCatalog(venueSlug, eventSlug);
+}
+
+async function cachedVenueCatalog(slug: string): Promise<VenueCatalog | null> {
   "use cache";
   // Los cupos se vuelven a pedir cada minuto. Igual, la API controla el cupo al reservar.
   cacheLife("minutes");
@@ -94,7 +114,7 @@ export async function getVenueCatalog(slug: string): Promise<VenueCatalog | null
   return data && { venue: withLocalAssets(data.venue), events: data.events.map(normalizeEvent) };
 }
 
-export async function getEventCatalog(venueSlug: string, eventSlug: string): Promise<EventCatalog | null> {
+async function cachedEventCatalog(venueSlug: string, eventSlug: string): Promise<EventCatalog | null> {
   "use cache";
   cacheLife("minutes");
   cacheTag("catalog", `venue:${venueSlug}`);
@@ -115,7 +135,7 @@ export async function getEventCatalog(venueSlug: string, eventSlug: string): Pro
  */
 export async function eventParams() {
   const live = hasLiveCatalog()
-    ? await getVenueCatalog(HOME_VENUE).catch(() => null)
+    ? await cachedVenueCatalog(HOME_VENUE).catch(() => null)
     : null;
   const list = live?.events.length ? live.events : mockEvents;
   return list.map((e) => ({ venue: e.venueSlug, event: e.slug }));
