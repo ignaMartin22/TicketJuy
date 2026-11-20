@@ -5,9 +5,16 @@ import { useEffect, useRef, useState } from "react";
 import { encodeCart, MAX_PER_ORDER, type Cart } from "@/lib/cart";
 import { formatPrice, serviceFee } from "@/lib/format";
 import { availableTickets, type Event, type Venue } from "@/lib/mock-data";
+import { sendDust } from "@/lib/dust";
+import { RollingPrice } from "./rolling-price";
 
 export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
   const [cart, setCart] = useState<Cart>({});
+  // Lo que muestra el total: al sumar, cambia cuando le llega el polvo de la entrada.
+  const [landed, setLanded] = useState<Cart>({});
+  const cartRef = useRef(cart);
+  /** Cuántas veces se sumó cada tipo: reinicia el brillo de la fila. */
+  const [sparks, setSparks] = useState<Record<string, number>>({});
   // La lista de entradas ¿se ve en pantalla? Si sí, no hace falta el atajo.
   const [listVisible, setListVisible] = useState(true);
   const listRef = useRef<HTMLUListElement>(null);
@@ -18,10 +25,9 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
     price + (buyerPays ? serviceFee(price, venue.buyerFeeRate) : 0);
 
   const count = Object.values(cart).reduce((a, b) => a + b, 0);
-  const total = event.ticketTypes.reduce(
-    (sum, t) => sum + finalPrice(t.price) * (cart[t.id] ?? 0),
-    0,
-  );
+  const totalOf = (c: Cart) =>
+    event.ticketTypes.reduce((sum, t) => sum + finalPrice(t.price) * (c[t.id] ?? 0), 0);
+  const shownTotal = totalOf(landed);
   const available = event.ticketTypes.filter((t) => availableTickets(t) > 0);
   const from = available.length
     ? Math.min(...available.map((t) => finalPrice(t.price)))
@@ -46,10 +52,37 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
   }, []);
 
   function change(id: string, delta: number) {
-    setCart((prev) => {
-      const next = { ...prev, [id]: Math.max(0, (prev[id] ?? 0) + delta) };
-      if (next[id] === 0) delete next[id];
-      return next;
+    const prev = cartRef.current;
+    const next = { ...prev, [id]: Math.max(0, (prev[id] ?? 0) + delta) };
+    if (next[id] === 0) delete next[id];
+    cartRef.current = next;
+    setCart(next);
+    // Al quitar, el total cambia ya; al sumar, cuando llega el polvo.
+    if (delta < 0) setLanded(next);
+  }
+
+  function add(id: string, button: HTMLButtonElement) {
+    change(id, 1);
+    setSparks((s) => ({ ...s, [id]: (s[id] ?? 0) + 1 }));
+    const row = button.closest("li");
+    const b = button.getBoundingClientRect();
+    const css = getComputedStyle(row ?? button);
+    const tono = css.getPropertyValue("--tono").trim();
+    const cian = css.getPropertyValue("--inf-cian").trim() || "#17b8f1";
+    const magenta = css.getPropertyValue("--inf-magenta").trim() || "#ee10b8";
+    sendDust({
+      from: (row ?? button).getBoundingClientRect(),
+      origin: { x: b.left + b.width / 2, y: b.top + b.height / 2 },
+      // El total que se ve: la barra de abajo en el celu, el resumen en la compu.
+      target: () => {
+        for (const el of document.querySelectorAll("[data-destino-polvo]")) {
+          const r = el.getBoundingClientRect();
+          if (r.width > 0) return r;
+        }
+        return null;
+      },
+      colors: [cian, magenta, tono || magenta, "#ffffff", "#c9b8ff"],
+      onArrive: () => setLanded(cartRef.current),
     });
   }
 
@@ -88,6 +121,8 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
 
           return (
             <li key={t.id} className="ev-fila flex items-center gap-3 py-3 pl-4 pr-2.5" data-elegida={qty > 0 || undefined}>
+              {/* Brillo que barre la fila cuando suelta el polvo; la key lo reinicia en cada +. */}
+              {sparks[t.id] ? <span key={sparks[t.id]} className="ev-fila-brillo" aria-hidden /> : null}
               <div className="min-w-0 flex-1">
                 <p className="font-semibold leading-tight">
                   {t.name}
@@ -124,7 +159,7 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
                 </span>
                 <button
                   type="button"
-                  onClick={() => change(t.id, 1)}
+                  onClick={(e) => add(t.id, e.currentTarget)}
                   disabled={count >= MAX_PER_ORDER || qty >= left}
                   aria-label={`Agregar una entrada ${t.name}`}
                   className="grid size-10 place-items-center rounded-full bg-luz text-2xl leading-none text-noche transition-transform duration-150 ease-out active:scale-90 disabled:opacity-25"
@@ -153,8 +188,8 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
               <p className="text-sm text-tenue">
                 {count} {count === 1 ? "entrada" : "entradas"}
               </p>
-              <p key={total} className="ev-titila inf-titulo text-2xl tabular-nums">
-                {formatPrice(total)}
+              <p className="inf-titulo text-2xl tabular-nums" data-destino-polvo>
+                <RollingPrice value={shownTotal} />
               </p>
             </div>
           ) : (
@@ -191,8 +226,8 @@ export function TicketPicker({ venue, event }: { venue: Venue; event: Event }) {
                 <p className="text-sm text-tenue">
                   {count} {count === 1 ? "entrada" : "entradas"}
                 </p>
-                <p key={total} className="ev-titila display text-2xl tabular-nums">
-                  {formatPrice(total)}
+                <p className="display text-2xl tabular-nums" data-destino-polvo>
+                  <RollingPrice value={shownTotal} />
                 </p>
               </div>
               <Link

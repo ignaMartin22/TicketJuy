@@ -4,9 +4,9 @@ import { updateTag } from "next/cache";
 import type { Cart } from "@/lib/cart";
 import { apiUrl, hasLiveCatalog } from "@/lib/catalog";
 import type { Order } from "@/lib/orders";
-import { whatsappPhone } from "@/lib/phone";
 
-export type Buyer = { name: string; phone: string; email: string };
+/** Sin teléfono: las entradas todavía no se envían por WhatsApp (el back lo acepta vacío). */
+export type Buyer = { name: string; email: string };
 
 /** Códigos de error de la API más "network" (no hubo respuesta) y "unavailable" (sin API configurada). */
 export type CreateOrderResult = { ok: true; orderId: string } | { ok: false; error: string };
@@ -27,8 +27,6 @@ export async function createOrder(
 ): Promise<CreateOrderResult> {
   if (!hasLiveCatalog()) return { ok: false, error: "unavailable" };
   if (!UUID.test(idempotencyKey)) return { ok: false, error: "invalid_request" };
-  const phone = whatsappPhone(buyer.phone);
-  if (!phone) return { ok: false, error: "invalid_phone" };
 
   const path = [venueSlug, "events", eventSlug, "orders"].map(encodeURIComponent).join("/");
   let response: Response;
@@ -40,7 +38,6 @@ export async function createOrder(
       body: JSON.stringify({
         email: buyer.email.trim(),
         name: buyer.name.trim(),
-        phone,
         items: Object.entries(cart).map(([ticketTypeId, quantity]) => ({ ticketTypeId, quantity })),
       }),
       signal: AbortSignal.timeout(15_000),

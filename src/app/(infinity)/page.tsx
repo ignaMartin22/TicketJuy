@@ -11,7 +11,6 @@ import { NeonSign, SIGN_INSET } from "./_components/neon-sign";
 import { NeonThread } from "./_components/neon-thread";
 import { SpiralGallery } from "./_components/spiral-gallery";
 import { InstallApp } from "@/components/install-app";
-import { ScrollSettle } from "./_components/scroll-settle";
 import { SmoothScroll } from "./_components/smooth-scroll";
 
 // Portada de Infinity Producciones. Las fechas salen del catálogo (src/lib/catalog.ts).
@@ -219,9 +218,8 @@ export default async function InfinityPrototype() {
 
       {/* Las dos líneas del cartel siguen bajando y envuelven las fotos y el Instagram. */}
       <NeonThread />
-      {/* Scroll libre, pero si frena a mitad de una animación se acomoda en la sección más cercana. */}
+      {/* Ruedita y touchpad suaves; con el dedo, el scroll es el nativo del celu, sin intervenir. */}
       <SmoothScroll />
-      <ScrollSettle />
       {/* Ofrece instalar la app (Android: directo; iPhone: con instrucciones). */}
       <InstallApp />
 
