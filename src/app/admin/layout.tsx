@@ -5,8 +5,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// PENDIENTE: proteger /admin con el login del personal cuando ticketera-core tenga usuarios.
-// Por ahora /admin/ingresar es sólo la pantalla: al enviar entra directo.
+// /admin queda protegido por la sesión del personal: el proxy y el guardián
+// del layout de (panel) mandan a /admin/ingresar si no hay token válido.
+// Sin TICKETERA_API_URL el panel entra en modo demo con sesión de demostración.
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

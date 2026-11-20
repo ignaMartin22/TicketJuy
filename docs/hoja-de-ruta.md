@@ -83,6 +83,7 @@ Que la puerta no falle un sábado a la 1:30.
 
 Que el boliche cargue fechas solo y vea la noche en vivo.
 
+- [x] Ingreso del personal (`/admin/ingresar`) contra ticketera-core: sesión en cookie httpOnly, `/admin` protegido y solo entran membresías con rol `admin` (sin API sigue en modo demo abierto)
 - [ ] Cargar eventos, tipos de entrada y cupos (pantallas listas en `/admin`, falta guardarlos en Supabase)
 - [ ] Ventas, plata e ingresos por fecha
 - [ ] Marca del boliche en su página de venta

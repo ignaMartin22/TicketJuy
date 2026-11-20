@@ -173,4 +173,8 @@ Con la variable, la portada, la página del boliche y las fechas leen el catálo
 
 ### Panel del boliche (`/admin`)
 
-`/admin/ingresar` es la pantalla de ingreso, pero **todavía no valida nada**: al enviar entra directo al panel, y `/admin` sigue abierto. Se conecta cuando ticketera-core tenga usuarios del personal.
+Con `TICKETERA_API_URL` configurada, `/admin` queda protegido: se entra desde `/admin/ingresar` con el usuario y la contraseña del personal, que se validan contra `POST /api/v1/auth/login/` del core. El token (12 h) viaja en una cookie httpOnly (`tj_staff`) que solo lee el servidor de Next; nunca va a localStorage ni a JS del navegador. Sin sesión válida se redirige a `/admin/ingresar?desde=<ruta>`, y "Cerrar sesión" borra la cookie y vuelve al ingreso.
+
+Cada usuario del personal tiene membresías por boliche con un rol (`admin`, `door`, `cashier`); el panel solo abre para el rol `admin`, el resto ve una pantalla de "sin acceso". El alta de usuarios y membresías **no es autogestionada**: la hace la plataforma desde `/plataforma/` del core o el admin de Django.
+
+Sin `TICKETERA_API_URL` (modo demo) el panel sigue abierto sin login, con una sesión de demostración.
