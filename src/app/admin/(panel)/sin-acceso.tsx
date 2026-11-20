@@ -6,6 +6,7 @@ const ROL: Record<StaffRole, string> = {
   admin: "Administración",
   door: "Puerta",
   cashier: "Caja",
+  rrpp: "RRPP",
 };
 
 /**

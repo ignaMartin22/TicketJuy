@@ -15,6 +15,7 @@ export type ScanTicket = { id: string; ticketType: string; holderName: string; u
 export type ScanResult =
   | { result: "admitted"; ticket: ScanTicket }
   | { result: "already_used"; ticket: ScanTicket & { usedBy: string | null } }
+  | { result: "list_closed"; ticket: { holderName: string; ticketType: string; validUntil: string } }
   | { result: "wrong_event"; event: DoorEvent }
   | { result: "invalid" };
 
@@ -43,9 +44,9 @@ export async function getSession(): Promise<DoorSession | null> {
   return token ? { token } : null;
 }
 
-const seg = (...parts: string[]) => parts.map(encodeURIComponent).join("/");
+export const seg = (...parts: string[]) => parts.map(encodeURIComponent).join("/");
 
-async function call<T>(
+export async function call<T>(
   session: DoorSession,
   path: string,
   init: { method?: string; body?: unknown } = {},
@@ -74,7 +75,7 @@ async function call<T>(
   return { ok: false, reason: "network" };
 }
 
-/** Los boliches donde el usuario puede hacer portería (rol puerta o administración), leídos de auth/me. */
+/** Los boliches donde el usuario puede hacer portería (rol puerta o administración), leídos de auth/me; `rrpp` = además tiene listas. */
 export async function doorVenues(session: DoorSession) {
   const r = await call<{ memberships: { venue: DoorVenue; role: string }[] }>(session, "/api/v1/auth/me/");
   if (!r.ok) return r;
@@ -82,7 +83,8 @@ export async function doorVenues(session: DoorSession) {
   for (const m of r.data.memberships) {
     if (m.role === "door" || m.role === "admin") venues.set(m.venue.slug, m.venue);
   }
-  return { ok: true, data: [...venues.values()] } as const;
+  const rrpp = r.data.memberships.some((m) => m.role === "rrpp");
+  return { ok: true, data: { venues: [...venues.values()], rrpp } } as const;
 }
 
 export async function doorEvents(session: DoorSession, venue: string) {

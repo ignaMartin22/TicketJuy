@@ -1,5 +1,6 @@
 import type { Event, Ticket, TicketType, Venue } from "@/lib/mock-data";
 import { nightParts } from "@/lib/format";
+import { formatTime } from "@/app/puerta/time";
 
 const STATUS_LABEL: Record<Ticket["status"], string> = {
   valid: "Válida para ingresar",
@@ -29,6 +30,7 @@ export function TicketStub({
   className = "",
   live = false,
   big = false,
+  validUntil,
 }: {
   venue: Venue;
   event: Event;
@@ -40,6 +42,8 @@ export function TicketStub({
   live?: boolean;
   /** Versión para mostrar en la puerta: QR al ancho de la tarjeta y estado a la vista. */
   big?: boolean;
+  /** Entrada de lista: hora límite para ingresar (ISO). */
+  validUntil?: string | null;
 }) {
   const d = nightParts(event.startsAt);
   const stamp = STAMP[ticket.status];
@@ -104,6 +108,12 @@ export function TicketStub({
           <dt className="text-tenue">Entrada</dt>
           <dd className="font-semibold">{type.name}</dd>
         </div>
+        {validUntil && (
+          <div className="col-span-2">
+            <dt className="text-tenue">Válida hasta</dt>
+            <dd className="font-semibold tabular-nums">las {formatTime(validUntil)} h</dd>
+          </div>
+        )}
         {big && (
           <div className="col-span-2">
             <dt className="sr-only">Estado</dt>

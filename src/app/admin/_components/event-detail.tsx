@@ -4,18 +4,20 @@ import Link from "next/link";
 import { formatNight, formatPrice } from "@/lib/format";
 import { isPast } from "../_lib/dates";
 import { eventTotals, formatCount, percent } from "../_lib/stats";
-import { setPublished, setSalesOpen } from "../_lib/store";
+import { setPublished, setSalesOpen, useLive } from "../_lib/store";
 import { usePanelAction } from "../_lib/use-panel-action";
 import { KIND_LABEL, type AdminEvent, type TicketKind } from "../_lib/types";
 import { useEventFromUrl } from "../_lib/use-event-from-url";
 import { EventNotFound } from "./event-editors";
 import { ExternalIcon } from "./icons";
 import { PanelLoading } from "./loading";
+import { PromoterLists } from "./promoter-lists";
 import { buttonClass, Card, EventThumb, SalesBar, StatCard, StatusBadge } from "./ui";
 
 export function EventDetail() {
   const { hydrated, event } = useEventFromUrl();
   const action = usePanelAction();
+  const live = useLive();
   if (!hydrated) return <PanelLoading />;
   if (!event) return <EventNotFound />;
 
@@ -136,6 +138,9 @@ export function EventDetail() {
           </dl>
         </Card>
       </div>
+
+      {/* Las listas viven en la API: sin ella (modo demo) no hay nada que mostrar. */}
+      {live && <PromoterLists venue={event.venueSlug} event={event.slug} />}
     </>
   );
 }

@@ -39,3 +39,13 @@ export function fromNightInputs(date: string, time: string) {
 export function isPast(iso: string, now = Date.now()) {
   return new Date(iso).getTime() < now;
 }
+
+/** ISO -> valor de un <input type="datetime-local"> en hora de Jujuy ("2026-11-21T02:00"). Sin corrimiento de noche. */
+export function toLocalInput(iso: string) {
+  return new Date(new Date(iso).getTime() - OFFSET_MS).toISOString().slice(0, 16);
+}
+
+/** Valor de un <input type="datetime-local"> (hora de Jujuy) -> ISO con zona de Argentina. */
+export function fromLocalInput(value: string) {
+  return `${value.slice(0, 16)}:00${OFFSET}`;
+}

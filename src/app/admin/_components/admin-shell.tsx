@@ -15,6 +15,7 @@ const ROL: Record<StaffRole, string> = {
   admin: "Administración",
   door: "Puerta",
   cashier: "Caja",
+  rrpp: "RRPP",
 };
 
 const NAV = [
@@ -158,6 +159,11 @@ function SidebarBody({
         <Link href="/puerta" className="text-tenue hover:text-luz" onClick={onNavigate}>
           Portería (escanear entradas)
         </Link>
+        {session.memberships.some((m) => m.role === "rrpp") && (
+          <Link href="/rrpp" className="text-tenue hover:text-luz" onClick={onNavigate}>
+            Mis listas
+          </Link>
+        )}
         {demo && (
           <button
             type="button"
