@@ -207,81 +207,128 @@ export function Scanner({
     };
   }, [attempt]);
 
-  const link = "inline-flex min-h-12 items-center rounded-full border border-linea px-4 text-base font-semibold";
+  const [sheet, setSheet] = useState(false);
+  const pct = total.issued ? Math.min(100, Math.round((total.admitted / total.issued) * 100)) : 0;
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="flex flex-col gap-2 px-4 pb-3 pt-4">
-        <h1 className="display break-words text-2xl">{title}</h1>
-        <p className="display text-3xl tabular-nums" aria-live="polite">
-          Ingresaron {total.admitted} de {total.issued}
-        </p>
-        <nav className="flex flex-wrap gap-2">
-          <Link href={`/puerta/${venue}/${event}/asistencia`} className={link}>
-            Asistencia
-          </Link>
-          <Link href="/puerta" className={link}>
-            Cambiar de fecha
-          </Link>
-        </nav>
-      </header>
+    <div className="puerta-escaner relative h-dvh overflow-hidden bg-black text-white">
+      {/* La cámara ocupa toda la pantalla; la ventana del QR la recorta. */}
+      <video ref={videoRef} muted playsInline className="absolute inset-0 h-full w-full object-cover" aria-label="Cámara para leer el QR" />
+      <canvas ref={canvasRef} className="hidden" />
 
-      <div className="relative mx-4 aspect-[3/4] max-h-[60dvh] overflow-hidden rounded-3xl border border-linea bg-noche-2 sm:mx-auto sm:w-full sm:max-w-md">
-        <video ref={videoRef} muted playsInline className="h-full w-full object-cover" aria-label="Cámara para leer el QR" />
-        <canvas ref={canvasRef} className="hidden" />
-        {camera === "on" && (
-          <div aria-hidden className="pointer-events-none absolute inset-8 rounded-2xl border-2 border-luz/60" />
-        )}
-        {camera === "starting" && <p className="absolute inset-0 grid place-items-center text-tenue">Abriendo la cámara...</p>}
-        {camera !== "starting" && camera !== "on" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-noche-2 p-5 text-center">
-            <p>{CAMERA_MESSAGES[camera]}</p>
+      <div className="puerta-ventana" data-leyendo={pending || undefined} aria-hidden={camera === "on"}>
+        {camera === "on" ? (
+          <>
+            <span className="puerta-esquina puerta-esquina-ai" />
+            <span className="puerta-esquina puerta-esquina-ad" />
+            <span className="puerta-esquina puerta-esquina-bi" />
+            <span className="puerta-esquina puerta-esquina-bd" />
+            <span className="puerta-laser" />
+          </>
+        ) : camera === "starting" ? (
+          <p className="grid h-full place-items-center text-sm text-white/70">Abriendo la cámara…</p>
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-4 p-5 text-center">
+            <p className="text-sm text-white/85">{CAMERA_MESSAGES[camera]}</p>
             <button
               type="button"
               onClick={() => setAttempt((n) => n + 1)}
-              className="min-h-12 rounded-full bg-luz px-6 text-base font-semibold text-noche"
+              className="min-h-12 rounded-full bg-white px-6 text-base font-semibold text-black"
             >
               Reintentar
             </button>
           </div>
         )}
       </div>
-      <p className="px-4 pt-3 text-center text-sm text-tenue">
-        {pending ? "Revisando..." : "Apuntá la cámara al QR de la entrada."}
-      </p>
 
-      <details className="mx-4 mt-3 pb-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <summary className="flex min-h-12 cursor-pointer items-center font-semibold">Ingresar código a mano</summary>
-        <form
-          className="mt-2 flex flex-col gap-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const code = manual;
-            setManual("");
-            void submit(code);
-          }}
-        >
-          <label className="flex flex-col gap-1.5 text-sm font-medium">
-            Texto del QR
-            <input
-              value={manual}
-              onChange={(e) => setManual(e.target.value)}
-              autoComplete="off"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              className="min-h-12 w-full rounded-xl border border-linea bg-noche-2 px-4 text-base text-luz focus:border-accent focus:outline-none"
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={pending || !manual.trim()}
-            className="min-h-12 rounded-full bg-luz px-6 text-base font-semibold text-noche disabled:opacity-60"
+      {/* Arriba: volver, la fecha y la asistencia. */}
+      <header className="absolute inset-x-0 top-0 flex items-center gap-3 bg-gradient-to-b from-black/80 to-transparent px-4 pb-10 pt-[max(1rem,env(safe-area-inset-top))]">
+        <Link href="/puerta" aria-label="Cambiar de fecha" className="puerta-boton-redondo">
+          <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
+        </Link>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold tracking-[0.18em] text-white/60 uppercase">Portería</p>
+          <h1 className="truncate text-lg font-semibold">{title}</h1>
+        </div>
+        <Link href={`/puerta/${venue}/${event}/asistencia`} className="puerta-boton-redondo" aria-label="Ver asistencia">
+          <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
+          </svg>
+        </Link>
+      </header>
+
+      {/* Abajo: el contador grande, qué hacer y el ingreso a mano. */}
+      <footer className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-16">
+        <p className="text-center text-sm text-white/75" aria-live="polite">
+          {pending ? "Revisando…" : camera === "on" ? "Apuntá al QR de la entrada" : " "}
+        </p>
+        <div className="mx-auto mt-4 max-w-md">
+          <div className="flex items-end justify-between gap-4">
+            <p className="leading-none" aria-live="polite">
+              <span className="display text-5xl tabular-nums">{total.admitted}</span>
+              <span className="ml-2 text-lg text-white/60 tabular-nums">/ {total.issued}</span>
+              <span className="mt-1.5 block text-sm text-white/60">adentro</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => setSheet(true)}
+              className="min-h-12 rounded-full border border-white/25 bg-white/10 px-5 text-base font-semibold backdrop-blur-md"
+            >
+              Escribir código
+            </button>
+          </div>
+          <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/15" aria-hidden>
+            <div className="puerta-progreso h-full rounded-full" style={{ transform: `scaleX(${pct / 100})` }} />
+          </div>
+        </div>
+      </footer>
+
+      {sheet && (
+        <div className="fixed inset-0 z-40 flex items-end bg-black/60" onClick={() => setSheet(false)}>
+          <form
+            className="puerta-hoja w-full rounded-t-[1.75rem] border-t border-white/10 bg-noche-2 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-3"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={(e) => {
+              e.preventDefault();
+              const code = manual;
+              setManual("");
+              setSheet(false);
+              void submit(code);
+            }}
           >
-            Revisar
-          </button>
-        </form>
-      </details>
+            <span className="mx-auto mb-4 block h-1 w-10 rounded-full bg-white/20" aria-hidden />
+            <h2 className="text-lg font-semibold">Escribir el código</h2>
+            <p className="mt-1 text-sm text-tenue">Para cuando el QR no se lee: pantalla rota, poca luz.</p>
+            <label className="mt-4 flex flex-col gap-1.5 text-sm font-medium">
+              Texto del QR
+              <input
+                value={manual}
+                onChange={(e) => setManual(e.target.value)}
+                autoFocus
+                autoComplete="off"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                className="min-h-12 w-full rounded-xl border border-linea bg-noche px-4 text-base text-luz focus:border-accent focus:outline-none"
+              />
+            </label>
+            <div className="mt-4 flex gap-3">
+              <button type="button" onClick={() => setSheet(false)} className="min-h-12 flex-1 rounded-full border border-linea font-semibold">
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={pending || !manual.trim()}
+                className="min-h-12 flex-1 rounded-full bg-luz font-semibold text-noche disabled:opacity-60"
+              >
+                Revisar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {outcome && <ResultScreen outcome={outcome} onClose={() => close()} />}
     </div>
@@ -311,61 +358,77 @@ const icons = {
   ),
 };
 
+/**
+ * Pantalla completa del resultado: el color se lee desde lejos, el nombre y el tipo
+ * de entrada se leen de cerca. La barra de abajo se vacía mientras se cierra sola.
+ */
 function ResultScreen({ outcome, onClose }: { outcome: Outcome; onClose: () => void }) {
   let tone: string;
   let icon: keyof typeof icons;
   let heading: string;
-  let lines: string[] = [];
+  let name: string | null = null;
+  let chip: string | null = null;
+  let detail: string | null = null;
   switch (outcome.kind) {
     case "admitted":
-      tone = "bg-emerald-700 text-white";
+      tone = "puerta-ok";
       icon = "ok";
       heading = "Adelante";
-      lines = [outcome.holderName, outcome.ticketType];
+      name = outcome.holderName;
+      chip = outcome.ticketType;
       break;
     case "already_used":
-      tone = "bg-red-700 text-white";
+      tone = "puerta-no";
       icon = "used";
       heading = "Ya ingresó";
-      lines = [
-        outcome.holderName,
-        outcome.ticketType,
-        `Entró a las ${formatTime(outcome.usedAt)}${outcome.usedBy ? ` · lo escaneó ${outcome.usedBy}` : ""}`,
-      ];
+      name = outcome.holderName;
+      chip = outcome.ticketType;
+      detail = `Entró a las ${formatTime(outcome.usedAt)}${outcome.usedBy ? ` · lo escaneó ${outcome.usedBy}` : ""}`;
       break;
     case "wrong_event":
-      tone = "bg-amber-400 text-noche";
+      tone = "puerta-aviso";
       icon = "date";
       heading = "Es de otra fecha";
-      lines = [outcome.title, formatNight(outcome.startsAt)];
+      name = outcome.title;
+      detail = formatNight(outcome.startsAt);
       break;
     case "invalid":
-      tone = "bg-red-700 text-white";
+      tone = "puerta-no";
       icon = "no";
       heading = "Entrada no válida";
+      detail = "No es una entrada de este boliche.";
       break;
     default:
-      tone = "bg-zinc-700 text-white";
+      tone = "puerta-error";
       icon = "offline";
-      heading = "Sin conexión. Probá de nuevo.";
+      heading = "Sin conexión";
+      detail = "No sabemos si quedó registrada. Escaneala de nuevo: si ya había entrado, va a decir «Ya ingresó».";
   }
   return (
     <button
       type="button"
       onClick={onClose}
       role="alert"
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 px-6 text-center ${tone}`}
+      className={`puerta-resultado fixed inset-0 z-50 flex flex-col items-center justify-center px-6 text-center ${tone}`}
+      style={{ "--dur": `${RESULT_MS}ms` } as React.CSSProperties}
     >
-      <svg viewBox="0 0 24 24" aria-hidden className="size-32 fill-none stroke-current" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-        {icons[icon]}
-      </svg>
-      <span className="display break-words text-5xl">{heading}</span>
-      {lines.map((l, i) => (
-        <span key={i} className={`max-w-full break-words ${i === 0 ? "text-3xl font-bold" : "text-xl"}`}>
-          {l}
+      <span className="puerta-icono grid size-36 place-items-center rounded-full">
+        <svg viewBox="0 0 24 24" aria-hidden className="size-20 fill-none stroke-current" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+          {icons[icon]}
+        </svg>
+      </span>
+      <span className="puerta-texto mt-8 flex max-w-full flex-col items-center gap-3">
+        <span className="display break-words text-5xl uppercase">{heading}</span>
+        {name && <span className="max-w-full break-words text-3xl font-bold">{name}</span>}
+        {chip && <span className="rounded-full bg-black/25 px-4 py-1.5 text-lg font-semibold">{chip}</span>}
+        {detail && <span className="max-w-xs text-lg opacity-90 first-letter:uppercase">{detail}</span>}
+      </span>
+      <span className="absolute inset-x-6 bottom-[max(1.5rem,env(safe-area-inset-bottom))] flex flex-col items-center gap-3">
+        <span className="text-base opacity-80">Tocá para seguir</span>
+        <span className="h-1 w-full max-w-xs overflow-hidden rounded-full bg-black/20" aria-hidden>
+          <span className="puerta-cuenta block h-full rounded-full bg-current" />
         </span>
-      ))}
-      <span className="mt-4 text-base opacity-80">Tocá para seguir</span>
+      </span>
     </button>
   );
 }
