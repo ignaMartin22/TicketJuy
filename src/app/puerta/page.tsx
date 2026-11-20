@@ -3,8 +3,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { hasLiveCatalog } from "@/lib/catalog";
 import { doorEvents, doorVenues, getSession, type DoorEvent } from "@/lib/door";
-import { formatNight } from "@/lib/format";
+import { nightParts } from "@/lib/format";
 import { logout } from "./actions";
+
+/** Esta noche: empieza en las próximas 16 h o empezó hace menos de 10 h. La página es dinámica (lee la sesión). */
+function isTonight(iso: string) {
+  const diff = new Date(iso).getTime() - Date.now();
+  return diff < 16 * 3600_000 && diff > -10 * 3600_000;
+}
 
 export default function PuertaPage() {
   return (
@@ -59,38 +65,62 @@ async function Content() {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="display text-4xl">Elegí la fecha</h1>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold tracking-[0.2em] text-tenue uppercase">Portería</p>
+          <h1 className="display mt-1 text-4xl">Elegí la fecha</h1>
+        </div>
         <form action={logout}>
-          <button type="submit" className="min-h-12 rounded-full border border-linea px-5 text-base font-semibold">
+          <button type="submit" className="min-h-11 rounded-full border border-linea px-4 text-sm font-semibold text-tenue">
             Salir
           </button>
         </form>
       </div>
-      <div className="mt-6 flex flex-col gap-6">
+      <div className="mt-8 flex flex-col gap-8">
         {venues.map((venue, i) => {
           const list = lists[i];
           const events: DoorEvent[] = list.ok ? list.data : [];
           return (
             <section key={venue.slug}>
-              {venues.length > 1 && <h2 className="mb-3 font-semibold text-tenue">{venue.name}</h2>}
+              {venues.length > 1 && <h2 className="mb-3 text-sm font-semibold tracking-wide text-tenue uppercase">{venue.name}</h2>}
               {!list.ok ? (
                 <p className="text-error">No pudimos cargar las fechas. Recargá la página.</p>
               ) : events.length === 0 ? (
                 <p className="text-tenue">No hay fechas publicadas.</p>
               ) : (
                 <ul className="flex flex-col gap-3">
-                  {events.map((event) => (
-                    <li key={event.slug}>
-                      <Link
-                        href={`/puerta/${venue.slug}/${event.slug}`}
-                        className="panel flex min-h-16 flex-col justify-center rounded-2xl px-5 py-3 active:scale-[0.99]"
-                      >
-                        <span className="font-semibold">{event.title}</span>
-                        <span className="text-sm text-tenue first-letter:uppercase">{formatNight(event.startsAt)}</span>
-                      </Link>
-                    </li>
-                  ))}
+                  {events.map((event) => {
+                    const p = nightParts(event.startsAt);
+                    const tonight = isTonight(event.startsAt);
+                    return (
+                      <li key={event.slug}>
+                        <Link
+                          href={`/puerta/${venue.slug}/${event.slug}`}
+                          className={`panel flex items-center gap-4 rounded-2xl p-3 pr-4 transition-transform duration-150 active:scale-[0.98] ${tonight ? "puerta-hoy" : ""}`}
+                        >
+                          <span
+                            className={`flex size-16 shrink-0 flex-col items-center justify-center rounded-xl leading-none ${tonight ? "bg-[var(--magenta)] text-white" : "bg-white/[0.06]"}`}
+                          >
+                            <span className="text-[0.65rem] font-semibold tracking-[0.15em] uppercase opacity-80">{p.weekday.slice(0, 3)}</span>
+                            <span className="display text-2xl tabular-nums">{p.day}</span>
+                            <span className="text-[0.65rem] font-semibold tracking-[0.15em] uppercase opacity-80">{p.month.replace(".", "")}</span>
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            {tonight && (
+                              <span className="mb-1 inline-block rounded-full bg-[var(--magenta)]/20 px-2 py-0.5 text-[0.7rem] font-bold tracking-[0.15em] text-[color-mix(in_oklab,var(--magenta)_60%,white)] uppercase">
+                                Hoy
+                              </span>
+                            )}
+                            <span className="block truncate text-lg font-semibold">{event.title}</span>
+                            <span className="block text-sm text-tenue tabular-nums">Desde las {p.time} h</span>
+                          </span>
+                          <svg viewBox="0 0 24 24" className="size-5 shrink-0 text-tenue" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                            <path d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </section>

@@ -1,0 +1,150 @@
+/*
+ * Portería: se usa de noche, apurado y con el celu en una mano. La cámara ocupa
+ * la pantalla, el resultado se lee desde lejos por el color. Todo lo que se
+ * mueve anima transform u opacity.
+ */
+
+/* ---------- Escáner ---------- */
+
+/* La ventana del QR: oscurece todo alrededor con una sombra enorme (fija, no se anima). */
+.puerta-ventana {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(72vw, 20rem);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 2rem;
+  box-shadow: 0 0 0 100vmax #000000a6;
+}
+
+/* Las cuatro esquinas de neón, celeste arriba y magenta abajo, como el logo. */
+.puerta-esquina {
+  position: absolute;
+  width: 22%;
+  height: 22%;
+  border: 0 solid var(--cian);
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--cian) 80%, transparent));
+}
+.puerta-esquina-ai { top: 0; left: 0; border-top-width: 4px; border-left-width: 4px; border-top-left-radius: 2rem; }
+.puerta-esquina-ad { top: 0; right: 0; border-top-width: 4px; border-right-width: 4px; border-top-right-radius: 2rem; }
+.puerta-esquina-bi,
+.puerta-esquina-bd {
+  border-color: var(--magenta);
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--magenta) 80%, transparent));
+}
+.puerta-esquina-bi { bottom: 0; left: 0; border-bottom-width: 4px; border-left-width: 4px; border-bottom-left-radius: 2rem; }
+.puerta-esquina-bd { bottom: 0; right: 0; border-bottom-width: 4px; border-right-width: 4px; border-bottom-right-radius: 2rem; }
+
+/* La línea que recorre la ventana mientras busca un QR. */
+.puerta-laser {
+  position: absolute;
+  inset-inline: 8%;
+  top: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #fff, transparent);
+  box-shadow: 0 0 12px 2px color-mix(in oklab, var(--magenta) 70%, transparent);
+  opacity: 0.85;
+}
+
+.puerta-boton-redondo {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: #ffffff1f;
+  border: 1px solid #ffffff2e;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.puerta-progreso {
+  transform-origin: left;
+  background: linear-gradient(90deg in oklch, var(--cian), var(--magenta));
+  transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------- Resultado ---------- */
+
+.puerta-ok {
+  background: radial-gradient(120% 70% at 50% 30%, #22c55e, #047a3c 70%);
+  color: #fff;
+}
+.puerta-no {
+  background: radial-gradient(120% 70% at 50% 30%, #ef4444, #8f1111 70%);
+  color: #fff;
+}
+.puerta-aviso {
+  background: radial-gradient(120% 70% at 50% 30%, #fcd34d, #d97706 75%);
+  color: #1a0f00;
+}
+.puerta-error {
+  background: radial-gradient(120% 70% at 50% 30%, #52525b, #18181b 75%);
+  color: #fff;
+}
+.puerta-icono {
+  background: #ffffff26;
+  box-shadow: 0 0 0 12px #ffffff14;
+}
+.puerta-aviso .puerta-icono {
+  background: #00000014;
+  box-shadow: 0 0 0 12px #0000000d;
+}
+
+/* La barra que se vacía mientras el resultado se cierra solo. */
+.puerta-cuenta {
+  transform-origin: left;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .puerta-laser {
+    animation: puerta-barrido 1.8s ease-in-out infinite alternate;
+  }
+  /* Mientras revisa, las esquinas laten. */
+  .puerta-ventana[data-leyendo] .puerta-esquina {
+    animation: puerta-late 700ms ease-in-out infinite alternate;
+  }
+  .puerta-icono {
+    animation: puerta-aparece 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .puerta-texto {
+    animation: puerta-sube 380ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
+  }
+  .puerta-cuenta {
+    animation: puerta-cuenta var(--dur, 2500ms) linear both;
+  }
+  .puerta-hoja {
+    animation: puerta-hoja 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes puerta-barrido {
+  from { transform: translateY(1.5rem); }
+  to { transform: translateY(calc(min(72vw, 20rem) - 1.5rem)); }
+}
+@keyframes puerta-late {
+  to { opacity: 0.35; }
+}
+@keyframes puerta-aparece {
+  from { opacity: 0; transform: scale(0.5); }
+}
+@keyframes puerta-sube {
+  from { opacity: 0; transform: translateY(16px); }
+}
+@keyframes puerta-cuenta {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+@keyframes puerta-hoja {
+  from { transform: translateY(100%); }
+}
+
+/* ---------- Lista de fechas ---------- */
+
+.puerta-hoy {
+  border-color: color-mix(in oklab, var(--magenta) 70%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--magenta) 40%, transparent), 0 0 32px -12px var(--magenta);
+}
