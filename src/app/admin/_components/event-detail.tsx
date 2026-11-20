@@ -11,7 +11,7 @@ import { useEventFromUrl } from "../_lib/use-event-from-url";
 import { EventNotFound } from "./event-editors";
 import { ExternalIcon } from "./icons";
 import { PanelLoading } from "./loading";
-import { buttonClass, Card, EventThumb, PageHeader, SalesBar, StatCard, StatusBadge } from "./ui";
+import { buttonClass, Card, EventThumb, SalesBar, StatCard, StatusBadge } from "./ui";
 
 export function EventDetail() {
   const { hydrated, event } = useEventFromUrl();
@@ -29,48 +29,56 @@ export function EventDetail() {
         ← Eventos
       </Link>
       <div className="mt-3">
-        <PageHeader
-          title={event.title}
-          description={
-            <span className="flex flex-wrap items-center gap-2">
-              <span className="inline-block first-letter:uppercase">{formatNight(event.startsAt)}</span>
-              <StatusBadge event={event} />
-            </span>
-          }
-          actions={
-            <>
-              {isPublic && (
-                <Link href={`/${event.venueSlug}/${event.slug}`} className={buttonClass.secondary}>
-                  <ExternalIcon />
-                  Ver página
-                </Link>
-              )}
-              {!past && (
-                <button
-                  type="button"
-                  disabled={action.pending}
-                  className={event.isPublished ? buttonClass.secondary : buttonClass.primary}
-                  onClick={() => action.run(() => setPublished(event.slug, !event.isPublished))}
-                >
-                  {event.isPublished ? "Pasar a borrador" : "Publicar"}
-                </button>
-              )}
-              {!past && event.isPublished && (
-                <button
-                  type="button"
-                  disabled={action.pending}
-                  className={buttonClass.secondary}
-                  onClick={() => action.run(() => setSalesOpen(event.slug, !event.salesOpen))}
-                >
-                  {event.salesOpen ? "Pausar venta" : "Reanudar venta"}
-                </button>
-              )}
-              <Link href={`/admin/eventos/${event.slug}/editar`} className={buttonClass.primary}>
-                Editar
+        {/* Mismo look que PageHeader, pero con wrap: si las acciones no entran
+            al lado del título, bajan completas debajo en vez de partirse. */}
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+          <div className="min-w-0">
+            <h1 className="display text-4xl uppercase sm:text-5xl">{event.title}</h1>
+            <p className="mt-2 text-tenue">
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="inline-block first-letter:uppercase">{formatNight(event.startsAt)}</span>
+                <StatusBadge event={event} />
+              </span>
+            </p>
+          </div>
+          <div className="flex w-full flex-wrap gap-2 lg:w-auto lg:justify-end">
+            {isPublic && (
+              <Link
+                href={`/${event.venueSlug}/${event.slug}`}
+                className={`${buttonClass.secondary} flex-1 lg:flex-none`}
+              >
+                <ExternalIcon />
+                Ver página
               </Link>
-            </>
-          }
-        />
+            )}
+            {!past && (
+              <button
+                type="button"
+                disabled={action.pending}
+                className={`${event.isPublished ? buttonClass.secondary : buttonClass.primary} flex-1 lg:flex-none`}
+                onClick={() => action.run(() => setPublished(event.slug, !event.isPublished))}
+              >
+                {event.isPublished ? "Pasar a borrador" : "Publicar"}
+              </button>
+            )}
+            {!past && event.isPublished && (
+              <button
+                type="button"
+                disabled={action.pending}
+                className={`${buttonClass.secondary} flex-1 lg:flex-none`}
+                onClick={() => action.run(() => setSalesOpen(event.slug, !event.salesOpen))}
+              >
+                {event.salesOpen ? "Pausar venta" : "Reanudar venta"}
+              </button>
+            )}
+            <Link
+              href={`/admin/eventos/${event.slug}/editar`}
+              className={`${buttonClass.primary} flex-1 lg:flex-none`}
+            >
+              Editar
+            </Link>
+          </div>
+        </div>
       </div>
 
       {!past && !event.isPublished && (
