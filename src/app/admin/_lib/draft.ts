@@ -67,7 +67,8 @@ export function emptyDraft(): Draft {
     ageLimit: "18",
     dressCode: "",
     salesOpen: true,
-    isPublished: true,
+    // Arranca en borrador: no aparece en la web hasta que el dueño la publica.
+    isPublished: false,
     tickets: [general, newTicket("vip", [general.id])],
   };
 }
