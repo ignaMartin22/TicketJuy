@@ -15,9 +15,9 @@ import { ConfirmDialog } from "./confirm-dialog";
 import { buttonClass, Card, PageHeader } from "./ui";
 
 const MP_RETURN: Record<string, string> = {
-  denied: "Cancelaste la autorización en Mercado Pago. No se conectó nada.",
+  denied: "Cancelaste la autorización en Mercado Pago. No se vinculó nada.",
   invalid_state: "El link de Mercado Pago venció (dura 10 minutos). Probá de nuevo.",
-  exchange_failed: "Mercado Pago no confirmó la conexión. Probá de nuevo en un rato.",
+  exchange_failed: "Mercado Pago no confirmó la vinculación. Probá de nuevo en un rato.",
   not_configured: "Mercado Pago todavía no está habilitado en TicketJuy. Avisanos.",
 };
 
@@ -74,7 +74,7 @@ export function PaymentAccountsPanel({
   const [accounts, setAccounts] = useState(initial);
   const [notice] = useState(() =>
     mpReturn.result === "connected"
-      ? { ok: true, text: "Listo: Mercado Pago quedó conectado. Las próximas ventas entran a tu cuenta." }
+      ? { ok: true, text: "Listo: Mercado Pago quedó vinculado. Las próximas ventas entran a tu cuenta." }
       : mpReturn.result === "error"
         ? { ok: false, text: MP_RETURN[mpReturn.reason ?? ""] ?? MP_RETURN.exchange_failed }
         : null,
@@ -175,48 +175,41 @@ function MercadoPagoCard({
           </p>
         </div>
         <Badge on={connected}>
-          {status.needsReconnect ? "Hay que reconectar" : connected ? "Conectada" : "Sin conectar"}
+          {status.needsReconnect ? "Hay que reconectar" : connected ? "Vinculada" : "Sin vincular"}
         </Badge>
       </div>
 
       {status.connected && (
         <p className="mt-4 text-sm">
           {status.liveMode === false ? "Cuenta de prueba" : "Cuenta real"}
-          {status.connectedAt && ` · conectada el ${date(status.connectedAt)}`}
-        </p>
-      )}
-      {status.direct && (
-        <p className="mt-2 text-sm text-tenue">
-          Esta cuenta la configuró TicketJuy y la administramos nosotros. Si querés cambiarla o desconectarla,
-          escribinos.
+          {status.connectedAt && ` · vinculada el ${date(status.connectedAt)}`}
         </p>
       )}
       {status.needsReconnect && (
-        <p className="mt-2 text-sm text-error">Mercado Pago cortó la conexión. Hasta que reconectes, no se puede pagar con Mercado Pago.</p>
+        <p className="mt-2 text-sm text-error">Mercado Pago cortó la vinculación. Hasta que reconectes, no se puede pagar con Mercado Pago.</p>
       )}
-      {!status.available && !status.direct && (
+      {!status.available && (
         <p className="mt-4 text-sm text-tenue">{ERRORS.mp_not_configured}</p>
       )}
       {problem && <p role="alert" className="mt-4 text-sm text-error">{problem}</p>}
 
-      {/* La cuenta de cobro directo no se toca desde acá: un toque de más dejaría al boliche sin cobrar. */}
-      {status.available && !status.direct && (
-        <div className="mt-5 flex flex-wrap gap-2">
+      <div className="mt-5 flex flex-wrap gap-2">
+        {status.available && (!status.connected || status.needsReconnect) && (
           <button type="button" className={buttonClass.primary} disabled={pending} onClick={connect}>
-            {pending ? "Abriendo Mercado Pago…" : status.connected ? "Reconectar o cambiar de cuenta" : "Conectar Mercado Pago"}
+            {pending ? "Abriendo Mercado Pago…" : status.needsReconnect ? "Reconectar Mercado Pago" : "Vincular Mercado Pago"}
           </button>
-          {status.connected && (
-            <button type="button" className={buttonClass.danger} disabled={pending} onClick={() => setConfirm(true)}>
-              Desconectar
-            </button>
-          )}
-        </div>
-      )}
+        )}
+        {status.connected && (
+          <button type="button" className={buttonClass.danger} disabled={pending} onClick={() => setConfirm(true)}>
+            Desvincular
+          </button>
+        )}
+      </div>
       <ConfirmDialog
         open={confirm}
-        title="¿Desconectar Mercado Pago?"
-        body="Desde ahora nadie va a poder pagar con Mercado Pago hasta que lo vuelvas a conectar. Lo que ya se cobró no cambia."
-        confirmLabel="Desconectar"
+        title="¿Desvincular Mercado Pago?"
+        body="Desde ahora nadie va a poder pagar con Mercado Pago hasta que vuelvas a vincular una cuenta. Lo que ya se cobró no cambia."
+        confirmLabel="Desvincular"
         onConfirm={disconnect}
         onClose={() => setConfirm(false)}
       />
@@ -282,7 +275,7 @@ function GatewayCard({
           <h2 className="text-lg font-semibold">{info.name}</h2>
           <p className="mt-1 text-sm text-tenue">{info.intro}</p>
         </div>
-        <Badge on={status.connected}>{status.connected ? "Conectada" : "Sin conectar"}</Badge>
+        <Badge on={status.connected}>{status.connected ? "Vinculada" : "Sin vincular"}</Badge>
       </div>
 
       {status.connected && (
@@ -353,15 +346,15 @@ function GatewayCard({
             Cambiar credenciales
           </button>
           <button type="button" className={buttonClass.danger} disabled={pending} onClick={() => setConfirm(true)}>
-            Quitar
+            Desvincular
           </button>
         </div>
       )}
       <ConfirmDialog
         open={confirm}
-        title={`¿Quitar ${info.name}?`}
+        title={`¿Desvincular ${info.name}?`}
         body="Se borran las credenciales y nadie va a poder pagar con este medio hasta que las cargues de nuevo."
-        confirmLabel="Quitar"
+        confirmLabel="Desvincular"
         onConfirm={remove}
         onClose={() => setConfirm(false)}
       />
