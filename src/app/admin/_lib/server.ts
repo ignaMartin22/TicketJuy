@@ -217,3 +217,78 @@ export async function removeCover(venue: string, slug: string): Promise<Result<n
   refreshCatalog(venue);
   return { ok: true, data: null };
 }
+
+/*
+ * Cuentas de cobro del boliche (/api/v1/manage/venues/<boliche>/payment-accounts/ y
+ * .../mercadopago/). Las claves secretas van del formulario al back y nunca vuelven.
+ */
+
+export type GatewayProvider = "macro" | "nave";
+
+export type GatewayStatus = {
+  available: boolean;
+  connected: boolean;
+  liveMode: boolean | null;
+  accountId: string;
+  connectedAt: string | null;
+  fields: { name: string; label: string; secret: boolean; required: boolean }[];
+};
+
+export type PaymentAccounts = {
+  mercadopago: {
+    available: boolean;
+    connected: boolean;
+    needsReconnect: boolean;
+    direct: boolean;
+    liveMode: boolean | null;
+    connectedAt: string | null;
+  };
+  macro: GatewayStatus;
+  nave: GatewayStatus;
+};
+
+const accounts = (venue: string) => `/api/v1/manage/venues/${seg(venue)}/payment-accounts/`;
+const isGateway = (p: string): p is GatewayProvider => p === "macro" || p === "nave";
+
+export async function getPaymentAccounts(venue: string): Promise<Result<PaymentAccounts>> {
+  return call<PaymentAccounts>(accounts(venue));
+}
+
+/** El link de autorización de Mercado Pago, solo si es de Mercado Pago. */
+export async function connectMercadoPago(venue: string): Promise<Result<string>> {
+  const result = await call<{ authorizationUrl: string }>(
+    `/api/v1/manage/venues/${seg(venue)}/mercadopago/connect/`,
+    { method: "POST" },
+  );
+  if (!result.ok) return result;
+  try {
+    const url = new URL(result.data.authorizationUrl);
+    const mp = url.hostname === "mercadopago.com.ar" || url.hostname.endsWith(".mercadopago.com.ar") ||
+      url.hostname === "mercadopago.com" || url.hostname.endsWith(".mercadopago.com");
+    if (url.protocol === "https:" && mp) return { ok: true, data: url.toString() };
+  } catch {}
+  return { ok: false, error: "network" };
+}
+
+export async function disconnectMercadoPago(venue: string): Promise<Result<null>> {
+  return call<null>(`/api/v1/manage/venues/${seg(venue)}/mercadopago/`, { method: "DELETE" });
+}
+
+export async function saveGateway(
+  venue: string,
+  provider: string,
+  values: Record<string, string>,
+  liveMode: boolean,
+): Promise<Result<PaymentAccounts>> {
+  if (!isGateway(provider)) return { ok: false, error: "not_found" };
+  const body: Record<string, string | boolean> = { liveMode };
+  for (const [key, value] of Object.entries(values)) {
+    if (typeof value === "string") body[key] = value;
+  }
+  return call<PaymentAccounts>(`${accounts(venue)}${provider}/`, { method: "PUT", body });
+}
+
+export async function removeGateway(venue: string, provider: string): Promise<Result<null>> {
+  if (!isGateway(provider)) return { ok: false, error: "not_found" };
+  return call<null>(`${accounts(venue)}${provider}/`, { method: "DELETE" });
+}
