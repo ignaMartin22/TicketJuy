@@ -185,4 +185,10 @@ La portería no consulta `auth/me` al escanear: usa el token de la cookie, así 
 
 El panel guarda las fechas en ticketera-core con la API de gestión (`/api/v1/manage/venues/<boliche>/events/`), siempre desde el servidor de Next con el token de la sesión. Cada dueño ve las fechas del boliche de su membresía. Las entradas que se quitan en el formulario se desactivan (la API no las borra) y, al guardar, se refresca el catálogo de la web pública. La portada de la fecha todavía no se guarda en el back: con API el formulario no la ofrece.
 
+### Variables de entorno del servidor
+
+- `TICKETERA_API_URL`: URL del back. Sin ella el sitio entra en modo demo (datos de prueba, panel abierto) **solo en desarrollo**.
+- `DEMO_MODE=1`: pide el modo demo de forma explícita. En producción (`NODE_ENV=production`), si falta `TICKETERA_API_URL` y no está `DEMO_MODE=1`, el sitio no entra en demo: las páginas que leen datos, el ingreso y el checkout fallan con "Falta TICKETERA_API_URL", `/admin`, `/puerta` y `/rrpp` mandan a `/ingresar` y `/entrada/*` da 404. `next build` sigue andando sin la variable.
+- `TICKETERA_FRONT_KEY` (opcional, nunca `NEXT_PUBLIC`): secreto compartido con el back. Si está, se manda como `X-Front-Key` en todas las llamadas del servidor al back y, en el alta de pedidos y el login del personal, también `X-Buyer-Ip` con la IP del visitante (de `x-real-ip` o el último valor de `x-forwarded-for`, nunca del body). Sin la variable no se manda ningún header extra.
+
 Sin `TICKETERA_API_URL` (modo demo) el panel sigue abierto sin login, con una sesión de demostración, y guarda las fechas solo en el navegador.

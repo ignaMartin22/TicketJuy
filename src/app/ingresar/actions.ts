@@ -2,7 +2,8 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { apiUrl, hasLiveCatalog } from "@/lib/catalog";
+import { buyerHeaders } from "@/lib/api-headers";
+import { apiUrl, assertConfigured, hasLiveCatalog } from "@/lib/catalog";
 import { STAFF_COOKIE, canReturnTo, homeFor, type StaffMembership } from "@/lib/staff-session";
 
 export type LoginState = { error: string } | undefined;
@@ -20,6 +21,7 @@ export async function loginStaff(prev: LoginState, formData: FormData): Promise<
   const desde = formData.get("desde");
   const pedido = typeof desde === "string" ? desde : "";
 
+  assertConfigured();
   if (!hasLiveCatalog()) redirect(pedido.startsWith("/admin") && !pedido.startsWith("//") ? pedido : "/admin");
 
   const usuario = formData.get("usuario");
@@ -38,7 +40,7 @@ export async function loginStaff(prev: LoginState, formData: FormData): Promise<
     response = await fetch(apiUrl("/api/v1/auth/login/"), {
       method: "POST",
       cache: "no-store",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers: { "Content-Type": "application/json", Accept: "application/json", ...(await buyerHeaders()) },
       body: JSON.stringify({ username: usuario.trim(), password: clave }),
       signal: AbortSignal.timeout(15_000),
     });

@@ -1,3 +1,4 @@
+import { frontKeyHeaders } from "@/lib/api-headers";
 import { cookies } from "next/headers";
 import { apiUrl } from "@/lib/catalog";
 import { STAFF_COOKIE } from "@/lib/staff-session";
@@ -59,6 +60,7 @@ export async function call<T>(
       cache: "no-store",
       headers: {
         Accept: "application/json",
+        ...frontKeyHeaders(),
         Authorization: `Bearer ${session.token}`,
         ...(init.body ? { "Content-Type": "application/json" } : {}),
       },

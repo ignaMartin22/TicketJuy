@@ -16,7 +16,9 @@ const MESSAGES: Record<string, string> = {
   quota_full: "La lista está completa.",
   list_closed: "La lista ya cerró.",
   invalid_email: "Revisá el mail.",
-  invalid_name: "Revisá el nombre.",
+  invalid_name: "Revisá el nombre: solo letras y espacios.",
+  too_many_guests: "Cargaste muchos invitados seguidos. Esperá un rato y seguí.",
+  forbidden: "No pudimos agregarlo. Probá de nuevo.",
   not_found: "Esa lista ya no existe.",
 };
 

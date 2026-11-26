@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { HOME_VENUE, hasLiveCatalog } from "@/lib/catalog";
+import { HOME_VENUE, assertConfigured, hasLiveCatalog } from "@/lib/catalog";
 import { demoSession, getStaffSession, panelMembership } from "@/lib/staff-session";
 import { AdminShell } from "../_components/admin-shell";
 import { SinAcceso } from "./sin-acceso";
@@ -27,6 +27,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
 async function PanelGuard({ children }: { children: React.ReactNode }) {
   // Sin API el panel queda abierto con la sesión de demostración.
   if (!hasLiveCatalog()) {
+    assertConfigured();
     const session = demoSession();
     return (
       <AdminShell session={session} membership={panelMembership(session)!} demo>

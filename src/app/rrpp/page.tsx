@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { hasLiveCatalog } from "@/lib/catalog";
+import { assertConfigured, hasLiveCatalog } from "@/lib/catalog";
 import { getSession } from "@/lib/door";
 import { nightParts } from "@/lib/format";
 import { isOpen, rrppLists, type PromoterList } from "@/lib/rrpp";
@@ -30,6 +30,7 @@ function byEvent(lists: PromoterList[]) {
 
 async function Content() {
   if (!hasLiveCatalog()) {
+    assertConfigured();
     return (
       <>
         <h1 className="display text-4xl">Mis listas</h1>

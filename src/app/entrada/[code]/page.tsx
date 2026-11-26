@@ -1,8 +1,10 @@
-import type { CSSProperties } from "react";
+import { Suspense, type CSSProperties } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { TicketStub } from "@/components/ticket-stub";
+import { hasLiveCatalog, siteMode } from "@/lib/catalog";
 import { getEvent, getTicket, getVenue, tickets } from "@/lib/mock-data";
 import { qrSvg } from "@/lib/qr";
 
@@ -12,6 +14,8 @@ export const metadata: Metadata = {
 };
 
 export function generateStaticParams() {
+  // Con API real no hay entradas de ejemplo; Cache Components pide al menos una ruta, que da 404.
+  if (hasLiveCatalog()) return [{ code: "no-existe" }];
   return tickets.map((t) => ({ code: t.code }));
 }
 
@@ -23,9 +27,19 @@ const HELP: Record<string, string> = {
   void: "Esta entrada fue anulada y no sirve para ingresar.",
 };
 
-export default async function TicketPage({
-  params,
-}: PageProps<"/entrada/[code]">) {
+export default function TicketPage(props: PageProps<"/entrada/[code]">) {
+  return (
+    <Suspense fallback={null}>
+      <Ticket {...props} />
+    </Suspense>
+  );
+}
+
+async function Ticket({ params }: PageProps<"/entrada/[code]">) {
+  // Las entradas de ejemplo no existen fuera del modo demo (con API real o mal configurado).
+  // connection(): el modo se decide en cada request, no se congela en el prerender del build.
+  await connection();
+  if (siteMode() !== "demo") notFound();
   const ticket = getTicket((await params).code);
   if (!ticket) notFound();
   const venue = getVenue(ticket.venueSlug);

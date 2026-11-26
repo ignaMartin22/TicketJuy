@@ -1,5 +1,7 @@
 "use server";
 
+import { frontKeyHeaders } from "@/lib/api-headers";
+
 import { cookies } from "next/headers";
 import { updateTag } from "next/cache";
 import { apiUrl, hasLiveCatalog, mediaUrl } from "@/lib/catalog";
@@ -61,6 +63,7 @@ async function call<T>(
       cache: "no-store",
       headers: {
         Accept: "application/json",
+        ...frontKeyHeaders(),
         Authorization: `Bearer ${token}`,
         // Con FormData, fetch arma el Content-Type multipart con su boundary.
         ...(init.body !== undefined ? { "Content-Type": "application/json" } : {}),

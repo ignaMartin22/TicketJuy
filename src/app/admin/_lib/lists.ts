@@ -1,5 +1,7 @@
 "use server";
 
+import { frontKeyHeaders } from "@/lib/api-headers";
+
 import { cookies } from "next/headers";
 import { apiUrl, hasLiveCatalog } from "@/lib/catalog";
 import type { PromoterList } from "@/lib/rrpp";
@@ -28,6 +30,7 @@ async function call<T>(path: string, init: { method?: string; body?: unknown } =
       cache: "no-store",
       headers: {
         Accept: "application/json",
+        ...frontKeyHeaders(),
         Authorization: `Bearer ${token}`,
         ...(init.body !== undefined ? { "Content-Type": "application/json" } : {}),
       },

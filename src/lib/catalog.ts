@@ -1,3 +1,4 @@
+import { frontKeyHeaders } from "@/lib/api-headers";
 import { SITE } from "@/lib/site";
 import { cacheLife, cacheTag } from "next/cache";
 import { connection } from "next/server";
@@ -23,6 +24,25 @@ export const HOME_VENUE = SITE.homeVenue;
 
 export function hasLiveCatalog() {
   return Boolean(process.env.TICKETERA_API_URL);
+}
+
+/**
+ * Tres estados: "live" (hay TICKETERA_API_URL), "demo" (datos de prueba) y "misconfigured".
+ * En producción, sin TICKETERA_API_URL y sin DEMO_MODE=1, el sitio NO cae en demo: queda "misconfigured".
+ * Durante `next build` nunca es "misconfigured" (en CI la variable no está).
+ */
+export function siteMode(): "live" | "demo" | "misconfigured" {
+  if (hasLiveCatalog()) return "live";
+  if (process.env.NODE_ENV !== "production" || process.env.DEMO_MODE === "1") return "demo";
+  if (process.env.NEXT_PHASE === "phase-production-build") return "demo";
+  return "misconfigured";
+}
+
+/** Corta con un error claro de configuración en vez de servir datos de ejemplo o dejar el panel abierto. */
+export function assertConfigured() {
+  if (siteMode() === "misconfigured") {
+    throw new Error("Falta TICKETERA_API_URL (o DEMO_MODE=1 para el modo demo)");
+  }
 }
 
 export function apiUrl(path: string) {
@@ -73,7 +93,7 @@ async function fetchWithRetry(url: URL, init: RequestInit): Promise<Response> {
 }
 
 async function fetchCatalog<T>(path: string): Promise<T | null> {
-  const response = await fetchWithRetry(apiUrl(path), { headers: { Accept: "application/json" } });
+  const response = await fetchWithRetry(apiUrl(path), { headers: { Accept: "application/json", ...frontKeyHeaders() } });
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`El catálogo respondió con estado ${response.status}`);
   return response.json() as Promise<T>;
@@ -92,11 +112,13 @@ async function waitForRequestDuringBuild() {
 }
 
 export async function getVenueCatalog(slug: string): Promise<VenueCatalog | null> {
+  assertConfigured();
   await waitForRequestDuringBuild();
   return cachedVenueCatalog(slug);
 }
 
 export async function getEventCatalog(venueSlug: string, eventSlug: string): Promise<EventCatalog | null> {
+  assertConfigured();
   await waitForRequestDuringBuild();
   return cachedEventCatalog(venueSlug, eventSlug);
 }
