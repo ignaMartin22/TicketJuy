@@ -78,20 +78,36 @@ export async function syncOrder(venueSlug: string, eventSlug: string, orderId: s
 /** Códigos de error de la API más "network" (no hubo respuesta o vino algo inesperado). */
 export type PaymentLinkResult = { ok: true; initPoint: string } | { ok: false; error: string };
 
+/** Dominios del checkout de Nave: los mismos que acepta el backend (NAVE_CHECKOUT_HOSTS). */
+const NAVE_HOSTS = ["ranty.io", "navenegocios.ar", "navenegocios.com"];
+
+const isHostOf = (hostname: string, domain: string) => hostname === domain || hostname.endsWith(`.${domain}`);
+
 /**
- * Sólo se manda al comprador a la pasarela elegida. Mercado Pago se valida por dominio; Macro
- * pasa por una página del backend que arma el formulario del banco, y el backend valida el
- * dominio del checkout de Nave antes de devolverlo. En los tres casos tiene que ser https.
+ * Sólo se manda al comprador a la pasarela elegida; devuelve la URL a la que redirigir, o null.
+ * - Mercado Pago: https y su dominio.
+ * - Macro: la página de nuestro backend que arma el formulario del banco, y la de este pedido
+ *   (`/api/v1/pagos/macro/<pedido>/`). Si el backend la manda relativa, se resuelve contra él.
+ * - Nave: https y un dominio de su checkout.
  */
-function isPaymentUrl(value: string, method: PaymentMethod) {
+function paymentUrl(value: string, method: PaymentMethod, orderId: string): string | null {
   try {
+    if (method === "macro") {
+      const api = apiUrl("/");
+      const url = new URL(value, api);
+      const ok =
+        url.origin === api.origin &&
+        url.pathname === `/api/v1/pagos/macro/${orderId.toLowerCase()}/` &&
+        // En desarrollo el backend corre en localhost sin https.
+        (url.protocol === "https:" || ["localhost", "127.0.0.1"].includes(url.hostname));
+      return ok ? url.toString() : null;
+    }
     const url = new URL(value);
-    // En desarrollo el backend corre en localhost sin https.
-    const local = url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname);
-    if (url.protocol !== "https:" && !(local && method !== "mercadopago")) return false;
-    return method === "mercadopago" ? /(^|\.)mercadopago\.com(\.ar)?$/.test(url.hostname) : true;
+    if (url.protocol !== "https:") return null;
+    const domains = method === "mercadopago" ? ["mercadopago.com", "mercadopago.com.ar"] : NAVE_HOSTS;
+    return domains.some((d) => isHostOf(url.hostname, d)) ? url.toString() : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -119,9 +135,8 @@ export async function getPaymentLink(
   }
   const data = (await response.json().catch(() => ({}))) as { initPoint?: string; error?: string };
   if (response.ok) {
-    return data.initPoint && isPaymentUrl(data.initPoint, method)
-      ? { ok: true, initPoint: data.initPoint }
-      : { ok: false, error: "network" };
+    const url = data.initPoint ? paymentUrl(data.initPoint, method, orderId) : null;
+    return url ? { ok: true, initPoint: url } : { ok: false, error: "network" };
   }
   return { ok: false, error: data.error ?? "network" };
 }
