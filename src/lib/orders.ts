@@ -38,7 +38,14 @@ export type Order = {
    * No hay reembolso automático: el comprador tiene que hablar con el boliche.
    */
   paymentReview: boolean;
+  /** Con qué se puede pagar este pedido, según las cuentas que tenga conectadas el boliche. */
+  paymentMethods: PaymentMethod[];
 };
+
+/** Medios de pago que puede ofrecer un boliche. Nave cubre Naranja X y Galicia. */
+export type PaymentMethod = "mercadopago" | "macro" | "nave";
+
+export const PAYMENT_METHODS: readonly PaymentMethod[] = ["mercadopago", "macro", "nave"];
 
 const orderPath = (venueSlug: string, eventSlug: string, orderId: string) =>
   [venueSlug, "events", eventSlug, "orders", orderId].map(encodeURIComponent).join("/");
@@ -71,29 +78,40 @@ export async function syncOrder(venueSlug: string, eventSlug: string, orderId: s
 /** Códigos de error de la API más "network" (no hubo respuesta o vino algo inesperado). */
 export type PaymentLinkResult = { ok: true; initPoint: string } | { ok: false; error: string };
 
-/** Sólo se manda al comprador a Mercado Pago, nunca a otro sitio. */
-function isMercadoPagoUrl(value: string) {
+/**
+ * Sólo se manda al comprador a la pasarela elegida. Mercado Pago se valida por dominio; Macro
+ * pasa por una página del backend que arma el formulario del banco, y el backend valida el
+ * dominio del checkout de Nave antes de devolverlo. En los tres casos tiene que ser https.
+ */
+function isPaymentUrl(value: string, method: PaymentMethod) {
   try {
     const url = new URL(value);
-    return (
-      url.protocol === "https:" &&
-      /(^|\.)mercadopago\.com(\.ar)?$/.test(url.hostname)
-    );
+    // En desarrollo el backend corre en localhost sin https.
+    const local = url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname);
+    if (url.protocol !== "https:" && !(local && method !== "mercadopago")) return false;
+    return method === "mercadopago" ? /(^|\.)mercadopago\.com(\.ar)?$/.test(url.hostname) : true;
   } catch {
     return false;
   }
 }
 
 /**
- * Pide el link de pago del pedido. El backend arma el pago con la cuenta de Mercado Pago
+ * Pide el link de pago del pedido con el medio elegido. El backend arma el pago con la cuenta
  * del boliche; el front no usa SDK ni credenciales. Es idempotente: devuelve siempre el mismo link.
  */
-export async function getPaymentLink(venueSlug: string, eventSlug: string, orderId: string): Promise<PaymentLinkResult> {
+export async function getPaymentLink(
+  venueSlug: string,
+  eventSlug: string,
+  orderId: string,
+  method: PaymentMethod = "mercadopago",
+): Promise<PaymentLinkResult> {
   let response: Response;
   try {
     response = await fetch(apiUrl(`/api/v1/venues/${orderPath(venueSlug, eventSlug, orderId)}/payment/`), {
       method: "POST",
       cache: "no-store",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider: method }),
       signal: AbortSignal.timeout(20_000),
     });
   } catch {
@@ -101,7 +119,7 @@ export async function getPaymentLink(venueSlug: string, eventSlug: string, order
   }
   const data = (await response.json().catch(() => ({}))) as { initPoint?: string; error?: string };
   if (response.ok) {
-    return data.initPoint && isMercadoPagoUrl(data.initPoint)
+    return data.initPoint && isPaymentUrl(data.initPoint, method)
       ? { ok: true, initPoint: data.initPoint }
       : { ok: false, error: "network" };
   }
