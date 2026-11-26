@@ -152,6 +152,8 @@ export function CheckoutForm({ venue, event, live }: { venue: Venue; event: Even
 
   const payLabel = `Pagar ${formatPrice(total)}`;
   const payingLabel = live ? "Reservando tus entradas…" : "Abriendo Mercado Pago…";
+  // Con el backend, el medio de pago (Mercado Pago, Macro o Nave) se elige en la página del pedido.
+  const payNote = live ? "En el paso siguiente elegís cómo pagar." : "El pago se hace en Mercado Pago.";
   const errorBox = orderError && (
     <div role="alert" className="mb-3 rounded-2xl border border-error/40 bg-error/10 p-3 text-sm">
       <p>{ORDER_ERRORS[orderError] ?? "No pudimos reservar tus entradas. Probá de nuevo."}</p>
@@ -231,10 +233,7 @@ export function CheckoutForm({ venue, event, live }: { venue: Venue; event: Even
         <div className="border-t border-linea p-5">
           {errorBox}
           <PayButton paying={paying} label={payLabel} payingLabel={payingLabel} />
-          {/* Medios de pago sin confirmar con split: ver docs/research/mercado-pago-split.md */}
-          <p className="mt-3 text-center text-sm text-tenue">
-            El pago se hace en Mercado Pago.
-          </p>
+          <p className="mt-3 text-center text-sm text-tenue">{payNote}</p>
         </div>
       </aside>
 
@@ -242,9 +241,7 @@ export function CheckoutForm({ venue, event, live }: { venue: Venue; event: Even
       <div data-visible className="ev-barra fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-noche/80 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl lg:hidden">
         {errorBox}
         <PayButton paying={paying} label={payLabel} payingLabel={payingLabel} />
-        <p className="mt-2 text-center text-sm text-tenue">
-          El pago se hace en Mercado Pago.
-        </p>
+        <p className="mt-2 text-center text-sm text-tenue">{payNote}</p>
       </div>
     </form>
   );

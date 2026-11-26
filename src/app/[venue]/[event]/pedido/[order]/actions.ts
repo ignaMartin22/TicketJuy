@@ -1,25 +1,28 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { getPaymentLink, syncOrder, type Order } from "@/lib/orders";
+import { getPaymentLink, PAYMENT_METHODS, syncOrder, type Order, type PaymentMethod } from "@/lib/orders";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export type PayState = { error: string | null };
 
 /**
- * Pide el link de pago al backend y manda al comprador a Mercado Pago.
+ * Pide el link de pago al backend con el medio elegido (el botón que se tocó manda `method`)
+ * y manda al comprador a la pasarela.
  * Se usa con useActionState: si algo falla, devuelve el código de error para mostrarlo.
  */
 export async function payOrder(
   venueSlug: string,
   eventSlug: string,
   orderId: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- lo pasa useActionState
-  _prev: PayState,
+  _prev: PayState, // lo pasa useActionState
+  form: FormData,
 ): Promise<PayState> {
   if (!UUID.test(orderId)) return { error: "not_found" };
-  const result = await getPaymentLink(venueSlug, eventSlug, orderId);
+  const chosen = form.get("method");
+  const method: PaymentMethod = PAYMENT_METHODS.find((m) => m === chosen) ?? "mercadopago";
+  const result = await getPaymentLink(venueSlug, eventSlug, orderId, method);
   if (!result.ok) return { error: result.error };
   // Fuera de cualquier try: redirect corta la ejecución lanzando un error.
   redirect(result.initPoint);

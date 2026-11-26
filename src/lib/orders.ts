@@ -38,7 +38,14 @@ export type Order = {
    * No hay reembolso automático: el comprador tiene que hablar con el boliche.
    */
   paymentReview: boolean;
+  /** Con qué se puede pagar este pedido, según las cuentas que tenga conectadas el boliche. */
+  paymentMethods: PaymentMethod[];
 };
+
+/** Medios de pago que puede ofrecer un boliche. Nave cubre Naranja X y Galicia. */
+export type PaymentMethod = "mercadopago" | "macro" | "nave";
+
+export const PAYMENT_METHODS: readonly PaymentMethod[] = ["mercadopago", "macro", "nave"];
 
 const orderPath = (venueSlug: string, eventSlug: string, orderId: string) =>
   [venueSlug, "events", eventSlug, "orders", orderId].map(encodeURIComponent).join("/");
@@ -71,29 +78,56 @@ export async function syncOrder(venueSlug: string, eventSlug: string, orderId: s
 /** Códigos de error de la API más "network" (no hubo respuesta o vino algo inesperado). */
 export type PaymentLinkResult = { ok: true; initPoint: string } | { ok: false; error: string };
 
-/** Sólo se manda al comprador a Mercado Pago, nunca a otro sitio. */
-function isMercadoPagoUrl(value: string) {
+/** Dominios del checkout de Nave: los mismos que acepta el backend (NAVE_CHECKOUT_HOSTS). */
+const NAVE_HOSTS = ["ranty.io", "navenegocios.ar", "navenegocios.com"];
+
+const isHostOf = (hostname: string, domain: string) => hostname === domain || hostname.endsWith(`.${domain}`);
+
+/**
+ * Sólo se manda al comprador a la pasarela elegida; devuelve la URL a la que redirigir, o null.
+ * - Mercado Pago: https y su dominio.
+ * - Macro: la página de nuestro backend que arma el formulario del banco, y la de este pedido
+ *   (`/api/v1/pagos/macro/<pedido>/`). Si el backend la manda relativa, se resuelve contra él.
+ * - Nave: https y un dominio de su checkout.
+ */
+function paymentUrl(value: string, method: PaymentMethod, orderId: string): string | null {
   try {
+    if (method === "macro") {
+      const api = apiUrl("/");
+      const url = new URL(value, api);
+      const ok =
+        url.origin === api.origin &&
+        url.pathname === `/api/v1/pagos/macro/${orderId.toLowerCase()}/` &&
+        // En desarrollo el backend corre en localhost sin https.
+        (url.protocol === "https:" || ["localhost", "127.0.0.1"].includes(url.hostname));
+      return ok ? url.toString() : null;
+    }
     const url = new URL(value);
-    return (
-      url.protocol === "https:" &&
-      /(^|\.)mercadopago\.com(\.ar)?$/.test(url.hostname)
-    );
+    if (url.protocol !== "https:") return null;
+    const domains = method === "mercadopago" ? ["mercadopago.com", "mercadopago.com.ar"] : NAVE_HOSTS;
+    return domains.some((d) => isHostOf(url.hostname, d)) ? url.toString() : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
 /**
- * Pide el link de pago del pedido. El backend arma el pago con la cuenta de Mercado Pago
+ * Pide el link de pago del pedido con el medio elegido. El backend arma el pago con la cuenta
  * del boliche; el front no usa SDK ni credenciales. Es idempotente: devuelve siempre el mismo link.
  */
-export async function getPaymentLink(venueSlug: string, eventSlug: string, orderId: string): Promise<PaymentLinkResult> {
+export async function getPaymentLink(
+  venueSlug: string,
+  eventSlug: string,
+  orderId: string,
+  method: PaymentMethod = "mercadopago",
+): Promise<PaymentLinkResult> {
   let response: Response;
   try {
     response = await fetch(apiUrl(`/api/v1/venues/${orderPath(venueSlug, eventSlug, orderId)}/payment/`), {
       method: "POST",
       cache: "no-store",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider: method }),
       signal: AbortSignal.timeout(20_000),
     });
   } catch {
@@ -101,9 +135,8 @@ export async function getPaymentLink(venueSlug: string, eventSlug: string, order
   }
   const data = (await response.json().catch(() => ({}))) as { initPoint?: string; error?: string };
   if (response.ok) {
-    return data.initPoint && isMercadoPagoUrl(data.initPoint)
-      ? { ok: true, initPoint: data.initPoint }
-      : { ok: false, error: "network" };
+    const url = data.initPoint ? paymentUrl(data.initPoint, method, orderId) : null;
+    return url ? { ok: true, initPoint: url } : { ok: false, error: "network" };
   }
   return { ok: false, error: data.error ?? "network" };
 }
