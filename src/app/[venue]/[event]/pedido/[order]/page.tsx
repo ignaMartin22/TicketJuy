@@ -122,7 +122,7 @@ async function OrderContent({ params }: { params: PageProps<"/[venue]/[event]/pe
               {count > 1 && (
                 <p className="font-semibold text-tenue tabular-nums">
                   {`Entrada ${i + 1} de ${count}`}
-                  {ticket.usedAt ? " · usada" : ""}
+                  {ticket.voidedAt ? " · anulada" : ticket.usedAt ? " · usada" : ""}
                 </p>
               )}
               <TicketStub
@@ -138,7 +138,7 @@ async function OrderContent({ params }: { params: PageProps<"/[venue]/[event]/pe
                 }}
                 ticket={{
                   code: ticket.id.slice(0, 8).toUpperCase(),
-                  status: ticket.usedAt ? "used" : "valid",
+                  status: ticket.voidedAt ? "void" : ticket.usedAt ? "used" : "valid",
                 }}
                 qr={qrs[i]}
                 validUntil={ticket.validUntil}

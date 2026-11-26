@@ -8,6 +8,7 @@ import { LOGIN_PATH, clearStaffSession } from "@/lib/staff-session";
 export type ScanOutcome =
   | { kind: "admitted"; holderName: string; ticketType: string }
   | { kind: "already_used"; holderName: string; ticketType: string; usedAt: string; usedBy: string | null }
+  | { kind: "void"; holderName: string; ticketType: string }
   | { kind: "list_closed"; holderName: string; ticketType: string; validUntil: string }
   | { kind: "wrong_event"; title: string; startsAt: string }
   | { kind: "invalid" }
@@ -48,6 +49,8 @@ export async function scan(venue: string, event: string, text: string): Promise<
         usedAt: d.ticket.usedAt,
         usedBy: d.ticket.usedBy ?? null,
       };
+    case "void":
+      return { kind: "void", holderName: d.ticket.holderName, ticketType: d.ticket.ticketType };
     case "list_closed":
       return {
         kind: "list_closed",

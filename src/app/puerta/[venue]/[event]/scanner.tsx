@@ -385,6 +385,14 @@ function ResultScreen({ outcome, onClose }: { outcome: Outcome; onClose: () => v
       chip = outcome.ticketType;
       detail = `Entró a las ${formatTime(outcome.usedAt)}${outcome.usedBy ? ` · lo escaneó ${outcome.usedBy}` : ""}`;
       break;
+    case "void":
+      tone = "puerta-no";
+      icon = "no";
+      heading = "Entrada anulada";
+      name = outcome.holderName;
+      chip = outcome.ticketType;
+      detail = "No es válida para ingresar";
+      break;
     case "list_closed":
       tone = "puerta-no";
       icon = "used";

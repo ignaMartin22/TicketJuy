@@ -20,6 +20,8 @@ export type OrderTicket = {
   qr: string;
   /** Fecha ISO en que se quemó en la puerta, o null si sigue sin usar. */
   usedAt: string | null;
+  /** Entrada anulada (devolución o contracargo). Opcional: el back puede no mandarlo todavía. */
+  voidedAt?: string | null;
   /** Entradas de lista de RRPP: hora límite para ingresar (ISO), o null si no tiene. */
   validUntil?: string | null;
 };
