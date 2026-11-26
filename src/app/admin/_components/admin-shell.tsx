@@ -8,7 +8,7 @@ import { logoutStaff } from "../(panel)/actions";
 import { resetEvents, startPanel, useLoadError } from "../_lib/store";
 import { ConfirmDialog } from "./confirm-dialog";
 import { PageTransition } from "./page-transition";
-import { CalendarIcon, ChartIcon, CloseIcon, MenuIcon, PlusIcon } from "./icons";
+import { CalendarIcon, ChartIcon, CloseIcon, MenuIcon, PlusIcon, WalletIcon } from "./icons";
 
 /** Cómo se muestra cada rol del personal. */
 const ROL: Record<StaffRole, string> = {
@@ -22,6 +22,7 @@ const NAV = [
   { href: "/admin", label: "Resumen", icon: ChartIcon },
   { href: "/admin/eventos", label: "Eventos", icon: CalendarIcon },
   { href: "/admin/eventos/nuevo", label: "Nuevo evento", icon: PlusIcon },
+  { href: "/admin/cobros", label: "Cobros", icon: WalletIcon },
 ] as const;
 
 function isActive(href: string, pathname: string | null) {

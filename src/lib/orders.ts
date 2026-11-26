@@ -38,8 +38,8 @@ export type Order = {
    * No hay reembolso automático: el comprador tiene que hablar con el boliche.
    */
   paymentReview: boolean;
-  /** Con qué se puede pagar este pedido, según las cuentas que tenga conectadas el boliche. */
-  paymentMethods: PaymentMethod[];
+  /** Con qué se puede pagar este pedido, según las cuentas que tenga conectadas el boliche. Un back viejo no lo manda. */
+  paymentMethods?: PaymentMethod[];
 };
 
 /** Medios de pago que puede ofrecer un boliche. Nave cubre Naranja X y Galicia. */
