@@ -198,7 +198,7 @@ async function OrderContent({ params }: { params: PageProps<"/[venue]/[event]/pe
       ) : (
         <div className="mt-6">
           <ReservationTimer expiresAt={order.expiresAt} backHref={backHref} />
-          <PayButton venueSlug={venueSlug} eventSlug={eventSlug} orderId={order.id} methods={order.paymentMethods ?? []} />
+          <PayButton venueSlug={venueSlug} eventSlug={eventSlug} orderId={order.id} methods={order.paymentMethods} />
         </div>
       )}
     </div>

@@ -38,7 +38,8 @@ export function PayButton({
   venueSlug: string;
   eventSlug: string;
   orderId: string;
-  methods: PaymentMethod[];
+  /** Sin dato (un back viejo que no lo informa) se ofrece Mercado Pago, como antes. */
+  methods: PaymentMethod[] | undefined;
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState<PayState, FormData>(
@@ -47,8 +48,7 @@ export function PayButton({
   );
   // El medio del último botón tocado: para el texto de "abriendo…" y para saber cuál falló.
   const [chosen, setChosen] = useState<PaymentMethod | null>(null);
-  // Si el backend todavía no informa medios, se ofrece Mercado Pago como hasta ahora.
-  const options: PaymentMethod[] = methods.length > 0 ? methods : ["mercadopago"];
+  const options: PaymentMethod[] = methods ?? ["mercadopago"];
   const single = options.length === 1;
 
   useEffect(() => {
@@ -62,6 +62,15 @@ export function PayButton({
     : single
       ? `Te llevamos a ${NAMES[options[0]]} para pagar.`
       : "Elegí con qué pagar. Te llevamos a la página de pago.";
+
+  // El boliche no tiene ninguna cuenta de cobro vinculada (o hay que reconectarla): no hay botón que sirva.
+  if (options.length === 0) {
+    return (
+      <p role="status" className="mt-4 rounded-2xl border border-white/15 px-5 py-4 text-center text-sm text-tenue">
+        Este boliche todavía no tiene pagos online habilitados. Escribiles para comprar tus entradas.
+      </p>
+    );
+  }
 
   return (
     <form action={action} className="mt-4">
