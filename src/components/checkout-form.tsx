@@ -24,6 +24,9 @@ const ORDER_ERRORS: Record<string, string> = {
   event_unavailable: "Esta fecha ya no está a la venta.",
   sales_paused: "La venta de esta fecha está pausada por ahora. Probá más tarde.",
   order_limit_exceeded: "Podés comprar hasta 10 entradas por vez.",
+  too_many_reservations: "Ya tenés reservas sin pagar para esta fecha. Terminá el pago o esperá unos minutos.",
+  free_limit_reached: "Ya sacaste el máximo de entradas gratis para esta fecha.",
+  forbidden: "No pudimos reservar. Probá de nuevo.",
   network: "No pudimos conectarnos. Revisá la señal y probá de nuevo.",
 };
 const FIELD_ERRORS: Record<string, FieldName> = {
@@ -112,7 +115,7 @@ export function CheckoutForm({ venue, event, live }: { venue: Venue; event: Even
     setPaying(false);
     const field = FIELD_ERRORS[result.error];
     if (field) {
-      setErrors((prev) => ({ ...prev, [field]: validate(field, values[field]) ?? "Revisá este dato." }));
+      setErrors((prev) => ({ ...prev, [field]: validate(field, values[field]) ?? (field === "name" ? "Revisá el nombre: solo letras y espacios." : "Revisá este dato.") }));
       return;
     }
     setOrderError(result.error);

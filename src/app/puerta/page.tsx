@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { hasLiveCatalog } from "@/lib/catalog";
+import { assertConfigured, hasLiveCatalog } from "@/lib/catalog";
 import { doorEvents, doorVenues, getSession, type DoorEvent } from "@/lib/door";
 import { nightParts } from "@/lib/format";
 import { logout } from "./actions";
@@ -24,6 +24,7 @@ export default function PuertaPage() {
 
 async function Content() {
   if (!hasLiveCatalog()) {
+    assertConfigured();
     return (
       <>
         <h1 className="display text-4xl">Portería</h1>

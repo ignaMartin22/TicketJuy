@@ -5,6 +5,7 @@ const api = process.env.TICKETERA_API_URL;
 const mediaPattern = api ? [new URL("/media/**", api)] : [];
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   cacheComponents: true,
   images: {
     remotePatterns: mediaPattern,
@@ -19,6 +20,17 @@ const nextConfig: NextConfig = {
   // El service worker se pide siempre de nuevo (sin caché), así el celu toma la versión nueva al toque.
   async headers() {
     return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // La portería usa la cámara del propio sitio para escanear el QR.
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+          { key: "Strict-Transport-Security", value: "max-age=31536000" },
+        ],
+      },
       {
         source: "/sw.js",
         headers: [

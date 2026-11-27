@@ -1,8 +1,9 @@
 "use server";
 
 import { updateTag } from "next/cache";
+import { buyerHeaders } from "@/lib/api-headers";
 import type { Cart } from "@/lib/cart";
-import { apiUrl, hasLiveCatalog } from "@/lib/catalog";
+import { apiUrl, assertConfigured, hasLiveCatalog } from "@/lib/catalog";
 import type { Order } from "@/lib/orders";
 
 /** Sin teléfono: las entradas todavía no se envían por WhatsApp (el back lo acepta vacío). */
@@ -25,6 +26,7 @@ export async function createOrder(
   cart: Cart,
   idempotencyKey: string,
 ): Promise<CreateOrderResult> {
+  assertConfigured();
   if (!hasLiveCatalog()) return { ok: false, error: "unavailable" };
   if (!UUID.test(idempotencyKey)) return { ok: false, error: "invalid_request" };
 
@@ -34,7 +36,7 @@ export async function createOrder(
     response = await fetch(apiUrl(`/api/v1/venues/${path}/`), {
       method: "POST",
       cache: "no-store",
-      headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
+      headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey, ...(await buyerHeaders()) },
       body: JSON.stringify({
         email: buyer.email.trim(),
         name: buyer.name.trim(),

@@ -1,3 +1,4 @@
+import { frontKeyHeaders } from "@/lib/api-headers";
 import { cookies } from "next/headers";
 import { apiUrl, hasLiveCatalog } from "@/lib/catalog";
 
@@ -32,7 +33,7 @@ export async function getStaffSession(): Promise<StaffSession | null> {
   if (!token || !hasLiveCatalog()) return null;
   try {
     const response = await fetch(apiUrl("/api/v1/auth/me/"), {
-      headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+      headers: { Accept: "application/json", ...frontKeyHeaders(), Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
     if (!response.ok) return null;

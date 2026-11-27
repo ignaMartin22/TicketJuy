@@ -1,3 +1,4 @@
+import { frontKeyHeaders } from "@/lib/api-headers";
 import { apiUrl } from "@/lib/catalog";
 
 // Pedidos sin cuenta en ticketera-core. Solo se usan desde el servidor de Next.
@@ -19,6 +20,8 @@ export type OrderTicket = {
   qr: string;
   /** Fecha ISO en que se quemó en la puerta, o null si sigue sin usar. */
   usedAt: string | null;
+  /** Entrada anulada (devolución o contracargo). Opcional: el back puede no mandarlo todavía. */
+  voidedAt?: string | null;
   /** Entradas de lista de RRPP: hora límite para ingresar (ISO), o null si no tiene. */
   validUntil?: string | null;
 };
@@ -53,6 +56,7 @@ const orderPath = (venueSlug: string, eventSlug: string, orderId: string) =>
 export async function getOrder(venueSlug: string, eventSlug: string, orderId: string): Promise<Order | null> {
   const response = await fetch(apiUrl(`/api/v1/venues/${orderPath(venueSlug, eventSlug, orderId)}/`), {
     cache: "no-store",
+    headers: frontKeyHeaders(),
   });
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`La API de pedidos respondió con estado ${response.status}`);
@@ -68,6 +72,7 @@ export async function syncOrder(venueSlug: string, eventSlug: string, orderId: s
   const response = await fetch(apiUrl(`/api/v1/venues/${orderPath(venueSlug, eventSlug, orderId)}/payment/sync/`), {
     method: "POST",
     cache: "no-store",
+    headers: frontKeyHeaders(),
     signal: AbortSignal.timeout(15_000),
   });
   if (response.status === 404) return null;
@@ -126,7 +131,7 @@ export async function getPaymentLink(
     response = await fetch(apiUrl(`/api/v1/venues/${orderPath(venueSlug, eventSlug, orderId)}/payment/`), {
       method: "POST",
       cache: "no-store",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...frontKeyHeaders() },
       body: JSON.stringify({ provider: method }),
       signal: AbortSignal.timeout(20_000),
     });

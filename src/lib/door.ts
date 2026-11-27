@@ -1,3 +1,4 @@
+import { frontKeyHeaders } from "@/lib/api-headers";
 import { cookies } from "next/headers";
 import { apiUrl } from "@/lib/catalog";
 import { STAFF_COOKIE } from "@/lib/staff-session";
@@ -15,6 +16,7 @@ export type ScanTicket = { id: string; ticketType: string; holderName: string; u
 export type ScanResult =
   | { result: "admitted"; ticket: ScanTicket }
   | { result: "already_used"; ticket: ScanTicket & { usedBy: string | null } }
+  | { result: "void"; ticket: { id: string; ticketType: string; holderName: string; voidedAt: string } }
   | { result: "list_closed"; ticket: { holderName: string; ticketType: string; validUntil: string } }
   | { result: "wrong_event"; event: DoorEvent }
   | { result: "invalid" };
@@ -59,6 +61,7 @@ export async function call<T>(
       cache: "no-store",
       headers: {
         Accept: "application/json",
+        ...frontKeyHeaders(),
         Authorization: `Bearer ${session.token}`,
         ...(init.body ? { "Content-Type": "application/json" } : {}),
       },

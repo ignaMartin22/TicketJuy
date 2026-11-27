@@ -45,7 +45,7 @@ export async function rrppAddGuest(
     session,
     `/api/v1/rrpp/lists/${seg(id)}/guests/`,
     { method: "POST", body: guest },
-    [201, 400, 404, 409],
+    [201, 400, 403, 404, 409, 429],
   );
   if (!r.ok) return r;
   if ("error" in r.data && typeof r.data.error === "string") return { ok: false, reason: r.data.error };
